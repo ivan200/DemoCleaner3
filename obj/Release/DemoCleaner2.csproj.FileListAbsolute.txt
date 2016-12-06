@@ -1,0 +1,9 @@
+C:\Users\Иван\Documents\Visual Studio 2015\Projects\DemoCleaner2\bin\Release\DemoCleaner2.exe.config
+C:\Users\Иван\Documents\Visual Studio 2015\Projects\DemoCleaner2\obj\Release\DemoCleaner2.exe
+C:\Users\Иван\Documents\Visual Studio 2015\Projects\DemoCleaner2\obj\Release\DemoCleaner2.pdb
+C:\Users\Иван\Documents\Visual Studio 2015\Projects\DemoCleaner2\bin\Release\DemoCleaner2.exe
+C:\Users\Иван\Documents\Visual Studio 2015\Projects\DemoCleaner2\bin\Release\DemoCleaner2.pdb
+C:\Users\Иван\Documents\Visual Studio 2015\Projects\DemoCleaner2\obj\Release\DemoCleaner2.csprojResolveAssemblyReference.cache
+C:\Users\Иван\Documents\Visual Studio 2015\Projects\DemoCleaner2\obj\Release\DemoCleaner2.Form1.resources
+C:\Users\Иван\Documents\Visual Studio 2015\Projects\DemoCleaner2\obj\Release\DemoCleaner2.Properties.Resources.resources
+C:\Users\Иван\Documents\Visual Studio 2015\Projects\DemoCleaner2\obj\Release\DemoCleaner2.csproj.GenerateResource.Cache
