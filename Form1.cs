@@ -886,5 +886,14 @@ namespace DemoCleaner2
             }
             return groups;
         }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            MessageBox.Show("Made by Enter" 
+                + "\nusing MS Visual C# 2015"
+                + "\nmail: wilerat@gmail.com"
+                + "\nskype: Ivan.1010", 
+                "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
     }
 }

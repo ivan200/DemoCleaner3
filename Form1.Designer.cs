@@ -75,6 +75,7 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -585,6 +586,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.linkLabel1);
             this.tabPage2.Controls.Add(this.checkBoxDeleteIdentical);
             this.tabPage2.Controls.Add(this.groupBoxBadDemos);
             this.tabPage2.Controls.Add(this.checkBoxDeleteEmptyDirs);
@@ -642,6 +644,18 @@
             this.toolStripProgressBar1.Name = "toolStripProgressBar1";
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             this.toolStripProgressBar1.Visible = false;
+            // 
+            // linkLabel1
+            // 
+            this.linkLabel1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabel1.AutoSize = true;
+            this.linkLabel1.Location = new System.Drawing.Point(307, 154);
+            this.linkLabel1.Name = "linkLabel1";
+            this.linkLabel1.Size = new System.Drawing.Size(13, 13);
+            this.linkLabel1.TabIndex = 24;
+            this.linkLabel1.TabStop = true;
+            this.linkLabel1.Text = "?";
+            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
             // Form1
             // 
@@ -735,5 +749,6 @@
         private System.Windows.Forms.CheckBox checkBoxUseSubfolders;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.NumericUpDown numericUpDownCountOfBest;
+        private System.Windows.Forms.LinkLabel linkLabel1;
     }
 }
