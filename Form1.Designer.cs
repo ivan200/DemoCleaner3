@@ -70,12 +70,13 @@
             this.buttonBrowseWhereMove = new System.Windows.Forms.Button();
             this.textBoxMoveDemosFolder = new System.Windows.Forms.TextBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.checkBoxDeleteIdentical = new System.Windows.Forms.CheckBox();
             this.checkBoxDeleteEmptyDirs = new System.Windows.Forms.CheckBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -335,6 +336,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage3);
+            this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Location = new System.Drawing.Point(12, 68);
             this.tabControl1.Name = "tabControl1";
@@ -598,6 +600,18 @@
             this.tabPage2.Text = "Additional options";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // linkLabel1
+            // 
+            this.linkLabel1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabel1.AutoSize = true;
+            this.linkLabel1.Location = new System.Drawing.Point(307, 154);
+            this.linkLabel1.Name = "linkLabel1";
+            this.linkLabel1.Size = new System.Drawing.Size(13, 13);
+            this.linkLabel1.TabIndex = 24;
+            this.linkLabel1.TabStop = true;
+            this.linkLabel1.Text = "?";
+            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            // 
             // checkBoxDeleteIdentical
             // 
             this.checkBoxDeleteIdentical.AutoSize = true;
@@ -645,17 +659,15 @@
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             this.toolStripProgressBar1.Visible = false;
             // 
-            // linkLabel1
+            // tabPage4
             // 
-            this.linkLabel1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.linkLabel1.AutoSize = true;
-            this.linkLabel1.Location = new System.Drawing.Point(307, 154);
-            this.linkLabel1.Name = "linkLabel1";
-            this.linkLabel1.Size = new System.Drawing.Size(13, 13);
-            this.linkLabel1.TabIndex = 24;
-            this.linkLabel1.TabStop = true;
-            this.linkLabel1.Text = "?";
-            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(338, 183);
+            this.tabPage4.TabIndex = 3;
+            this.tabPage4.Text = "Demo renamer";
+            this.tabPage4.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -750,5 +762,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.NumericUpDown numericUpDownCountOfBest;
         private System.Windows.Forms.LinkLabel linkLabel1;
+        private System.Windows.Forms.TabPage tabPage4;
     }
 }
