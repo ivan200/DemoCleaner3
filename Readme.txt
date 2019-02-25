@@ -1,6 +1,6 @@
 ﻿Democleaner2
 
- A program for processing (moving / deleting) demo files created when recording card passes in Quake3.
+ A program for processing (moving / deleting) demo files created when recording the completion of maps in Quake3.
 
  Supports many options:
  - Ability to process also subdirectories
