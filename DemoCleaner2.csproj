@@ -65,6 +65,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Demo.cs" />
+    <Compile Include="DemoParser\const\Constants.cs" />
+    <Compile Include="DemoParser\const\Q3Const.cs" />
+    <Compile Include="DemoParser\const\Q3_SVC.cs" />
+    <Compile Include="DemoParser\huffman\Q3HuffmanMapper.cs" />
+    <Compile Include="DemoParser\huffman\Q3HuffmanNode.cs" />
+    <Compile Include="DemoParser\huffman\Q3HuffmanReader.cs" />
+    <Compile Include="DemoParser\parser\AbstractDemoMessageParser.cs" />
+    <Compile Include="DemoParser\parser\Q3DemoConfigParser.cs" />
+    <Compile Include="DemoParser\parser\Q3DemoMessage.cs" />
+    <Compile Include="DemoParser\parser\Q3DemoParser.cs" />
+    <Compile Include="DemoParser\parser\Q3EmptyParser.cs" />
+    <Compile Include="DemoParser\parser\Q3MessageStream.cs" />
+    <Compile Include="DemoParser\utils\BitStreamReader.cs" />
+    <Compile Include="DemoParser\utils\Q3Utils.cs" />
     <Compile Include="ExtClasses\Extention.cs" />
     <Compile Include="ExtClasses\FolderBrowserDialogEx.cs">
       <SubType>Component</SubType>
