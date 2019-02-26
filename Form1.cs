@@ -4,6 +4,8 @@ using System.Linq;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
+using DemoRenamer.DemoParser.huffman;
+using DemoRenamer;
 
 namespace DemoCleaner2
 {
@@ -65,6 +67,10 @@ namespace DemoCleaner2
         string _badDemosDirName = ".incorrectly named";
         string _slowDemosDirName = ".slow demos";
         string _moveDemosdirName = "!demos";
+
+
+        //renameDemos
+        FileInfo openDemoFile;
 
         //Загрузка настроек форм
         private void loadSettings()
@@ -128,6 +134,8 @@ namespace DemoCleaner2
                 tabControl1.SelectedIndex = prop.tabSelectedIndex;
 
                 numericUpDownCountOfBest.Value = (decimal)prop.countOfBestDemos;
+
+                openFileDialog1.InitialDirectory = dir;
             }
             catch (Exception)
             {
@@ -890,10 +898,29 @@ namespace DemoCleaner2
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             MessageBox.Show("Made by Enter" 
-                + "\nusing MS Visual C# 2015"
+                + "\nusing MS Visual Studio 2017"
                 + "\nmail: wilerat@gmail.com"
-                + "\nskype: Ivan.1010", 
+                + "\nskype: Ivan.1010"
+                + "\ndiscord: Enter#4725", 
                 "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        DemoInfoForm demoInfoForm;
+
+        private void buttonSingleFileInfo_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog1.ShowDialog(this) == DialogResult.OK && openFileDialog1.FileName.Length > 0)
+            {
+                openDemoFile = new FileInfo(openFileDialog1.FileName);
+
+                Q3HuffmanMapper.init();
+                var t = Q3HuffmanMapper.rootNode;
+                var cfg = Q3DemoParser.getFriendlyConfig(openDemoFile.FullName);
+
+                demoInfoForm = new DemoInfoForm();
+                demoInfoForm.friendlyConfig = cfg;
+                demoInfoForm.Show();
+            }
         }
     }
 }

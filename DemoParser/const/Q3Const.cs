@@ -10,7 +10,5 @@ namespace DemoRenamer.DemoParser
         public const int Q3_DEMO_CFG_FIELD_CLIENT = 0;
         public const int Q3_DEMO_CFG_FIELD_GAME = 1;
         public const int Q3_DEMO_CFG_FIELD_PLAYER = 544;
-
-        public const int Q3_DEMO_CFG_FIELD_PLAYER2 = 548;
     }
 }

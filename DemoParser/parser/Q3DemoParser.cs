@@ -73,40 +73,27 @@ namespace DemoRenamer
 
             Dictionary<string, Dictionary<string, string>> result = new Dictionary<string, Dictionary<string, string>>();
 
-
             foreach (var item in conf)
             {
                 if (item.Value.IndexOf('\\') >= 0)
                 {
-                    result[item.Key.ToString()] = Q3Utils.split_config(item.Value);
+                    String keyName = item.Key.ToString();
+                    switch (item.Key)
+                    {
+                        case Q3Const.Q3_DEMO_CFG_FIELD_CLIENT: keyName = "client"; break;
+                        case Q3Const.Q3_DEMO_CFG_FIELD_GAME: keyName = "game"; break;
+                        case Q3Const.Q3_DEMO_CFG_FIELD_PLAYER: keyName = "player"; break;
+                    }
+
+                    result[keyName] = Q3Utils.split_config(item.Value);
+                }
+                else
+                {
+                    Dictionary<string, string> rez = new Dictionary<string, string>();
+                    rez.Add(item.Key.ToString(), item.Value);
+                    result[item.Key.ToString()] = rez;
                 }
             }
-
-
-            //if (conf.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT))
-            //{
-            //    result["client"] = Q3Utils.split_config(conf[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]);
-
-            //    //result["client_version"] = result["client"]["version"];
-            //    //result["physic"] = result['client']['df_promode'] == 0 ? 'vq3' : 'cpm';
-            //}
-
-            //if (conf.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_GAME))
-            //{
-            //    result["game"] = Q3Utils.split_config(conf[Q3Const.Q3_DEMO_CFG_FIELD_GAME]);
-            //}
-
-
-            //if (conf.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER))
-            //{
-            //    result["player"] = Q3Utils.split_config(conf[Q3Const.Q3_DEMO_CFG_FIELD_PLAYER]);
-            //}
-            //else {
-            //    if (conf.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER2))
-            //    {
-            //        result["player"] = Q3Utils.split_config(conf[Q3Const.Q3_DEMO_CFG_FIELD_PLAYER2]);
-            //    }
-            //}
 
             Dictionary<string, string> raw = new Dictionary<string, string>();
             foreach (var r in conf) {

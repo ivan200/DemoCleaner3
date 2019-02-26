@@ -65,6 +65,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Demo.cs" />
+    <Compile Include="DemoInfoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DemoInfoForm.Designer.cs">
+      <DependentUpon>DemoInfoForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="DemoParser\const\Constants.cs" />
     <Compile Include="DemoParser\const\Q3Const.cs" />
     <Compile Include="DemoParser\const\Q3_SVC.cs" />
@@ -95,6 +101,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="DemoInfoForm.resx">
+      <DependentUpon>DemoInfoForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

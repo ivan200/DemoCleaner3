@@ -69,6 +69,8 @@
             this.groupBoxMoveDemos = new System.Windows.Forms.GroupBox();
             this.buttonBrowseWhereMove = new System.Windows.Forms.Button();
             this.textBoxMoveDemosFolder = new System.Windows.Forms.TextBox();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.buttonSingleFileInfo = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.checkBoxDeleteIdentical = new System.Windows.Forms.CheckBox();
@@ -76,7 +78,7 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -90,6 +92,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMaxFolders)).BeginInit();
             this.groupBoxName.SuspendLayout();
             this.groupBoxMoveDemos.SuspendLayout();
+            this.tabPage4.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -586,6 +589,28 @@
             this.textBoxMoveDemosFolder.TabIndex = 5;
             this.textBoxMoveDemosFolder.TextChanged += new System.EventHandler(this.textBoxMoveDemosFolder_TextChanged);
             // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.buttonSingleFileInfo);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(338, 183);
+            this.tabPage4.TabIndex = 3;
+            this.tabPage4.Text = "Demo renamer";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // buttonSingleFileInfo
+            // 
+            this.buttonSingleFileInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonSingleFileInfo.Location = new System.Drawing.Point(114, 85);
+            this.buttonSingleFileInfo.Name = "buttonSingleFileInfo";
+            this.buttonSingleFileInfo.Size = new System.Drawing.Size(96, 23);
+            this.buttonSingleFileInfo.TabIndex = 8;
+            this.buttonSingleFileInfo.Text = "View demo Info";
+            this.buttonSingleFileInfo.UseVisualStyleBackColor = true;
+            this.buttonSingleFileInfo.Click += new System.EventHandler(this.buttonSingleFileInfo_Click);
+            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.linkLabel1);
@@ -659,15 +684,10 @@
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             this.toolStripProgressBar1.Visible = false;
             // 
-            // tabPage4
+            // openFileDialog1
             // 
-            this.tabPage4.Location = new System.Drawing.Point(4, 22);
-            this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(338, 183);
-            this.tabPage4.TabIndex = 3;
-            this.tabPage4.Text = "Demo renamer";
-            this.tabPage4.UseVisualStyleBackColor = true;
+            this.openFileDialog1.FileName = "openFileDialog1";
+            this.openFileDialog1.Filter = "Demo files|*.dm_68;*.dm_67;*.dm_66";
             // 
             // Form1
             // 
@@ -705,6 +725,7 @@
             this.groupBoxName.PerformLayout();
             this.groupBoxMoveDemos.ResumeLayout(false);
             this.groupBoxMoveDemos.PerformLayout();
+            this.tabPage4.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
@@ -763,5 +784,7 @@
         private System.Windows.Forms.NumericUpDown numericUpDownCountOfBest;
         private System.Windows.Forms.LinkLabel linkLabel1;
         private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.Button buttonSingleFileInfo;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }
 }
