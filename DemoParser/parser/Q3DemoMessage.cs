@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DemoRenamer.DemoParser
+namespace DemoCleaner2.DemoParser.parser
 {
     class Q3DemoMessage
     {

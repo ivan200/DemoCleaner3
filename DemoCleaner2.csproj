@@ -83,6 +83,7 @@
     <Compile Include="DemoParser\parser\Q3DemoParser.cs" />
     <Compile Include="DemoParser\parser\Q3EmptyParser.cs" />
     <Compile Include="DemoParser\parser\Q3MessageStream.cs" />
+    <Compile Include="DemoParser\parser\RawInfo.cs" />
     <Compile Include="DemoParser\utils\BitStreamReader.cs" />
     <Compile Include="DemoParser\utils\Q3Utils.cs" />
     <Compile Include="ExtClasses\Extention.cs" />

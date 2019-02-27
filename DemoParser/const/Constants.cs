@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DemoRenamer.DemoParser
+namespace DemoCleaner2.DemoParser
 {
     class Constants
     {
@@ -12,7 +12,6 @@ namespace DemoRenamer.DemoParser
         public const int Q3_MAX_CONFIGSTRINGS = 1024;
         public const int Q3_PERCENT_CHAR_BYTE = 37;
         public const int Q3_DOT_CHAR_BYTE = 46;
-
         public const long Q3_HUFFMAN_NYT_SYM = 0xFFFFFFFF;
     }
 }

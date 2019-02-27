@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DemoCleaner2.DemoParser.parser;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,7 +11,7 @@ namespace DemoCleaner2
 {
     public partial class DemoInfoForm : Form
     {
-        public Dictionary<string, Dictionary<string, string>> friendlyConfig = null;
+        public RawInfo info = null;
 
         public DemoInfoForm()
         {
@@ -25,13 +26,15 @@ namespace DemoCleaner2
 
         void loadFriendlyConfig(DataGridView grid)
         {
-            if (friendlyConfig == null)
+            if (info == null)
             {
                 return;
             }
 
+            var frInfo = info.getFriendlyInfo();
+
             grid.Rows.Clear();
-            foreach (var cType in friendlyConfig)
+            foreach (var cType in frInfo)
             {
                 grid.Rows.Add();
                 grid.Rows[grid.RowCount - 1].Cells[0].Value = cType.Key;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace DemoRenamer.DemoParser.parser
+namespace DemoCleaner2.DemoParser.parser
 {
     class Q3MessageStream
     {

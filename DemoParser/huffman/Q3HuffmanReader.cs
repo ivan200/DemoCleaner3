@@ -1,11 +1,11 @@
-﻿using DemoRenamer.DemoParser.huffman;
-using DemoRenamer.DemoParser.utils;
+﻿using DemoCleaner2.DemoParser.huffman;
+using DemoCleaner2.DemoParser.utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace DemoRenamer.DemoParser
+namespace DemoCleaner2.DemoParser
 {
     class Q3HuffmanReader
     {

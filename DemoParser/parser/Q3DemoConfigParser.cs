@@ -2,17 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DemoRenamer.DemoParser
+namespace DemoCleaner2.DemoParser.parser
 {
     class Q3DemoConfigParser : AbstractDemoMessageParser
     {
+        public List<string> performedTimes = new List<string>();
+        public List<string> dateStamp = new List<string>();
 
         private Dictionary<short, string> configs = null;
-
-        public bool hasConfigs()
-        {
-            return this.configs != null;
-        }
 
         public Dictionary<short, string> getRawConfigs()
         {
@@ -22,7 +19,7 @@ namespace DemoRenamer.DemoParser
         public bool parse(Q3DemoMessage message)
         {
             Q3HuffmanReader reader = new Q3HuffmanReader(message.data);
-            var lo = reader.readLong();
+            reader.readLong();
 
             while (!reader.isEOD())
             {
@@ -37,17 +34,14 @@ namespace DemoRenamer.DemoParser
                         return this.configs != null;
 
                     case Q3_SVC.SERVERCOMMAND:
-                        reader.readServerCommand();
+                        this.parseServerCommand(reader);
                         break;
-
                     case Q3_SVC.GAMESTATE:
                         this.parseGameState(reader);
                         return this.configs != null;
-
                     case Q3_SVC.SNAPSHOT:
                         // snapshots couldn't be mixed with game-state command in a single message
-                        return false;
-
+                        return true;
                     default:
                         // unknown command / corrupted stream
                         return false;
@@ -55,6 +49,23 @@ namespace DemoRenamer.DemoParser
             }
             return false;
         }
+
+        private void parseServerCommand(Q3HuffmanReader reader) {
+            var key = reader.readLong();
+            var value = reader.readString();
+            if (value.StartsWith("print"))
+            {
+                if (value.StartsWith("print \"Date:"))
+                {
+                    dateStamp.Add(value);
+                }
+                if (value.StartsWith("print \"Time performed by"))
+                {
+                    performedTimes.Add(value);
+                }
+            }
+        }
+
 
         private void parseGameState(Q3HuffmanReader reader)
         {

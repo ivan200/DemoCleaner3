@@ -4,8 +4,8 @@ using System.Linq;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
-using DemoRenamer.DemoParser.huffman;
-using DemoRenamer;
+using DemoCleaner2.DemoParser.huffman;
+using DemoCleaner2.DemoParser.parser;
 
 namespace DemoCleaner2
 {
@@ -915,10 +915,10 @@ namespace DemoCleaner2
 
                 Q3HuffmanMapper.init();
                 var t = Q3HuffmanMapper.rootNode;
-                var cfg = Q3DemoParser.getFriendlyConfig(openDemoFile.FullName);
+                var cfg = Q3DemoParser.getRawConfigStrings(openDemoFile.FullName);
 
                 demoInfoForm = new DemoInfoForm();
-                demoInfoForm.friendlyConfig = cfg;
+                demoInfoForm.info = cfg;
                 demoInfoForm.Show();
             }
         }

@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using DemoCleaner2.DemoParser.parser;
+using System.Text.RegularExpressions;
 
 namespace DemoCleaner2
 {
@@ -88,5 +90,62 @@ namespace DemoCleaner2
             return mod;
         }
 
+
+        public static Demo GetDemoFromRawInfo(FileInfo file, RawInfo raw)
+        {
+            if (raw.performedTimes.Count == 0)
+            {
+                return GetDemoFromFile(file);
+            }
+
+            var frConfig = raw.getFriendlyInfo();
+
+            List<Demo> demos = new List<Demo>();
+            for (int i = 0; i < raw.performedTimes.Count; i++)
+            {
+                Demo demo = new Demo();
+
+                //Время
+                var demoTimeCmd = raw.performedTimes[i];
+                demoTimeCmd = Regex.Replace(demoTimeCmd, @"\\^[0-9]", "");
+                demoTimeCmd = demoTimeCmd.Substring(demoTimeCmd.IndexOf(':') + 2);
+
+                string demoTime = demoTimeCmd.Substring(0, demoTimeCmd.IndexOf(' ')).Trim();
+
+                var times = demoTime.Split(':').Reverse().ToList();
+
+                demo.time = new TimeSpan(0, 0,
+                            times.Count > 2 ? int.Parse(times[2]) : 0,
+                            times.Count > 1 ? int.Parse(times[1]) : 0,
+                            times.Count > 0 ? int.Parse(times[0]) : 0);
+
+                //Карта
+                demo.mapName = frConfig[RawInfo.keyClient]["mapname"];
+
+                //Физика
+                var promode = frConfig[RawInfo.keyClient]["df_promode"];
+                demo.modphysic = int.Parse(promode) == 1 ? "cpm" : "vq3";
+
+
+
+                //demo.modphysic = sub[1];
+                //if (sub[1].Length < 3)
+                //{
+                //    demo.hasError = true;
+                //}
+
+
+
+
+                demos.Add(demo);
+            }
+
+
+
+            //demo.file = file;
+
+
+            return null;
+        }
     }
 }
