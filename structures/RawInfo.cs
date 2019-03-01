@@ -50,18 +50,22 @@ namespace DemoCleaner2.DemoParser.parser
                 if (dateStamps.Count > 0 || performedTimes.Count > 0 || onlineTimes.Count > 0) {
                     for (int i = 0; i < dateStamps.Count; i++) {
                         string key = dateStamps.Count > 1 ? keyRecordDate + " " + (i + 1) : keyRecordDate;
-                        times.Add(key, dateStamps[i]);
+                        times.Add(key, dateStamps[i].Replace("print ", ""));
                     }
                     for (int i = 0; i < performedTimes.Count; i++) {
                         string key = performedTimes.Count > 1 ? keyRecordTime + " " + (i + 1) : keyRecordTime;
-                        times.Add(key, performedTimes[i]);
+                        times.Add(key, performedTimes[i].Replace("print ",""));
                     }
                     for (int i = 0; i < onlineTimes.Count; i++) {
                         string key = onlineTimes.Count > 1 ? keyRecordTime + " " + (i + 1) : keyRecordTime;
-                        times.Add(key, onlineTimes[i]);
+                        times.Add(key, onlineTimes[i].Replace("print ", ""));
                     }
                 }
                 friendlyInfo.Add(keyRecord, times);
+
+                if (rawConfig == null) {
+                    return friendlyInfo;
+                }
 
                 if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER)) {
                     friendlyInfo.Add(keyPlayer, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_PLAYER]));

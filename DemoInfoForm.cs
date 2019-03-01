@@ -58,8 +58,8 @@ namespace DemoCleaner2
             string newPath = Path.Combine(demo.file.Directory.FullName, textNewName.Text);
             File.Move(demo.file.FullName, newPath);
 
-            if (demo.recordTime != null) {
-                File.SetCreationTime(newPath, demo.recordTime);
+            if (demo.recordTime.HasValue) {
+                File.SetCreationTime(newPath, demo.recordTime.Value);
             }
 
             MessageBox.Show("File was Renamed", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
