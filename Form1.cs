@@ -65,6 +65,19 @@ namespace DemoCleaner2
         //renameDemos
         FileInfo openDemoFile;
 
+        public Form1()
+        {
+            if (System.Environment.OSVersion.Version.Major < 6) {
+                _catchTaskBar = true;
+            }
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            loadSettings();
+        }
+
         //Загрузка настроек форм
         private void loadSettings()
         {
@@ -180,17 +193,6 @@ namespace DemoCleaner2
             prop.countOfBestDemos = (int)numericUpDownCountOfBest.Value;
 
             prop.Save();
-        }
-
-
-        public Form1()
-        {
-            InitializeComponent();
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            loadSettings();
         }
 
         private void checkBoxSplitFolders_CheckedChanged(object sender, EventArgs e)

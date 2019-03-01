@@ -48,3 +48,4 @@ Temporary Items
 obj/
 .vs/
 *.pdb
+bin/Debug/DemoCleaner2.exe
