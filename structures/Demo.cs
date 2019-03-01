@@ -27,7 +27,8 @@ namespace DemoCleaner2
         string dfType;
         string physic;
         string modNum;
-        bool cheats;
+
+        string validity = "";
 
         public string demoNewName {
             get {
@@ -35,7 +36,7 @@ namespace DemoCleaner2
                 if (time.TotalMilliseconds > 0) {
                     //если есть тайм, то пишем нормальный name для демки
                     demoname = string.Format("{0}[{1}]{2:D2}.{3:D2}.{4:D3}({5})",
-                    mapName, modphysic, time.Minutes, time.Seconds, time.Milliseconds, playerName);
+                    mapName, modphysic, (int) time.TotalMinutes, time.Seconds, time.Milliseconds, playerName);
                 } else {
                     //если нет тайма, то мучаемся с генерацией текста
                     string oldName = file.Name;
@@ -50,13 +51,14 @@ namespace DemoCleaner2
                     if (oldName.Length > 0) {
                         oldName = "_" + oldName;    //добавляем инфу о читах если они есть
                     }
-                    demoname = string.Format("_{0}[{1}]({2}){3}",
+                    demoname = string.Format("&{0}[{1}]({2}){3}",
                     mapName, modphysic, playerName, oldName);
                 }
 
-                if (cheats) {
-                    demoname = demoname + "_cheats";
+                if (validity.Length > 0) {
+                    demoname = demoname + "{" + validity + "}"; //добавляем инфу о валидации
                 }
+
                 return demoname + file.Extension;
             }
         }
@@ -118,16 +120,9 @@ namespace DemoCleaner2
                 //Время
                 demo.timeString = sub[2];
                 var times = demo.timeString.Split('-', '.');
-                if (times.Length == 3) {
-                    try {
-                        demo.time = new TimeSpan(0, 0,
-                            int.Parse(times[0]),
-                            int.Parse(times[1]),
-                            int.Parse(times[2]));
-                    } catch (Exception) {
-                        demo.hasError = true;
-                    }
-                } else {
+                try {
+                    demo.time = getTimeSpan(demo.timeString);
+                } catch (Exception) {
                     demo.hasError = true;
                 }
 
@@ -219,7 +214,7 @@ namespace DemoCleaner2
             demo.modphysic = string.Format("{0}.{1}{2}", demo.dfType, demo.physic, demo.modNum);
 
             //если есть читы, то пишем в демку
-            demo.cheats = int.Parse(frConfig[RawInfo.keyGame]["sv_cheats"]) > 0;
+            demo.validity = checkValidity(raw);
             return demo;
         }
 
@@ -255,12 +250,12 @@ namespace DemoCleaner2
 
         static TimeSpan getTimeSpan(string timeString)
         {
-            var times = timeString.Split(':').Reverse().ToList();
+            var times = timeString.Split('-', '.', ':').Reverse().ToList();
             //так как мы реверснули таймы, милисекунды будут в начале
-            return new TimeSpan(0, 0,
-                        times.Count > 2 ? int.Parse(times[2]) : 0,
-                        times.Count > 1 ? int.Parse(times[1]) : 0,
-                        times.Count > 0 ? int.Parse(times[0]) : 0);
+            return TimeSpan.Zero
+                .Add(TimeSpan.FromMilliseconds  (times.Count > 0 ? int.Parse(times[0]) : 0))
+                .Add(TimeSpan.FromSeconds       (times.Count > 1 ? int.Parse(times[1]) : 0))
+                .Add(TimeSpan.FromMinutes       (times.Count > 2 ? int.Parse(times[2]) : 0));
         }
 
         //получение даты записи демки если она есть
@@ -270,6 +265,48 @@ namespace DemoCleaner2
             string dateString = s.Substring(13).Replace("\n", "").Replace("\"", "").Trim();
 
             return DateTime.ParseExact(dateString, "MM-dd-yy HH:mm", CultureInfo.InvariantCulture);
+        }
+
+        static string checkValidity(RawInfo raw) {
+            var frConfig = raw.getFriendlyInfo();
+
+            if (!frConfig.ContainsKey(RawInfo.keyGame)) {
+                return "";
+            }
+
+            var kGame = frConfig[RawInfo.keyGame];
+            
+            var gametype = int.Parse(frConfig[RawInfo.keyClient]["defrag_gametype"]);
+            var online = gametype > 3;
+            string res;
+
+            var fs = (gametype == 2 || gametype == 6);
+            if (!fs) {
+                res = checkKey(kGame, "sv_cheats", 0);              if (res.Length > 0) return res;
+                res = checkKey(kGame, "df_mp_interferenceoff", 3);  if (res.Length > 0) return res;
+            }
+
+            res = checkKey(kGame, "timescale", 1);                  if (res.Length > 0) return res;
+            res = checkKey(kGame, "defrag_svfps", 125, "sv_fps");   if (res.Length > 0) return res;
+            res = checkKey(kGame, "g_knockback", 1000);             if (res.Length > 0) return res;
+            res = checkKey(kGame, "g_gravity", 800);                if (res.Length > 0) return res;
+            res = checkKey(kGame, "g_speed", 320);                  if (res.Length > 0) return res;
+            res = checkKey(kGame, "pmove_msec", 8);                 if (res.Length > 0) return res;
+
+            res = checkKey(kGame, "g_synchronousclients", (online ? 0 : 1), "g_sync"); if (res.Length > 0) return res;
+            res = checkKey(kGame, "pmove_fixed", (online ? 1 : 0)); if (res.Length > 0) return res;
+            return "";
+        }
+
+        static string checkKey(Dictionary<string, string> keysGame, string key, int val, string errorString = "") {
+            if (keysGame.ContainsKey(key) && keysGame[key].Length > 0) {
+                int value = -1;
+                var success = int.TryParse(keysGame[key], out value);
+                if (!success || value != val) {
+                    return (errorString.Length > 0 ? errorString : key) + "=" + keysGame[key];
+                }
+            }
+            return "";
         }
     }
 }
