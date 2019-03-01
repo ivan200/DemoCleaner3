@@ -19,28 +19,23 @@ namespace DemoCleaner2
         static string getFirstDir(string Key)
         {
             var c = Key[0];
-            if (char.IsDigit(c))
-            {
+            if (char.IsDigit(c)) {
                 return ("0-9");
             }
-            if (c >= 'a' && c <= 'z')
-            {
+            if (c >= 'a' && c <= 'z') {
                 return c.ToString();
-            }
-            else return "._";
+            } else return "._";
         }
 
         //по уровню вложенности и ключу группировки нарезаем полный путь к каталогу
         public static string GetFullNameFromIndex(string key, int index)
         {
-            if (key.Length == 1)
-            {
+            if (key.Length == 1) {
                 return getFirstDir(key);
             }
 
             var subkeys = new List<string>();
-            for (int i = 0; i < key.Length - 1; i++)
-            {
+            for (int i = 0; i < key.Length - 1; i++) {
                 subkeys.Add(key.Substring(0, i + 1));
             }
             subkeys[0] = getFirstDir(key);
@@ -54,8 +49,7 @@ namespace DemoCleaner2
         //получение ключа группировки по уровню вложенности и названию папки
         public static string GetKeyFromIndex(string key, int index)
         {
-            if (index == 0)
-            {
+            if (index == 0) {
                 return getFirstDir(key);
             }
             return key.Substring(index, 1);

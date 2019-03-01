@@ -21,18 +21,15 @@ namespace DemoCleaner2
 
         bool _catchTaskBar = false;
 
-        decimal _CountProgressDemos
-        {
+        decimal _CountProgressDemos {
             get { return _countProgressDemos; }
-            set
-            {
+            set {
                 _countProgressDemos = value;
                 float number = ((float)_countProgressDemos / (float)_countDemosAmount) * 100;
                 int dnumber = (int)number;
 
                 if (dnumber < 0) dnumber = 0;
-                if (toolStripProgressBar1.Value != dnumber)
-                {
+                if (toolStripProgressBar1.Value != dnumber) {
                     this.Invoke(new SetItemInt(setProgress), dnumber);
                 }
             }
@@ -40,14 +37,10 @@ namespace DemoCleaner2
 
         private void setProgress(int num)
         {
-            if (!_catchTaskBar)
-            {
-                try
-                {
+            if (!_catchTaskBar) {
+                try {
                     TaskbarProgress.SetValue(this.Handle, num, 100);
-                }
-                catch (Exception)
-                {
+                } catch (Exception) {
                     _catchTaskBar = true;
                 }
             }
@@ -55,7 +48,7 @@ namespace DemoCleaner2
         }
 
         FolderBrowser2 folderBrowserDialog;
- 
+
         public DirectoryInfo _currentDemoPath;
         public DirectoryInfo _currentMovePath;
         public DirectoryInfo _currentBadDemosPath;
@@ -75,8 +68,7 @@ namespace DemoCleaner2
         //Загрузка настроек форм
         private void loadSettings()
         {
-            try
-            {
+            try {
                 var prop = Properties.Settings.Default;
 
                 setRadioFromInt(prop.cleanOption,
@@ -117,8 +109,7 @@ namespace DemoCleaner2
                 checkBoxDeleteIdentical.Checked = prop.deleteIdentical;
 
                 var dir = prop.demosFolder;
-                if (dir == null || dir.Length == 0)
-                {
+                if (dir == null || dir.Length == 0) {
                     dir = Application.ExecutablePath.Substring(0,
                         Application.ExecutablePath.Length
                         - Path.GetFileName(Application.ExecutablePath).Length);
@@ -136,9 +127,7 @@ namespace DemoCleaner2
                 numericUpDownCountOfBest.Value = (decimal)prop.countOfBestDemos;
 
                 openFileDialog1.InitialDirectory = dir;
-            }
-            catch (Exception)
-            {
+            } catch (Exception) {
 
             }
         }
@@ -146,14 +135,13 @@ namespace DemoCleaner2
         //включаем одну радио кнопку из переданного списка
         private void setRadioFromInt(int check, params RadioButton[] radio)
         {
-            for (int i = 0; i < radio.Length; i++)
-            {
+            for (int i = 0; i < radio.Length; i++) {
                 radio[i].Checked = i == check;
             }
         }
 
         //Получаем интовое значение из массива булевых
-        private int getIntFromParameters(params bool [] t)
+        private int getIntFromParameters(params bool[] t)
         {
             return t.TakeWhile(x => !x).Count();
         }
@@ -176,7 +164,7 @@ namespace DemoCleaner2
             prop.yourName = textBoxYourName.Text;
             prop.deleteEmptyDirs = checkBoxDeleteEmptyDirs.Checked;
             prop.tabSelectedIndex = tabControl1.SelectedIndex;
-            
+
             prop.badDemosOption = getIntFromParameters(
                 radioButtonDeleteBad.Checked,
                 radioButtonSkipBad.Checked,
@@ -223,12 +211,10 @@ namespace DemoCleaner2
         {
             SaveSettings();
 
-            if (threadClean!= null && threadClean.IsAlive)
-            {
+            if (threadClean != null && threadClean.IsAlive) {
                 threadClean.Abort();
             }
-            if (threadMove != null && threadMove.IsAlive)
-            {
+            if (threadMove != null && threadMove.IsAlive) {
                 threadMove.Abort();
             }
         }
@@ -245,8 +231,7 @@ namespace DemoCleaner2
             folderBrowserDialog.Title = Title;
             folderBrowserDialog.DirectoryPath = path.FullName;
 
-            if (folderBrowserDialog.ShowDialog(this) == DialogResult.OK && folderBrowserDialog.DirectoryPath.Length > 0)
-            {
+            if (folderBrowserDialog.ShowDialog(this) == DialogResult.OK && folderBrowserDialog.DirectoryPath.Length > 0) {
                 path = new DirectoryInfo(folderBrowserDialog.DirectoryPath);
                 action.Invoke();
             }
@@ -256,11 +241,9 @@ namespace DemoCleaner2
         private void textBoxDemosFolder_TextChanged(object sender, EventArgs e)
         {
             var text = (sender as TextBox).Text;
-            if (text.Length > 0)
-            {
+            if (text.Length > 0) {
                 var folder = new DirectoryInfo(text);
-                if (folder.Exists)
-                {
+                if (folder.Exists) {
                     _currentDemoPath = folder;
 
                     textBoxBadDemos.Text = Path.Combine(_currentDemoPath.FullName, _badDemosDirName);
@@ -285,8 +268,7 @@ namespace DemoCleaner2
         private void textBoxSlowDemos_TextChanged(object sender, EventArgs e)
         {
             var text = (sender as TextBox).Text;
-            if (text.Length > 0)
-            {
+            if (text.Length > 0) {
                 var folder = new DirectoryInfo(text);
                 _currentSlowDemosPath = folder;
             }
@@ -296,8 +278,7 @@ namespace DemoCleaner2
         private void textBoxMoveDemosFolder_TextChanged(object sender, EventArgs e)
         {
             var text = (sender as TextBox).Text;
-            if (text.Length > 0)
-            {
+            if (text.Length > 0) {
                 var folder = new DirectoryInfo(text);
                 _currentMovePath = folder;
             }
@@ -307,8 +288,7 @@ namespace DemoCleaner2
         private void textBoxBadDemos_TextChanged(object sender, EventArgs e)
         {
             var text = (sender as TextBox).Text;
-            if (text.Length > 0)
-            {
+            if (text.Length > 0) {
                 var folder = new DirectoryInfo(text);
                 _currentBadDemosPath = folder;
             }
@@ -317,8 +297,7 @@ namespace DemoCleaner2
         //Диалог выбора основной папки с демками
         private void buttonBrowseDemos_Click(object sender, EventArgs e)
         {
-            ShowFolderBrowserDialog("Choose demos directory", ref _currentDemoPath, ()=> 
-            {
+            ShowFolderBrowserDialog("Choose demos directory", ref _currentDemoPath, () => {
                 textBoxDemosFolder.Text = _currentDemoPath.FullName;
             });
         }
@@ -326,8 +305,7 @@ namespace DemoCleaner2
         //Диалог выбора папки с перемещаемыми демками
         private void buttonBrowseWhereMove_Click(object sender, EventArgs e)
         {
-            ShowFolderBrowserDialog("Choose demos directory", ref _currentMovePath, () =>
-            {
+            ShowFolderBrowserDialog("Choose demos directory", ref _currentMovePath, () => {
                 textBoxMoveDemosFolder.Text = _currentMovePath.FullName;
             });
         }
@@ -335,8 +313,7 @@ namespace DemoCleaner2
         //Диалог выбора папки с плохими демками
         private void buttonBadDemosBrowse_Click(object sender, EventArgs e)
         {
-            ShowFolderBrowserDialog("Choose bad demos directory", ref _currentBadDemosPath, () =>
-            {
+            ShowFolderBrowserDialog("Choose bad demos directory", ref _currentBadDemosPath, () => {
                 textBoxBadDemos.Text = _currentBadDemosPath.FullName;
             });
         }
@@ -344,8 +321,7 @@ namespace DemoCleaner2
         //Диалог выбора папки с медленными демками
         private void buttonSlowDemosBrowse_Click(object sender, EventArgs e)
         {
-            ShowFolderBrowserDialog("Choose slow demos directory", ref _currentSlowDemosPath, () =>
-            {
+            ShowFolderBrowserDialog("Choose slow demos directory", ref _currentSlowDemosPath, () => {
                 textBoxSlowDemos.Text = _currentSlowDemosPath.FullName;
             });
         }
@@ -359,7 +335,7 @@ namespace DemoCleaner2
             tabControl1.Enabled = enabled;
             groupBox1.Enabled = enabled;
             toolStripProgressBar1.Visible = !enabled;
-            if(enabled)
+            if (enabled)
                 toolStripStatusLabel1.Text = "Done!";
         }
 
@@ -381,49 +357,38 @@ namespace DemoCleaner2
         {
             DirectoryInfo demosFolder = null;
 
-            try
-            {
+            try {
                 demosFolder = new DirectoryInfo(textBoxDemosFolder.Text);
-            }
-            catch (Exception)
-            {
+            } catch (Exception) {
 
             }
 
-            if (demosFolder != null && demosFolder.Exists)
-            {
+            if (demosFolder != null && demosFolder.Exists) {
                 SaveSettings();
                 SetButtonCallBack(false);
                 toolStripStatusLabel1.Text = "Cleaning..";
 
                 //Запускаем поток, в котором всё будем чистить
-                threadClean = new Thread(delegate ()
-                {
-                    try
-                    {
+                threadClean = new Thread(delegate () {
+                    try {
                         nullCounter();
 
                         Clean(_currentDemoPath);
 
-                        if (checkBoxDeleteEmptyDirs.Checked)
-                        {
+                        if (checkBoxDeleteEmptyDirs.Checked) {
                             deleteEmpty(demosFolder);
                         }
 
                         this.Invoke(new SetItem(SetButtonCallBack), true);
 
                         this.Invoke(new SetItem(showEndMessage), true);
-                    }
-                    catch (Exception ex)
-                    {
+                    } catch (Exception ex) {
                         MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 });
                 threadClean.Start();
 
-            }
-            else
-            {
+            } else {
                 MessageBox.Show("Directory does not exist\n\n" + textBoxDemosFolder.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -431,8 +396,7 @@ namespace DemoCleaner2
         //форматирование текста месседжбокеса
         private string getMessageText(decimal counter, string text)
         {
-            if (counter > 0)
-            {
+            if (counter > 0) {
                 var s = counter > 1 ? "s" : string.Empty;
                 text = string.Format(text, counter, s);
                 return text;
@@ -443,20 +407,17 @@ namespace DemoCleaner2
         //вывод сообщения об окончании работы
         private void showEndMessage(bool clean)
         {
-            string text = (clean ? "Cleaning" : "Moving") +" demos finished\n";
+            string text = (clean ? "Cleaning" : "Moving") + " demos finished\n";
 
-            text += getMessageText(_countMoveFiles,     "\n{0} file{1} were moved");
-            text += getMessageText(_countDeleteFiles,   "\n{0} file{1} were deleted");
-            text += getMessageText(_countCreateDir,     "\n{0} folder{1} were created");
-            text += getMessageText(_countDeleteDir,     "\n{0} folder{1} were deleted");
+            text += getMessageText(_countMoveFiles, "\n{0} file{1} were moved");
+            text += getMessageText(_countDeleteFiles, "\n{0} file{1} were deleted");
+            text += getMessageText(_countCreateDir, "\n{0} folder{1} were created");
+            text += getMessageText(_countDeleteDir, "\n{0} folder{1} were deleted");
 
             if (!_catchTaskBar) {
-                try
-                {
+                try {
                     TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.NoProgress);
-                }
-                catch (Exception)
-                {
+                } catch (Exception) {
                     _catchTaskBar = true;
                 }
             }
@@ -468,8 +429,7 @@ namespace DemoCleaner2
         string numberToString(int number, int length)
         {
             var str = number.ToString();
-            while(str.Length < length)
-            {
+            while (str.Length < length) {
                 str = "0" + str;
             }
             return str;
@@ -478,8 +438,7 @@ namespace DemoCleaner2
         //Обрабатываем плохие демки
         private void operateBadDemos(IEnumerable<Demo> demos)
         {
-            if (radioButtonSkipBad.Checked)
-            {
+            if (radioButtonSkipBad.Checked) {
                 return;
             }
 
@@ -487,18 +446,14 @@ namespace DemoCleaner2
 
             var count = badDemos.Count();
 
-            if (count > 0)
-            {
-                if (radioButtonDeleteBad.Checked)
-                {
+            if (count > 0) {
+                if (radioButtonDeleteBad.Checked) {
                     //Или всё удаляем
-                    foreach (var item in badDemos)
-                    {
+                    foreach (var item in badDemos) {
                         deleteCheckRules(item.file);
                     }
                 }
-                if (radioButtonMoveBad.Checked)
-                {
+                if (radioButtonMoveBad.Checked) {
                     //или перемещавем по подкатегориям (0-10)
                     _currentBadDemosPath = new DirectoryInfo(textBoxBadDemos.Text);
                     if (!_currentBadDemosPath.Exists)
@@ -507,19 +462,14 @@ namespace DemoCleaner2
                     var max = (int)numericUpDownMaxFiles.Value;
                     var maxDirlength = (count / max).ToString().Length;
 
-                    if (count > max)
-                    {
+                    if (count > max) {
                         var ordered = badDemos.OrderBy(x => x.file.Name, StringComparer.OrdinalIgnoreCase).ToList();
-                        for (int i = 0; i < count; i++)
-                        {
-                            var fn = Path.Combine(_currentBadDemosPath.FullName, numberToString((i / max)+1,maxDirlength));
+                        for (int i = 0; i < count; i++) {
+                            var fn = Path.Combine(_currentBadDemosPath.FullName, numberToString((i / max) + 1, maxDirlength));
                             moveFile(ordered[i].file, new DirectoryInfo(fn));
                         }
-                    }
-                    else
-                    {
-                        foreach (var item in badDemos)
-                        {
+                    } else {
+                        foreach (var item in badDemos) {
                             moveFile(item.file, _currentBadDemosPath);
                         }
                     }
@@ -539,8 +489,7 @@ namespace DemoCleaner2
 
             operateBadDemos(demos);
 
-            if (radioButtonSkipSlow.Checked)
-            {
+            if (radioButtonSkipSlow.Checked) {
                 return;
             }
             _currentSlowDemosPath.Refresh();
@@ -549,37 +498,29 @@ namespace DemoCleaner2
 
             IEnumerable<IGrouping<string, Demo>> groups = null;
 
-            if (radioBestTimeOfEachPlayer.Checked)
-            {
+            if (radioBestTimeOfEachPlayer.Checked) {
                 groups = goodDemos.GroupBy(
                     x => (x.mapName
-                    + Demo.mdfToDf(x.modphysic,checkBoxProcessMdf.Checked)
+                    + Demo.mdfToDf(x.modphysic, checkBoxProcessMdf.Checked)
                     + x.playerName).ToLower());
             }
-            if (radioBestTimesOnMap.Checked)
-            {
+            if (radioBestTimesOnMap.Checked) {
                 groups = goodDemos.GroupBy(x => (
                     x.mapName + Demo.mdfToDf(x.modphysic, checkBoxProcessMdf.Checked)).ToLower());
             }
-            
-            foreach (var group in groups)
-            {
+
+            foreach (var group in groups) {
                 //var bestTime = group.Min(y => y.time);
 
                 var ordered = group.OrderBy(x => x.time).ToList();
 
                 var slow = ordered.Skip((int)numericUpDownCountOfBest.Value);
 
-                foreach (var demo in slow)
-                {
-                    if (radioButtonDeleteSlow.Checked)
-                    {
+                foreach (var demo in slow) {
+                    if (radioButtonDeleteSlow.Checked) {
                         deleteCheckRules(demo.file);
-                    }
-                    else
-                    {
-                        if (radioButtonMoveSlow.Checked)
-                        {
+                    } else {
+                        if (radioButtonMoveSlow.Checked) {
                             moveFile(demo.file, _currentSlowDemosPath);
                         }
                     }
@@ -590,8 +531,7 @@ namespace DemoCleaner2
         //Метод перемещения файла
         private void moveFile(FileInfo file, DirectoryInfo dir)
         {
-            if (!dir.Exists)
-            {
+            if (!dir.Exists) {
                 dir.Create();
                 _countCreateDir++;
                 dir.Refresh();
@@ -599,20 +539,15 @@ namespace DemoCleaner2
 
             var path = Path.Combine(dir.FullName, file.Name);
 
-            if (file.FullName == path)
-            {
+            if (file.FullName == path) {
                 return;
             }
 
-            if (File.Exists(path))
-            {
-                if (checkBoxDeleteIdentical.Checked)
-                {
+            if (File.Exists(path)) {
+                if (checkBoxDeleteIdentical.Checked) {
                     deleteCheckRules(file);
                 }
-            }
-            else
-            {
+            } else {
                 moveCheckRules(file, path);
             }
         }
@@ -621,21 +556,14 @@ namespace DemoCleaner2
         {
             _countDeleteFiles++;
             _CountProgressDemos++;
-            try
-            {
+            try {
                 file.Delete();
-            }
-            catch (Exception ex)
-            {
-                if (ex is UnauthorizedAccessException)
-                {
-                    try
-                    {
+            } catch (Exception ex) {
+                if (ex is UnauthorizedAccessException) {
+                    try {
                         tryGetAccess(file);
                         file.Delete();
-                    }
-                    catch (Exception ex2)
-                    {
+                    } catch (Exception ex2) {
                         Console.WriteLine(ex2.Message);
                     }
                 }
@@ -646,21 +574,14 @@ namespace DemoCleaner2
         {
             _countMoveFiles++;
             _CountProgressDemos++;
-            try
-            {
+            try {
                 file.MoveTo(path);
-            }
-            catch (Exception ex)
-            {
-                if (ex is UnauthorizedAccessException)
-                {
-                    try
-                    {
+            } catch (Exception ex) {
+                if (ex is UnauthorizedAccessException) {
+                    try {
                         tryGetAccess(file);
                         file.MoveTo(path);
-                    }
-                    catch (Exception ex2)
-                    {
+                    } catch (Exception ex2) {
                         Console.WriteLine(ex2.Message);
                     }
                 }
@@ -673,7 +594,7 @@ namespace DemoCleaner2
         {
             var attr = File.GetAttributes(file.FullName);
             attr = attr & ~FileAttributes.ReadOnly;
-            File.SetAttributes(file.FullName,attr);
+            File.SetAttributes(file.FullName, attr);
 
             //var fSecurity = file.GetAccessControl();
             //fSecurity.AddAccessRule(
@@ -706,8 +627,7 @@ namespace DemoCleaner2
         {
             DirectoryInfo filedemos = new DirectoryInfo(textBoxDemosFolder.Text);
 
-            if (filedemos.Exists)
-            {
+            if (filedemos.Exists) {
                 SaveSettings();
 
                 DirectoryInfo dirdemos = new DirectoryInfo(textBoxMoveDemosFolder.Text);
@@ -716,31 +636,24 @@ namespace DemoCleaner2
                 toolStripStatusLabel1.Text = "Moving...";
 
                 //Запускаем поток, в котором всё будем перемещать
-                threadMove = new Thread(delegate ()
-                {
-                    try
-                    {
+                threadMove = new Thread(delegate () {
+                    try {
                         nullCounter();
 
                         moveDemos(filedemos, dirdemos);
 
-                        if (checkBoxDeleteEmptyDirs.Checked)
-                        {
+                        if (checkBoxDeleteEmptyDirs.Checked) {
                             deleteEmpty(filedemos);
                         }
                         this.Invoke(new SetItem(SetButtonCallBack), true);
 
                         this.Invoke(new SetItem(showEndMessage), false);
-                    }
-                    catch (Exception ex)
-                    {
+                    } catch (Exception ex) {
                         MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 });
                 threadMove.Start();
-            }
-            else
-            {
+            } else {
                 MessageBox.Show("Directory does not exist\n\n" + filedemos.FullName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -753,19 +666,14 @@ namespace DemoCleaner2
             var orderedDirs = allDirs.OrderByDescending(x => x.FullName.Split(Path.DirectorySeparatorChar).Count());
 
             //и удалляем в цикле
-            foreach (var item in orderedDirs)
-            {
-                if (item.Exists)
-                {
+            foreach (var item in orderedDirs) {
+                if (item.Exists) {
                     var files = item.GetFiles();
                     var dirs = item.GetDirectories();
-                    if ((files == null || files.Count() == 0) && (dirs == null || dirs.Count() == 0))
-                    {
-                        try
-                        {
+                    if ((files == null || files.Count() == 0) && (dirs == null || dirs.Count() == 0)) {
+                        try {
                             item.Delete();
-                        }
-                        catch (Exception) { }
+                        } catch (Exception) { }
                         _countDeleteDir++;
                     }
                 }
@@ -777,11 +685,9 @@ namespace DemoCleaner2
         {
             var groups = files.GroupBy(x => x.file.Name.Substring(0, indexInside + 1).ToLower()).ToList();
 
-            for (int i = 0; i < groups.Count; i++)
-            {
+            for (int i = 0; i < groups.Count; i++) {
                 var group = groups.ElementAt(i);
-                if (group.Count() > numericUpDownMaxFiles.Value)
-                {
+                if (group.Count() > numericUpDownMaxFiles.Value) {
                     //Рекурсивный вызов этого же метода группировки
                     var subGroupFiles = GroupFiles(group, indexInside + 1);
 
@@ -803,25 +709,22 @@ namespace DemoCleaner2
                 SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
 
             _countDemosAmount = files.Length;
-            
+
             var demos = files.Select(x => Demo.GetDemoFromFile(x));
 
             //Отбираем бракованые файлы
             operateBadDemos(demos);
 
-            var goodFiles = demos.Where(x=>x.hasError == false);
+            var goodFiles = demos.Where(x => x.hasError == false);
 
             //ищем файлы c именем игрока, если имя вписано
-            if (checkBoxMoveOnlyYour.Checked && textBoxYourName.Text.Length > 0)
-            {
+            if (checkBoxMoveOnlyYour.Checked && textBoxYourName.Text.Length > 0) {
                 goodFiles = goodFiles.Where(x => x.playerName.ToLower().Contains(textBoxYourName.Text.ToLower()));
             }
 
             //Создаём основную папку
-            if (goodFiles.Count() > 0)
-            {
-                if (!dirdemos.Exists)
-                {
+            if (goodFiles.Count() > 0) {
+                if (!dirdemos.Exists) {
                     dirdemos.Create();
                     _countCreateDir++;
                 }
@@ -832,28 +735,25 @@ namespace DemoCleaner2
             var groupedFiles = GroupFiles(goodFiles, indexInside);
 
             var onlyDirNames = groupedFiles.Select(x => new DemoFolder(x.Key));
-            
+
             indexInside = 0;
             //Группируем все названия папок и там же получаем полные пути к ним
             var groupedFolders = groupFolders(onlyDirNames, indexInside);
 
             var ListFolders = Extention.MakeListFromGroups(groupedFolders);
-            
+
             //Проходим по всем файлам и перемещаем их в каталоги
-            for (int i = 0; i < groupedFiles.Count(); i++)
-            {
+            for (int i = 0; i < groupedFiles.Count(); i++) {
                 var group = groupedFiles.ElementAt(i);
 
-                for (int j = 0; j < group.Count(); j++)
-                {
+                for (int j = 0; j < group.Count(); j++) {
                     var demo = group.ElementAt(j);
 
                     var folderName = ListFolders.First(x => x.Value._folderName == group.Key).Value.fullFolderName;
 
                     var newPath = Path.Combine(dirdemos.FullName, folderName);
 
-                    if (!checkBoxSplitFolders.Checked)
-                    {
+                    if (!checkBoxSplitFolders.Checked) {
                         newPath = dirdemos.FullName;
                     }
 
@@ -863,30 +763,24 @@ namespace DemoCleaner2
             return true;
         }
 
-        
+
         //группировка папок
         private IEnumerable<IGrouping<string, DemoFolder>> groupFolders(IEnumerable<DemoFolder> folders, int indexInside)
         {
-            var groups = folders.GroupBy(x => DemoFolder.GetKeyFromIndex(x._folderName,indexInside)).ToList();
+            var groups = folders.GroupBy(x => DemoFolder.GetKeyFromIndex(x._folderName, indexInside)).ToList();
 
-            for (int i = 0; i < groups.Count; i++)
-            {
+            for (int i = 0; i < groups.Count; i++) {
                 var group = groups.ElementAt(i);
-                if (group.Count() > numericUpDownMaxFolders.Value)
-                {
+                if (group.Count() > numericUpDownMaxFolders.Value) {
                     //Рекурсивный вызов этого же метода группировки
                     var subGroupFolders = groupFolders(group, indexInside + 1);
 
                     groups.RemoveAt(i);
                     groups.InsertRange(i, subGroupFolders);
                     i--;
-                }
-                else
-                {
-                    foreach (var item in group)
-                    {
-                        if (item.fullFolderName == null)
-                        {
+                } else {
+                    foreach (var item in group) {
+                        if (item.fullFolderName == null) {
                             item.fullFolderName = DemoFolder.GetFullNameFromIndex(item._folderName, indexInside);
                         }
                     }
@@ -897,11 +791,11 @@ namespace DemoCleaner2
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            MessageBox.Show("Made by Enter" 
+            MessageBox.Show("Made by Enter"
                 + "\nusing MS Visual Studio 2017"
                 + "\nmail: wilerat@gmail.com"
                 + "\nskype: Ivan.1010"
-                + "\ndiscord: Enter#4725", 
+                + "\ndiscord: Enter#4725",
                 "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -909,8 +803,7 @@ namespace DemoCleaner2
 
         private void buttonSingleFileInfo_Click(object sender, EventArgs e)
         {
-            if (openFileDialog1.ShowDialog(this) == DialogResult.OK && openFileDialog1.FileName.Length > 0)
-            {
+            if (openFileDialog1.ShowDialog(this) == DialogResult.OK && openFileDialog1.FileName.Length > 0) {
                 openDemoFile = new FileInfo(openFileDialog1.FileName);
 
                 Q3HuffmanMapper.init();

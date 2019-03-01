@@ -64,7 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExtClasses\Demo.cs" />
+    <Compile Include="structures\Demo.cs" />
     <Compile Include="DemoInfoForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -83,14 +83,14 @@
     <Compile Include="DemoParser\parser\Q3DemoParser.cs" />
     <Compile Include="DemoParser\parser\Q3EmptyParser.cs" />
     <Compile Include="DemoParser\parser\Q3MessageStream.cs" />
-    <Compile Include="DemoParser\parser\RawInfo.cs" />
+    <Compile Include="structures\RawInfo.cs" />
     <Compile Include="DemoParser\utils\BitStreamReader.cs" />
     <Compile Include="DemoParser\utils\Q3Utils.cs" />
     <Compile Include="ExtClasses\Extention.cs" />
     <Compile Include="ExtClasses\FolderBrowserDialogEx.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ExtClasses\DemoFolder.cs" />
+    <Compile Include="structures\DemoFolder.cs" />
     <Compile Include="ExtClasses\FolderBrowser2.cs" />
     <Compile Include="ExtClasses\FolderBrowserLauncher.cs" />
     <Compile Include="ExtClasses\TaskbarProgress.cs" />

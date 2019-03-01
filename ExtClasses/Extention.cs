@@ -11,10 +11,8 @@ namespace DemoCleaner2
         {
             var dict = new List<KeyValuePair<TKey, TValue>>();
 
-            foreach (var group in folders)
-            {
-                foreach (var item in group)
-                {
+            foreach (var group in folders) {
+                foreach (var item in group) {
                     dict.Add(new KeyValuePair<TKey, TValue>(group.Key, item));
                 }
             }

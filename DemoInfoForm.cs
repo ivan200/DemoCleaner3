@@ -31,8 +31,7 @@ namespace DemoCleaner2
 
         void loadFriendlyConfig(DataGridView grid)
         {
-            if (info == null)
-            {
+            if (info == null) {
                 return;
             }
 
@@ -41,8 +40,7 @@ namespace DemoCleaner2
             textNewName.Text = new FileInfo(info.demoPath).Name;
 
             grid.Rows.Clear();
-            foreach (var cType in frInfo)
-            {
+            foreach (var cType in frInfo) {
                 grid.Rows.Add();
                 grid.Rows[grid.RowCount - 1].Cells[0].Value = cType.Key;
 
@@ -60,8 +58,7 @@ namespace DemoCleaner2
             string newPath = Path.Combine(demo.file.Directory.FullName, textNewName.Text);
             File.Move(demo.file.FullName, newPath);
 
-            if (demo.recordTime != null)
-            {
+            if (demo.recordTime != null) {
                 File.SetCreationTime(newPath, demo.recordTime);
             }
 

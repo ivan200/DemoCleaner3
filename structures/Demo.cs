@@ -22,6 +22,8 @@ namespace DemoCleaner2
         public bool hasError;
         public DateTime recordTime;
 
+        public string ruleset = "";
+
         string dfType;
         string physic;
         string modNum;
@@ -30,32 +32,29 @@ namespace DemoCleaner2
         public string demoNewName {
             get {
                 string demoname = "";
-                if (time.TotalMilliseconds > 0)
-                {   
+                if (time.TotalMilliseconds > 0) {
                     //если есть тайм, то пишем нормальный name для демки
                     demoname = string.Format("{0}[{1}]{2:D2}.{3:D2}.{4:D3}({5})",
                     mapName, modphysic, time.Minutes, time.Seconds, time.Milliseconds, playerName);
-                }
-                else
-                {
+                } else {
                     //если нет тайма, то мучаемся с генерацией текста
                     string oldName = file.Name;
                     oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //убираем расширение
                     oldName = removeSubstr(oldName, mapName);                               //убираем имя карты
                     oldName = removeSubstr(oldName, playerName);                            //убираем имя игрока
+                    oldName = removeSubstr(oldName, modphysic);                             //убираем мод с физикой 
                     oldName = removeSubstr(oldName, physic);                                //убираем физику
-                    oldName = removeDouble(oldName);                                        //убираем двойные символы
+                    oldName = removeDouble(oldName);                                        //убираем двойные символы (кроме  скобочек)
+                    oldName = oldName.Replace("[]", "").Replace("()", "");                  //убираем пустые скобки
                     oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //убираем хрень в начале и в конце
-                    if (oldName.Length > 0)
-                    {
+                    if (oldName.Length > 0) {
                         oldName = "_" + oldName;    //добавляем инфу о читах если они есть
                     }
                     demoname = string.Format("_{0}[{1}]({2}){3}",
                     mapName, modphysic, playerName, oldName);
                 }
 
-                if (cheats)
-                {
+                if (cheats) {
                     demoname = demoname + "_cheats";
                 }
                 return demoname + file.Extension;
@@ -67,19 +66,18 @@ namespace DemoCleaner2
         string removeDouble(string input)
         {
             var dup = Regex.Match(input, "[^[a-zA-Z0-9\\(\\)\\]\\[]{2,}");
-            if (dup.Success && dup.Groups.Count > 0)
-            {
+            if (dup.Success && dup.Groups.Count > 0) {
                 var symbol = dup.Groups[0].Value[0];
                 return removeDouble(input.Substring(0, dup.Groups[0].Index) + symbol + input.Substring(dup.Groups[0].Index + dup.Groups[0].Length));
-            }
-            else {
+            } else {
                 return input;
             }
         }
 
         //убирание подстроки с граничащими символами например: test_abc.xy -> test.xy
         //берётся последний символ если их 2, и первый если только слева: test_abcxy -> test_xy
-        string removeSubstr(string input, string include) {
+        string removeSubstr(string input, string include)
+        {
             if (!input.Contains(include)) {
                 return input;
             }
@@ -107,54 +105,41 @@ namespace DemoCleaner2
             demo.recordTime = demo.file.CreationTime;
 
             var sub = file.Name.Split("[]()".ToArray());
-            if (sub.Length >= 4)
-            {
+            if (sub.Length >= 4) {
                 //Карта
                 demo.mapName = sub[0];
 
                 //Физика
                 demo.modphysic = sub[1];
-                if (sub[1].Length < 3)
-                {
+                if (sub[1].Length < 3) {
                     demo.hasError = true;
                 }
 
                 //Время
                 demo.timeString = sub[2];
                 var times = demo.timeString.Split('-', '.');
-                if (times.Length == 3)
-                {
-                    try
-                    {
+                if (times.Length == 3) {
+                    try {
                         demo.time = new TimeSpan(0, 0,
                             int.Parse(times[0]),
                             int.Parse(times[1]),
                             int.Parse(times[2]));
-                    }
-                    catch (Exception)
-                    {
+                    } catch (Exception) {
                         demo.hasError = true;
                     }
-                }
-                else
-                {
+                } else {
                     demo.hasError = true;
                 }
 
                 //Имя + страна
                 var name = sub[3].Split('.');
-                if (name.Length > 1)
-                {
+                if (name.Length > 1) {
                     demo.playerName = name[0];
                     demo.country = name[1];
-                }
-                else
-                {
+                } else {
                     demo.playerName = sub[3];
                 }
-            }
-            else
-            {
+            } else {
                 demo.hasError = true;
             }
             return demo;
@@ -163,8 +148,7 @@ namespace DemoCleaner2
         //обработка группировки, если нажата галка с обработкой мдф как дф
         public static string mdfToDf(string mod, bool processIt)
         {
-            if (processIt && mod[0] == 'm')
-            {
+            if (processIt && mod[0] == 'm') {
                 return mod.Substring(1);
             }
             return mod;
@@ -190,11 +174,9 @@ namespace DemoCleaner2
             demo.mapName = frConfig[RawInfo.keyClient]["mapname"];
 
             //время
-            if (raw.performedTimes.Count > 0)
-            {
+            if (raw.performedTimes.Count > 0) {
                 double maxMillis = double.MaxValue;
-                for (int i = 0; i < raw.performedTimes.Count; i++)
-                {
+                for (int i = 0; i < raw.performedTimes.Count; i++) {
                     var time = getTimeSpanForDemo(raw.performedTimes[i]);
                     if (time.TotalMilliseconds < maxMillis) {
                         demo.time = time;
@@ -203,15 +185,11 @@ namespace DemoCleaner2
                         }
                     }
                 }
-            }
-            else if (raw.onlineTimes.Count > 0)
-            {
+            } else if (raw.onlineTimes.Count > 0) {
                 double maxMillis = double.MaxValue;
-                foreach (var timeString in raw.onlineTimes)
-                {
+                foreach (var timeString in raw.onlineTimes) {
                     var time = getOnlineTimeSpanForDemo(timeString, demo.playerName);
-                    if (time.HasValue && time.Value.TotalMilliseconds < maxMillis)
-                    {
+                    if (time.HasValue && time.Value.TotalMilliseconds < maxMillis) {
                         demo.time = time.Value;
                     }
                 }
@@ -262,7 +240,8 @@ namespace DemoCleaner2
         }
 
         //получение времени из онффлайн надписи
-        static TimeSpan getTimeSpanForDemo(string demoTimeCmd) {
+        static TimeSpan getTimeSpanForDemo(string demoTimeCmd)
+        {
             //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
 
             //TODO проверить, что будет если в df_name будет со спецсимволами, например двоеточие, вопрос, кавычки
@@ -274,7 +253,8 @@ namespace DemoCleaner2
             return getTimeSpan(demoTimeCmd);
         }
 
-        static TimeSpan getTimeSpan(string timeString) {
+        static TimeSpan getTimeSpan(string timeString)
+        {
             var times = timeString.Split(':').Reverse().ToList();
             //так как мы реверснули таймы, милисекунды будут в начале
             return new TimeSpan(0, 0,
@@ -284,7 +264,8 @@ namespace DemoCleaner2
         }
 
         //получение даты записи демки если она есть
-        static DateTime getDateForDemo(string s) {
+        static DateTime getDateForDemo(string s)
+        {
             //print "Date: 10-25-14 02:43\n"
             string dateString = s.Substring(13).Replace("\n", "").Replace("\"", "").Trim();
 

@@ -27,9 +27,9 @@ namespace DemoCleaner2.DemoParser.parser
 
         public RawInfo(
             string demoName,
-            Dictionary<short, string> rawConfig, 
-            List<string> dateStamps, 
-            List<string> performedTimes, 
+            Dictionary<short, string> rawConfig,
+            List<string> dateStamps,
+            List<string> performedTimes,
             List<string> onlineTimes)
         {
             this.demoPath = demoName;
@@ -39,61 +39,51 @@ namespace DemoCleaner2.DemoParser.parser
             this.onlineTimes = onlineTimes;
         }
 
-        public Dictionary<string, Dictionary<string, string>> getFriendlyInfo() {
+        public Dictionary<string, Dictionary<string, string>> getFriendlyInfo()
+        {
             if (friendlyInfo == null) {
                 friendlyInfo = new Dictionary<string, Dictionary<string, string>>();
 
                 Dictionary<string, string> times = new Dictionary<string, string>();
                 times.Add(keyDemoName, new FileInfo(demoPath).Name);
 
-                if (dateStamps.Count > 0 || performedTimes.Count > 0|| onlineTimes.Count > 0)
-                {
-                    for (int i = 0; i < dateStamps.Count; i++)
-                    {
+                if (dateStamps.Count > 0 || performedTimes.Count > 0 || onlineTimes.Count > 0) {
+                    for (int i = 0; i < dateStamps.Count; i++) {
                         string key = dateStamps.Count > 1 ? keyRecordDate + " " + (i + 1) : keyRecordDate;
                         times.Add(key, dateStamps[i]);
                     }
-                    for (int i = 0; i < performedTimes.Count; i++)
-                    {
+                    for (int i = 0; i < performedTimes.Count; i++) {
                         string key = performedTimes.Count > 1 ? keyRecordTime + " " + (i + 1) : keyRecordTime;
                         times.Add(key, performedTimes[i]);
                     }
-                    for (int i = 0; i < onlineTimes.Count; i++)
-                    {
+                    for (int i = 0; i < onlineTimes.Count; i++) {
                         string key = onlineTimes.Count > 1 ? keyRecordTime + " " + (i + 1) : keyRecordTime;
                         times.Add(key, onlineTimes[i]);
                     }
                 }
                 friendlyInfo.Add(keyRecord, times);
 
-                if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER))
-                {
+                if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER)) {
                     friendlyInfo.Add(keyPlayer, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_PLAYER]));
-                }
-                else {
-                    for (int i = 1; i < 5; i++)
-                    {
+                } else {
+                    for (int i = 1; i < 5; i++) {
                         var key = (short)(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER + i);
-                        if (rawConfig.ContainsKey(key))
-                        {
+                        if (rawConfig.ContainsKey(key)) {
                             friendlyInfo.Add(keyPlayer, Q3Utils.split_config(rawConfig[key]));
                             break;
                         }
                     }
                 }
 
-                if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT))
-                {
+                if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT)) {
                     friendlyInfo.Add(keyClient, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]));
                 }
-                if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_GAME))
-                {
+                if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_GAME)) {
                     friendlyInfo.Add(keyGame, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_GAME]));
                 }
 
                 Dictionary<string, string> raw = new Dictionary<string, string>();
-                foreach (var r in rawConfig)
-                {
+                foreach (var r in rawConfig) {
                     raw.Add(r.Key.ToString(), r.Value);
                 }
                 friendlyInfo.Add(keyRaw, raw);
