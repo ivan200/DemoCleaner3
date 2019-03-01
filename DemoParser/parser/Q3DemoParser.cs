@@ -1,6 +1,7 @@
 ﻿using DemoCleaner2.DemoParser.utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace DemoCleaner2.DemoParser.parser
@@ -21,7 +22,11 @@ namespace DemoCleaner2.DemoParser.parser
         {
             var msgParser = new Q3DemoConfigParser();
             this.doParse(msgParser);
-            RawInfo info = new RawInfo(msgParser.getRawConfigs(), msgParser.dateStamp, msgParser.performedTimes);
+            RawInfo info = new RawInfo(
+                file_name,msgParser.getRawConfigs(), 
+                msgParser.dateStamp, 
+                msgParser.performedTimes, 
+                msgParser.onlineTimes.Keys.ToList());
             return info;
         }
 

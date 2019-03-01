@@ -6,6 +6,7 @@ namespace DemoCleaner2.DemoParser.parser
 {
     class Q3DemoConfigParser : AbstractDemoMessageParser
     {
+        public Dictionary<string, object> onlineTimes = new Dictionary<string, object>();
         public List<string> performedTimes = new List<string>();
         public List<string> dateStamp = new List<string>();
 
@@ -28,31 +29,32 @@ namespace DemoCleaner2.DemoParser.parser
                 {
                     case Q3_SVC.BAD:
                     case Q3_SVC.NOP:
-                        return false;
-
+                        return true;
                     case Q3_SVC.EOF:
-                        return this.configs != null;
-
+                        return true;
                     case Q3_SVC.SERVERCOMMAND:
                         this.parseServerCommand(reader);
                         break;
                     case Q3_SVC.GAMESTATE:
                         this.parseGameState(reader);
-                        return this.configs != null;
+                        break;
                     case Q3_SVC.SNAPSHOT:
                         // snapshots couldn't be mixed with game-state command in a single message
                         return true;
                     default:
                         // unknown command / corrupted stream
-                        return false;
+                        return true;
                 }
             }
-            return false;
+            return true;
         }
+
+        public List<string> console = new List<string>();
 
         private void parseServerCommand(Q3HuffmanReader reader) {
             var key = reader.readLong();
             var value = reader.readString();
+            console.Add(value);
             if (value.StartsWith("print"))
             {
                 if (value.StartsWith("print \"Date:"))
@@ -62,6 +64,10 @@ namespace DemoCleaner2.DemoParser.parser
                 if (value.StartsWith("print \"Time performed by"))
                 {
                     performedTimes.Add(value);
+                }
+                if (value.Contains("reached the finish line in"))
+                {
+                    onlineTimes[value] = null;
                 }
             }
         }

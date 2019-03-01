@@ -64,7 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Demo.cs" />
+    <Compile Include="ExtClasses\Demo.cs" />
     <Compile Include="DemoInfoForm.cs">
       <SubType>Form</SubType>
     </Compile>
