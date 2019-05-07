@@ -70,6 +70,12 @@
             this.buttonBrowseWhereMove = new System.Windows.Forms.Button();
             this.textBoxMoveDemosFolder = new System.Windows.Forms.TextBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.checkBoxFixCreationTime = new System.Windows.Forms.CheckBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.radioRenameBad = new System.Windows.Forms.RadioButton();
+            this.radioRenameAll = new System.Windows.Forms.RadioButton();
+            this.checkBoxRulesValidation = new System.Windows.Forms.CheckBox();
+            this.buttonRename = new System.Windows.Forms.Button();
             this.buttonSingleFileInfo = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
@@ -79,13 +85,7 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.buttonRename = new System.Windows.Forms.Button();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.checkBox2 = new System.Windows.Forms.CheckBox();
-            this.radioButton1 = new System.Windows.Forms.RadioButton();
-            this.radioButton2 = new System.Windows.Forms.RadioButton();
-            this.checkBox3 = new System.Windows.Forms.CheckBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.checkBoxAddSign = new System.Windows.Forms.CheckBox();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -100,9 +100,9 @@
             this.groupBoxName.SuspendLayout();
             this.groupBoxMoveDemos.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.statusStrip1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBoxBadDemos
@@ -599,10 +599,10 @@
             // 
             // tabPage4
             // 
-            this.tabPage4.Controls.Add(this.checkBox1);
-            this.tabPage4.Controls.Add(this.checkBox3);
+            this.tabPage4.Controls.Add(this.checkBoxAddSign);
+            this.tabPage4.Controls.Add(this.checkBoxFixCreationTime);
             this.tabPage4.Controls.Add(this.groupBox2);
-            this.tabPage4.Controls.Add(this.checkBox2);
+            this.tabPage4.Controls.Add(this.checkBoxRulesValidation);
             this.tabPage4.Controls.Add(this.buttonRename);
             this.tabPage4.Controls.Add(this.buttonSingleFileInfo);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
@@ -613,12 +613,82 @@
             this.tabPage4.Text = "Demo renamer";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // checkBoxFixCreationTime
+            // 
+            this.checkBoxFixCreationTime.AutoSize = true;
+            this.checkBoxFixCreationTime.Checked = true;
+            this.checkBoxFixCreationTime.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxFixCreationTime.Location = new System.Drawing.Point(6, 101);
+            this.checkBoxFixCreationTime.Name = "checkBoxFixCreationTime";
+            this.checkBoxFixCreationTime.Size = new System.Drawing.Size(155, 17);
+            this.checkBoxFixCreationTime.TabIndex = 21;
+            this.checkBoxFixCreationTime.Text = "Restore demo creation time";
+            this.checkBoxFixCreationTime.UseVisualStyleBackColor = true;
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.radioRenameBad);
+            this.groupBox2.Controls.Add(this.radioRenameAll);
+            this.groupBox2.Location = new System.Drawing.Point(6, 6);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(325, 66);
+            this.groupBox2.TabIndex = 20;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Rename options";
+            // 
+            // radioRenameBad
+            // 
+            this.radioRenameBad.AutoSize = true;
+            this.radioRenameBad.Checked = true;
+            this.radioRenameBad.Location = new System.Drawing.Point(6, 19);
+            this.radioRenameBad.Name = "radioRenameBad";
+            this.radioRenameBad.Size = new System.Drawing.Size(205, 17);
+            this.radioRenameBad.TabIndex = 3;
+            this.radioRenameBad.TabStop = true;
+            this.radioRenameBad.Text = "Process only incorrectly named demos";
+            this.radioRenameBad.UseVisualStyleBackColor = true;
+            // 
+            // radioRenameAll
+            // 
+            this.radioRenameAll.AutoSize = true;
+            this.radioRenameAll.Location = new System.Drawing.Point(6, 42);
+            this.radioRenameAll.Name = "radioRenameAll";
+            this.radioRenameAll.Size = new System.Drawing.Size(110, 17);
+            this.radioRenameAll.TabIndex = 2;
+            this.radioRenameAll.Text = "Process all demos";
+            this.radioRenameAll.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxRulesValidation
+            // 
+            this.checkBoxRulesValidation.AutoSize = true;
+            this.checkBoxRulesValidation.Checked = true;
+            this.checkBoxRulesValidation.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxRulesValidation.Location = new System.Drawing.Point(6, 78);
+            this.checkBoxRulesValidation.Name = "checkBoxRulesValidation";
+            this.checkBoxRulesValidation.Size = new System.Drawing.Size(132, 17);
+            this.checkBoxRulesValidation.TabIndex = 1;
+            this.checkBoxRulesValidation.Text = "Enable rules validation";
+            this.checkBoxRulesValidation.UseVisualStyleBackColor = true;
+            // 
+            // buttonRename
+            // 
+            this.buttonRename.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.buttonRename.BackColor = System.Drawing.Color.Transparent;
+            this.buttonRename.ForeColor = System.Drawing.Color.Black;
+            this.buttonRename.Location = new System.Drawing.Point(130, 149);
+            this.buttonRename.Name = "buttonRename";
+            this.buttonRename.Size = new System.Drawing.Size(79, 25);
+            this.buttonRename.TabIndex = 19;
+            this.buttonRename.Text = "Rename";
+            this.buttonRename.UseVisualStyleBackColor = false;
+            this.buttonRename.Click += new System.EventHandler(this.buttonRename_Click);
+            // 
             // buttonSingleFileInfo
             // 
             this.buttonSingleFileInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSingleFileInfo.Location = new System.Drawing.Point(223, 16);
+            this.buttonSingleFileInfo.Location = new System.Drawing.Point(217, 78);
             this.buttonSingleFileInfo.Name = "buttonSingleFileInfo";
-            this.buttonSingleFileInfo.Size = new System.Drawing.Size(96, 37);
+            this.buttonSingleFileInfo.Size = new System.Drawing.Size(114, 40);
             this.buttonSingleFileInfo.TabIndex = 8;
             this.buttonSingleFileInfo.Text = "View single demo information";
             this.buttonSingleFileInfo.UseVisualStyleBackColor = true;
@@ -702,86 +772,17 @@
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Filter = "Demo files|*.dm_68;*.dm_67;*.dm_66";
             // 
-            // buttonRename
+            // checkBoxAddSign
             // 
-            this.buttonRename.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.buttonRename.BackColor = System.Drawing.Color.Transparent;
-            this.buttonRename.ForeColor = System.Drawing.Color.Black;
-            this.buttonRename.Location = new System.Drawing.Point(128, 152);
-            this.buttonRename.Name = "buttonRename";
-            this.buttonRename.Size = new System.Drawing.Size(79, 25);
-            this.buttonRename.TabIndex = 19;
-            this.buttonRename.Text = "Rename";
-            this.buttonRename.UseVisualStyleBackColor = false;
-            // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.radioButton2);
-            this.groupBox2.Controls.Add(this.radioButton1);
-            this.groupBox2.Location = new System.Drawing.Point(6, 6);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(200, 74);
-            this.groupBox2.TabIndex = 20;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Rename options";
-            // 
-            // checkBox2
-            // 
-            this.checkBox2.AutoSize = true;
-            this.checkBox2.Checked = true;
-            this.checkBox2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox2.Location = new System.Drawing.Point(12, 106);
-            this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(132, 17);
-            this.checkBox2.TabIndex = 1;
-            this.checkBox2.Text = "Enable rules validation";
-            this.checkBox2.UseVisualStyleBackColor = true;
-            // 
-            // radioButton1
-            // 
-            this.radioButton1.AutoSize = true;
-            this.radioButton1.Checked = true;
-            this.radioButton1.Location = new System.Drawing.Point(6, 20);
-            this.radioButton1.Name = "radioButton1";
-            this.radioButton1.Size = new System.Drawing.Size(78, 17);
-            this.radioButton1.TabIndex = 2;
-            this.radioButton1.TabStop = true;
-            this.radioButton1.Text = "Rename all";
-            this.radioButton1.UseVisualStyleBackColor = true;
-            // 
-            // radioButton2
-            // 
-            this.radioButton2.AutoSize = true;
-            this.radioButton2.Location = new System.Drawing.Point(6, 43);
-            this.radioButton2.Name = "radioButton2";
-            this.radioButton2.Size = new System.Drawing.Size(143, 17);
-            this.radioButton2.TabIndex = 3;
-            this.radioButton2.Text = "Rename only bad named";
-            this.radioButton2.UseVisualStyleBackColor = true;
-            // 
-            // checkBox3
-            // 
-            this.checkBox3.AutoSize = true;
-            this.checkBox3.Checked = true;
-            this.checkBox3.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox3.Location = new System.Drawing.Point(12, 129);
-            this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(170, 17);
-            this.checkBox3.TabIndex = 21;
-            this.checkBox3.Text = "Set correct demo creation time";
-            this.checkBox3.UseVisualStyleBackColor = true;
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Checked = true;
-            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox1.Location = new System.Drawing.Point(200, 106);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(131, 17);
-            this.checkBox1.TabIndex = 22;
-            this.checkBox1.Text = "Show rename preview";
-            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBoxAddSign.AutoSize = true;
+            this.checkBoxAddSign.Checked = true;
+            this.checkBoxAddSign.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxAddSign.Location = new System.Drawing.Point(6, 124);
+            this.checkBoxAddSign.Name = "checkBoxAddSign";
+            this.checkBoxAddSign.Size = new System.Drawing.Size(185, 17);
+            this.checkBoxAddSign.TabIndex = 22;
+            this.checkBoxAddSign.Text = "Add \'&&\' to demos with missing time";
+            this.checkBoxAddSign.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -821,12 +822,12 @@
             this.groupBoxMoveDemos.PerformLayout();
             this.tabPage4.ResumeLayout(false);
             this.tabPage4.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -885,10 +886,10 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Button buttonRename;
-        private System.Windows.Forms.RadioButton radioButton2;
-        private System.Windows.Forms.RadioButton radioButton1;
-        private System.Windows.Forms.CheckBox checkBox2;
-        private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.CheckBox checkBox3;
+        private System.Windows.Forms.RadioButton radioRenameBad;
+        private System.Windows.Forms.RadioButton radioRenameAll;
+        private System.Windows.Forms.CheckBox checkBoxRulesValidation;
+        private System.Windows.Forms.CheckBox checkBoxFixCreationTime;
+        private System.Windows.Forms.CheckBox checkBoxAddSign;
     }
 }

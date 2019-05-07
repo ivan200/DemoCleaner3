@@ -176,6 +176,13 @@ namespace DemoCleaner2
             //Имя
             if (frConfig.ContainsKey(RawInfo.keyPlayer)) {
                 demo.playerName = frConfig[RawInfo.keyPlayer]["dfn"];
+
+                if (demo.playerName == null || demo.playerName.Length == 0) {
+                    var n = frConfig[RawInfo.keyPlayer]["n"];
+                    if (n != null) {
+                        demo.playerName = Regex.Replace(n, "(\\^[0-9])", "");
+                    }
+                }
             }
 
             //время
@@ -227,7 +234,7 @@ namespace DemoCleaner2
             demo.modphysic = string.Format("{0}.{1}{2}", demo.dfType, demo.physic, demo.modNum);
 
             //если есть читы, то пишем в демку
-            demo.validity = checkValidity(raw);
+            demo.validity = checkValidity(frConfig);
 
             demo.country = tryGetCountryFromFilename(demo.file);
             return demo;
@@ -320,9 +327,7 @@ namespace DemoCleaner2
 
 
         //проверка демки на валидность
-        static string checkValidity(RawInfo raw) {
-            var frConfig = raw.getFriendlyInfo();
-
+        static string checkValidity(Dictionary<string, Dictionary<string, string>> frConfig) {
             if (!frConfig.ContainsKey(RawInfo.keyGame)) {
                 return "";
             }

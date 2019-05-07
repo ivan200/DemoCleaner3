@@ -11,10 +11,14 @@ namespace DemoCleaner2
 {
     public partial class Form1 : Form
     {
+        enum JobType { CLEAN, MOVE, RENAME }
+        JobType job = JobType.CLEAN;
+
         decimal _countMoveFiles = 0;
         decimal _countDeleteFiles = 0;
         decimal _countCreateDir = 0;
         decimal _countDeleteDir = 0;
+        decimal _countRenameFiles = 0;
 
         decimal _countProgressDemos = 0;
         decimal _countDemosAmount = 0;
@@ -54,20 +58,19 @@ namespace DemoCleaner2
         public DirectoryInfo _currentBadDemosPath;
         public DirectoryInfo _currentSlowDemosPath;
 
-        Thread threadClean;
-        Thread threadMove;
+        Thread backgroundThread;
 
         string _badDemosDirName = ".incorrectly named";
         string _slowDemosDirName = ".slow demos";
         string _moveDemosdirName = "!demos";
 
 
-        //renameDemos
+        //renameDemos view file info
         FileInfo openDemoFile;
 
         public Form1()
         {
-            if (System.Environment.OSVersion.Version.Major < 6) {
+            if (Environment.OSVersion.Version.Major < 6) {
                 _catchTaskBar = true;
             }
             InitializeComponent();
@@ -84,43 +87,7 @@ namespace DemoCleaner2
             try {
                 var prop = Properties.Settings.Default;
 
-                setRadioFromInt(prop.cleanOption,
-                    radioBestTimeOfEachPlayer,
-                    radioBestTimesOnMap);
-
-                setRadioFromInt(prop.slowDemosOption,
-                    radioButtonDeleteSlow,
-                    radioButtonSkipSlow,
-                    radioButtonMoveSlow);
-
-
-                textBoxSlowDemos.Enabled = radioButtonMoveSlow.Checked;
-                buttonSlowDemosBrowse.Enabled = radioButtonMoveSlow.Checked;
-
-                checkBoxUseSubfolders.Checked = prop.useSubFolders;
-                checkBoxProcessMdf.Checked = prop.processMdf;
-                checkBoxSplitFolders.Checked = prop.splitBySmallFolders;
-                groupBoxSplit.Enabled = checkBoxSplitFolders.Checked;
-
-                numericUpDownMaxFiles.Value = prop.maxFiles;
-                numericUpDownMaxFolders.Value = prop.maxFolders;
-
-                checkBoxMoveOnlyYour.Checked = prop.moveOnlyYourTimes;
-                groupBoxName.Enabled = checkBoxMoveOnlyYour.Checked;
-
-                textBoxYourName.Text = prop.yourName;
-                checkBoxDeleteEmptyDirs.Checked = prop.deleteEmptyDirs;
-
-                setRadioFromInt(prop.badDemosOption,
-                    radioButtonDeleteBad,
-                    radioButtonSkipBad,
-                    radioButtonMoveBad);
-
-                textBoxBadDemos.Enabled = radioButtonMoveBad.Checked;
-                buttonBadDemosBrowse.Enabled = radioButtonMoveBad.Checked;
-
-                checkBoxDeleteIdentical.Checked = prop.deleteIdentical;
-
+                //main
                 var dir = prop.demosFolder;
                 if (dir == null || dir.Length == 0) {
                     dir = Application.ExecutablePath.Substring(0,
@@ -137,9 +104,41 @@ namespace DemoCleaner2
 
                 tabControl1.SelectedIndex = prop.tabSelectedIndex;
 
+                //clean
+                setRadioFromInt(prop.cleanOption,radioBestTimeOfEachPlayer,radioBestTimesOnMap);
+                setRadioFromInt(prop.slowDemosOption,radioButtonDeleteSlow,radioButtonSkipSlow,radioButtonMoveSlow);
+                textBoxSlowDemos.Enabled = radioButtonMoveSlow.Checked;
+                buttonSlowDemosBrowse.Enabled = radioButtonMoveSlow.Checked;
+                checkBoxProcessMdf.Checked = prop.processMdf;
+                groupBoxSplit.Enabled = checkBoxSplitFolders.Checked;
                 numericUpDownCountOfBest.Value = (decimal)prop.countOfBestDemos;
 
+                //move
+                numericUpDownMaxFiles.Value = prop.maxFiles;
+                numericUpDownMaxFolders.Value = prop.maxFolders;
+                checkBoxMoveOnlyYour.Checked = prop.moveOnlyYourTimes;
+                groupBoxName.Enabled = checkBoxMoveOnlyYour.Checked;
+                textBoxYourName.Text = prop.yourName;
+                checkBoxSplitFolders.Checked = prop.splitBySmallFolders;
+                checkBoxUseSubfolders.Checked = prop.useSubFolders;
+
+                //rename
+                setRadioFromInt(prop.renameOption, radioRenameBad, radioRenameAll);
+                checkBoxFixCreationTime.Checked = prop.renameFixCreationTime;
+                checkBoxRulesValidation.Checked = prop.renameValidation;
+                checkBoxAddSign.Checked = prop.renameAddSign;
                 openFileDialog1.InitialDirectory = dir;
+
+                //additional
+                checkBoxDeleteEmptyDirs.Checked = prop.deleteEmptyDirs;
+                setRadioFromInt(prop.badDemosOption,
+                    radioButtonDeleteBad,
+                    radioButtonSkipBad,
+                    radioButtonMoveBad);
+
+                textBoxBadDemos.Enabled = radioButtonMoveBad.Checked;
+                buttonBadDemosBrowse.Enabled = radioButtonMoveBad.Checked;
+                checkBoxDeleteIdentical.Checked = prop.deleteIdentical;
             } catch (Exception) {
 
             }
@@ -154,9 +153,9 @@ namespace DemoCleaner2
         }
 
         //Получаем интовое значение из массива булевых
-        private int getIntFromParameters(params bool[] t)
+        private int getIntFromParameters(params RadioButton[] t)
         {
-            return t.TakeWhile(x => !x).Count();
+            return t.TakeWhile(x => !x.Checked).Count();
         }
 
         //Сохранение настроек
@@ -164,43 +163,42 @@ namespace DemoCleaner2
         {
             var prop = Properties.Settings.Default;
 
-            prop.cleanOption = getIntFromParameters(
-                radioBestTimeOfEachPlayer.Checked,
-                radioBestTimesOnMap.Checked);
+            //main
+            prop.demosFolder = _currentDemoPath.FullName;
+            prop.tabSelectedIndex = tabControl1.SelectedIndex;
 
+            //clean
+            prop.cleanOption = getIntFromParameters(radioBestTimeOfEachPlayer, radioBestTimesOnMap);
+            prop.slowDemosOption = getIntFromParameters(radioButtonDeleteSlow, radioButtonSkipSlow, radioButtonMoveSlow);
             prop.useSubFolders = checkBoxUseSubfolders.Checked;
             prop.processMdf = checkBoxProcessMdf.Checked;
+            prop.countOfBestDemos = (int)numericUpDownCountOfBest.Value;
+
+            //move
             prop.splitBySmallFolders = checkBoxSplitFolders.Checked;
             prop.maxFiles = decimal.ToInt32(numericUpDownMaxFiles.Value);
             prop.maxFolders = decimal.ToInt32(numericUpDownMaxFolders.Value);
             prop.moveOnlyYourTimes = checkBoxMoveOnlyYour.Checked;
             prop.yourName = textBoxYourName.Text;
+
+            //rename
+            prop.renameOption = getIntFromParameters(radioRenameBad, radioRenameAll);
+            prop.renameFixCreationTime = checkBoxFixCreationTime.Checked;
+            prop.renameValidation = checkBoxRulesValidation.Checked;
+            prop.renameAddSign = checkBoxAddSign.Checked;
+
+            //additional
+            prop.badDemosOption = getIntFromParameters(radioButtonDeleteBad, radioButtonSkipBad, radioButtonMoveBad);
             prop.deleteEmptyDirs = checkBoxDeleteEmptyDirs.Checked;
-            prop.tabSelectedIndex = tabControl1.SelectedIndex;
-
-            prop.badDemosOption = getIntFromParameters(
-                radioButtonDeleteBad.Checked,
-                radioButtonSkipBad.Checked,
-                radioButtonMoveBad.Checked);
-
-            prop.slowDemosOption = getIntFromParameters(
-                radioButtonDeleteSlow.Checked,
-                radioButtonSkipSlow.Checked,
-                radioButtonMoveSlow.Checked);
-
-            prop.demosFolder = _currentDemoPath.FullName;
             prop.deleteIdentical = checkBoxDeleteIdentical.Checked;
-            prop.countOfBestDemos = (int)numericUpDownCountOfBest.Value;
-
+            
             prop.Save();
         }
 
         private void checkBoxSplitFolders_CheckedChanged(object sender, EventArgs e)
         {
             var ch = (sender as CheckBox).Checked;
-
             groupBoxSplit.Enabled = ch;
-
         }
 
         private void checkBoxMoveOnlyYoyr_CheckedChanged(object sender, EventArgs e)
@@ -213,11 +211,8 @@ namespace DemoCleaner2
         {
             SaveSettings();
 
-            if (threadClean != null && threadClean.IsAlive) {
-                threadClean.Abort();
-            }
-            if (threadMove != null && threadMove.IsAlive) {
-                threadMove.Abort();
+            if (backgroundThread != null && backgroundThread.IsAlive) {
+                backgroundThread.Abort();
             }
         }
 
@@ -354,45 +349,67 @@ namespace DemoCleaner2
             _countDemosAmount = 0;
         }
 
-        //Обработка нажатия кнопки чистки демок
-        private void buttonClean_Click(object sender, EventArgs e)
-        {
+        private void runBackgroundThread() {
             DirectoryInfo demosFolder = null;
+            DirectoryInfo dirdemos = null;
 
             try {
                 demosFolder = new DirectoryInfo(textBoxDemosFolder.Text);
-            } catch (Exception) {
+            } catch (Exception) {}
 
-            }
-
-            if (demosFolder != null && demosFolder.Exists) {
-                SaveSettings();
-                SetButtonCallBack(false);
-                toolStripStatusLabel1.Text = "Cleaning..";
-
-                //Запускаем поток, в котором всё будем чистить
-                threadClean = new Thread(delegate () {
-                    try {
-                        nullCounter();
-
-                        Clean(_currentDemoPath);
-
-                        if (checkBoxDeleteEmptyDirs.Checked) {
-                            deleteEmpty(demosFolder);
-                        }
-
-                        this.Invoke(new SetItem(SetButtonCallBack), true);
-
-                        this.Invoke(new SetItem(showEndMessage), true);
-                    } catch (Exception ex) {
-                        MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                });
-                threadClean.Start();
-
-            } else {
+            if (demosFolder == null || !demosFolder.Exists) {
                 MessageBox.Show("Directory does not exist\n\n" + textBoxDemosFolder.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
+
+
+            SaveSettings();
+            SetButtonCallBack(false);
+            switch (job) {
+                case JobType.CLEAN: toolStripStatusLabel1.Text = "Cleaning..."; break;
+                case JobType.MOVE: toolStripStatusLabel1.Text = "Moving..."; break;
+                case JobType.RENAME: toolStripStatusLabel1.Text = "Renaming..."; break;
+            }
+
+            if (job == JobType.MOVE) {
+                try {
+                    dirdemos = new DirectoryInfo(textBoxMoveDemosFolder.Text);
+                } catch (Exception) {}
+                if (dirdemos == null || !dirdemos.Exists) {
+                    MessageBox.Show("Directory does not exist\n\n" + textBoxMoveDemosFolder.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+
+            //Запускаем поток, в котором всё будем чистить
+            backgroundThread = new Thread(delegate () {
+                try {
+                    nullCounter();
+
+                    switch (job) {
+                        case JobType.CLEAN: clean(_currentDemoPath); break;
+                        case JobType.MOVE: moveDemos(demosFolder, dirdemos); break;
+                        case JobType.RENAME: toolStripStatusLabel1.Text = "Renaming..."; break;
+                    }
+
+                    if (checkBoxDeleteEmptyDirs.Checked) {
+                        deleteEmpty(demosFolder);
+                    }
+
+                    this.Invoke(new SetItem(SetButtonCallBack), true);
+                    this.Invoke(new SetItemInt(showEndMessage), job);
+                } catch (Exception ex) {
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            });
+            backgroundThread.Start();
+        }
+
+        //Обработка нажатия кнопки чистки демок
+        private void buttonClean_Click(object sender, EventArgs e)
+        {
+            job = JobType.CLEAN
+            runBackgroundThread();
         }
 
         //форматирование текста месседжбокеса
@@ -407,9 +424,14 @@ namespace DemoCleaner2
         }
 
         //вывод сообщения об окончании работы
-        private void showEndMessage(bool clean)
+        private void showEndMessage(int jobType)
         {
-            string text = (clean ? "Cleaning" : "Moving") + " demos finished\n";
+            string text = "";
+            switch (jobType) {
+                case (int)JobType.CLEAN:  text = "Cleaning demos finished\n"; break;
+                case (int)JobType.MOVE:   text = "Moving demos finished\n"; break;
+                case (int)JobType.RENAME: text = "Renaming demos finished\n"; break;
+            }
 
             text += getMessageText(_countMoveFiles, "\n{0} file{1} were moved");
             text += getMessageText(_countDeleteFiles, "\n{0} file{1} were deleted");
@@ -480,7 +502,7 @@ namespace DemoCleaner2
         }
 
         //Чистим демки!
-        private void Clean(DirectoryInfo filedemos)
+        private void clean(DirectoryInfo filedemos)
         {
             var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
                 SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
@@ -627,37 +649,8 @@ namespace DemoCleaner2
         //Обработка нажатия кнопки перемещения демок
         private void buttonMove_Click(object sender, EventArgs e)
         {
-            DirectoryInfo filedemos = new DirectoryInfo(textBoxDemosFolder.Text);
-
-            if (filedemos.Exists) {
-                SaveSettings();
-
-                DirectoryInfo dirdemos = new DirectoryInfo(textBoxMoveDemosFolder.Text);
-
-                SetButtonCallBack(false);
-                toolStripStatusLabel1.Text = "Moving...";
-
-                //Запускаем поток, в котором всё будем перемещать
-                threadMove = new Thread(delegate () {
-                    try {
-                        nullCounter();
-
-                        moveDemos(filedemos, dirdemos);
-
-                        if (checkBoxDeleteEmptyDirs.Checked) {
-                            deleteEmpty(filedemos);
-                        }
-                        this.Invoke(new SetItem(SetButtonCallBack), true);
-
-                        this.Invoke(new SetItem(showEndMessage), false);
-                    } catch (Exception ex) {
-                        MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                });
-                threadMove.Start();
-            } else {
-                MessageBox.Show("Directory does not exist\n\n" + filedemos.FullName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            job = JobType.MOVE;
+            runBackgroundThread();
         }
 
         //Удаление пустых папок
@@ -816,6 +809,13 @@ namespace DemoCleaner2
                 demoInfoForm.info = cfg;
                 demoInfoForm.Show();
             }
+        }
+
+        //Обработка нажатия кнопки переименования демок
+        private void buttonRename_Click(object sender, EventArgs e)
+        {
+            job = JobType.RENAME;
+            runBackgroundThread();
         }
     }
 }
