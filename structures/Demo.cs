@@ -53,15 +53,20 @@ namespace DemoCleaner2
                     oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //убираем расширение
                     oldName = removeSubstr(oldName, mapName);                               //убираем имя карты
                     oldName = removeSubstr(oldName, playerName);                            //убираем имя игрока
+                    //oldName = removeSubstr(oldName, "\\." + country);                         //убираем страну
                     oldName = removeSubstr(oldName, country);                               //убираем страну
                     oldName = removeSubstr(oldName, modphysic);                             //убираем мод с физикой 
                     oldName = removeSubstr(oldName, physic);                                //убираем физику
                     oldName = removeSubstr(oldName, validity);                              //убираем строки валидации
                     oldName = removeDouble(oldName);                                        //убираем двойные символы (кроме  скобочек)
                     oldName = oldName.Replace("[]", "").Replace("()", "");                  //убираем пустые скобки
-                    oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9]+|[^[a-zA-Z0-9]+$)", "");
-                    //oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //убираем хрень в начале и в конце
+                    //oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9]+|[^[a-zA-Z0-9]+$)", "");
+                    oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //убираем хрень в начале и в конце
+                    oldName = oldName.Replace(" ", "_");                                    //убираем пробелы
+                    
                     demoname = string.Format("{0}{1}[{2}]{3}({4})", errSymbol, mapName, modphysic, oldName, playerCountry);
+
+                    demoname = demoname.Replace(").)", ")").Replace(".)", ")");
                 }
 
                 if (useValidation && validity.Length > 0) {
@@ -195,10 +200,11 @@ namespace DemoCleaner2
                 uName = frConfig[RawInfo.keyPlayer]["n"];
                 if (uName != null) {
                     uName = Regex.Replace(uName, "(\\^[0-9])", "");
+                    uName = Regex.Replace(uName, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
                 }
 
                 if (dfName == null || dfName.Length == 0 || dfName == "UnnamedPlayer") {
-                    if (uName != null) {
+                    if (uName != null && uName.Length > 0) {
                         demo.playerName = uName;
                     } else {
                         demo.playerName = dfName;
@@ -229,7 +235,10 @@ namespace DemoCleaner2
 
             //онлайн тайм
             if (raw.onlineTimes.Count == 1) {
-                demo.playerName = getOnlineName(raw.onlineTimes[0]);
+                var onlineName = getOnlineName(raw.onlineTimes[0]);
+                if (onlineName.Length > 0) {
+                    demo.playerName = onlineName;
+                }
                 demo.time = getOnlineTimeSpan(raw.onlineTimes[0]);
             } else if (raw.onlineTimes.Count > 1) {
                 double maxMillis = double.MaxValue;
@@ -294,7 +303,17 @@ namespace DemoCleaner2
                 if (c1 > c2) {
                     country = tryGetCountryFromBrackets(name.Substring(c2 + 1, c1 - c2 - 1));
                     if (country.Length > 0) {
-                        return country;
+                        bool hasNumber = false;
+                        foreach (char c in country) {
+                            if (char.IsNumber(c)) {
+                                hasNumber = true;
+                            }
+                        }
+                        if (hasNumber) {
+                            country = "";
+                        } else {
+                            return country;
+                        }
                     }
                     name = name.Substring(0, c2);
                 } else {
@@ -319,6 +338,7 @@ namespace DemoCleaner2
             //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
             string name = demoTimeCmd.Substring(6, demoTimeCmd.LastIndexOf(" reached") - 6); //Rom
+            name = Regex.Replace(name, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
             return name;
         }
 
@@ -398,10 +418,14 @@ namespace DemoCleaner2
         //проверка ключа на валидность
         static string checkKey(Dictionary<string, string> keysGame, string key, int val, string errorString = "") {
             if (keysGame.ContainsKey(key) && keysGame[key].Length > 0) {
+                var keyValue = keysGame[key];
                 int value = -1;
-                var success = int.TryParse(keysGame[key], out value);
+                var success = int.TryParse(keyValue, out value);
                 if (!success || value != val) {
-                    return (errorString.Length > 0 ? errorString : key) + "=" + keysGame[key];
+                    if (keyValue.StartsWith(".")) {     //правим отображение таймскейла как .3 -> 0.3
+                        keyValue = "0" + keyValue;
+                    }
+                    return (errorString.Length > 0 ? errorString : key) + "=" + keyValue;
                 }
             }
             return "";
