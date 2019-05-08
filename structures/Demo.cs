@@ -59,7 +59,8 @@ namespace DemoCleaner2
                     oldName = removeSubstr(oldName, validity);                              //убираем строки валидации
                     oldName = removeDouble(oldName);                                        //убираем двойные символы (кроме  скобочек)
                     oldName = oldName.Replace("[]", "").Replace("()", "");                  //убираем пустые скобки
-                    oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //убираем хрень в начале и в конце
+                    oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9]+|[^[a-zA-Z0-9]+$)", "");
+                    //oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //убираем хрень в начале и в конце
                     demoname = string.Format("{0}{1}[{2}]{3}({4})", errSymbol, mapName, modphysic, oldName, playerCountry);
                 }
 
@@ -192,12 +193,13 @@ namespace DemoCleaner2
             if (frConfig.ContainsKey(RawInfo.keyPlayer)) {
                 dfName = frConfig[RawInfo.keyPlayer]["dfn"];
                 uName = frConfig[RawInfo.keyPlayer]["n"];
+                if (uName != null) {
+                    uName = Regex.Replace(uName, "(\\^[0-9])", "");
+                }
 
                 if (dfName == null || dfName.Length == 0 || dfName == "UnnamedPlayer") {
-                    var n = uName;
-                    if (n != null) {
-                        n = Regex.Replace(n, "(\\^[0-9])", "");
-                        demo.playerName = n;
+                    if (uName != null) {
+                        demo.playerName = uName;
                     } else {
                         demo.playerName = dfName;
                     }
@@ -232,7 +234,7 @@ namespace DemoCleaner2
             } else if (raw.onlineTimes.Count > 1) {
                 double maxMillis = double.MaxValue;
                 foreach (var timeString in raw.onlineTimes) {
-                    var onlineName = getOnlineName(raw.onlineTimes[0]);
+                    var onlineName = getOnlineName(timeString);
                     if (onlineName == dfName || onlineName == uName) {
                         var time = getOnlineTimeSpan(timeString);
                         if (time.TotalMilliseconds < maxMillis) {
