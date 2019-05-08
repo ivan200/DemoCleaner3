@@ -70,6 +70,7 @@
             this.buttonBrowseWhereMove = new System.Windows.Forms.Button();
             this.textBoxMoveDemosFolder = new System.Windows.Forms.TextBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.checkBoxAddSign = new System.Windows.Forms.CheckBox();
             this.checkBoxFixCreationTime = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.radioRenameBad = new System.Windows.Forms.RadioButton();
@@ -85,7 +86,6 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.checkBoxAddSign = new System.Windows.Forms.CheckBox();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -613,6 +613,18 @@
             this.tabPage4.Text = "Demo renamer";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // checkBoxAddSign
+            // 
+            this.checkBoxAddSign.AutoSize = true;
+            this.checkBoxAddSign.Checked = true;
+            this.checkBoxAddSign.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxAddSign.Location = new System.Drawing.Point(6, 124);
+            this.checkBoxAddSign.Name = "checkBoxAddSign";
+            this.checkBoxAddSign.Size = new System.Drawing.Size(191, 17);
+            this.checkBoxAddSign.TabIndex = 22;
+            this.checkBoxAddSign.Text = "Add \'&&_\' to demos with missing time";
+            this.checkBoxAddSign.UseVisualStyleBackColor = true;
+            // 
             // checkBoxFixCreationTime
             // 
             this.checkBoxFixCreationTime.AutoSize = true;
@@ -627,6 +639,8 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox2.Controls.Add(this.radioRenameBad);
             this.groupBox2.Controls.Add(this.radioRenameAll);
             this.groupBox2.Location = new System.Drawing.Point(6, 6);
@@ -685,7 +699,7 @@
             // 
             // buttonSingleFileInfo
             // 
-            this.buttonSingleFileInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonSingleFileInfo.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.buttonSingleFileInfo.Location = new System.Drawing.Point(217, 78);
             this.buttonSingleFileInfo.Name = "buttonSingleFileInfo";
             this.buttonSingleFileInfo.Size = new System.Drawing.Size(114, 40);
@@ -771,18 +785,6 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Filter = "Demo files|*.dm_68;*.dm_67;*.dm_66";
-            // 
-            // checkBoxAddSign
-            // 
-            this.checkBoxAddSign.AutoSize = true;
-            this.checkBoxAddSign.Checked = true;
-            this.checkBoxAddSign.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxAddSign.Location = new System.Drawing.Point(6, 124);
-            this.checkBoxAddSign.Name = "checkBoxAddSign";
-            this.checkBoxAddSign.Size = new System.Drawing.Size(185, 17);
-            this.checkBoxAddSign.TabIndex = 22;
-            this.checkBoxAddSign.Text = "Add \'&&\' to demos with missing time";
-            this.checkBoxAddSign.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 

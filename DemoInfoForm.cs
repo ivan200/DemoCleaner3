@@ -1,4 +1,5 @@
-﻿using DemoCleaner2.DemoParser.parser;
+﻿using DemoCleaner2.DemoParser.huffman;
+using DemoCleaner2.DemoParser.parser;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,7 +13,7 @@ namespace DemoCleaner2
 {
     public partial class DemoInfoForm : Form
     {
-        public RawInfo info = null;
+        public FileInfo demoFile = null;
 
         Demo demo = null;
 
@@ -23,14 +24,17 @@ namespace DemoCleaner2
 
         private void DemoInfoForm_Load(object sender, EventArgs e)
         {
+            demo = Demo.GetDemoFromFileRaw(demoFile);
             loadFriendlyConfig(dataGridView);
-
-            demo = Demo.GetDemoFromRawInfo(info);
             textNewName.Text = demo.demoNewName;
         }
 
         void loadFriendlyConfig(DataGridView grid)
         {
+            if (demo == null) {
+                return;
+            }
+            var info = demo.rawInfo;
             if (info == null) {
                 return;
             }

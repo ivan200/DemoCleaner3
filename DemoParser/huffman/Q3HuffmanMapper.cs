@@ -27,6 +27,10 @@ namespace DemoCleaner2.DemoParser.huffman
 
         public static void init()
         {
+            if (rootNode != null) {
+                return;
+            }
+
             /*
              * this is packed map of q3-huffman tree
              * array contains bits sequences in reverse order, prefixed by bit. each value is the bit-coded path in tree,

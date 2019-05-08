@@ -23,7 +23,8 @@ namespace DemoCleaner2
         decimal _countProgressDemos = 0;
         decimal _countDemosAmount = 0;
 
-        bool _catchTaskBar = false;
+        //Используется в случае, если на данной ос нельзя использовать прогрессбар в таскбаре
+        bool _useTaskBarProgress = true; 
 
         decimal _CountProgressDemos {
             get { return _countProgressDemos; }
@@ -41,11 +42,11 @@ namespace DemoCleaner2
 
         private void setProgress(int num)
         {
-            if (!_catchTaskBar) {
+            if (_useTaskBarProgress) {
                 try {
                     TaskbarProgress.SetValue(this.Handle, num, 100);
                 } catch (Exception) {
-                    _catchTaskBar = true;
+                    _useTaskBarProgress = false;
                 }
             }
             toolStripProgressBar1.Value = num;
@@ -64,14 +65,10 @@ namespace DemoCleaner2
         string _slowDemosDirName = ".slow demos";
         string _moveDemosdirName = "!demos";
 
-
-        //renameDemos view file info
-        FileInfo openDemoFile;
-
         public Form1()
         {
             if (Environment.OSVersion.Version.Major < 6) {
-                _catchTaskBar = true;
+                _useTaskBarProgress = false;
             }
             InitializeComponent();
         }
@@ -381,7 +378,7 @@ namespace DemoCleaner2
                 }
             }
 
-            //Запускаем поток, в котором всё будем чистить
+            //Запускаем поток, в котором всё будем обрабатывать
             backgroundThread = new Thread(delegate () {
                 try {
                     nullCounter();
@@ -389,7 +386,7 @@ namespace DemoCleaner2
                     switch (job) {
                         case JobType.CLEAN: clean(_currentDemoPath); break;
                         case JobType.MOVE: moveDemos(demosFolder, dirdemos); break;
-                        case JobType.RENAME: toolStripStatusLabel1.Text = "Renaming..."; break;
+                        case JobType.RENAME: runRename(_currentDemoPath); break;
                     }
 
                     if (checkBoxDeleteEmptyDirs.Checked) {
@@ -399,6 +396,7 @@ namespace DemoCleaner2
                     this.Invoke(new SetItem(SetButtonCallBack), true);
                     this.Invoke(new SetItemInt(showEndMessage), job);
                 } catch (Exception ex) {
+                    this.Invoke(new SetItem(SetButtonCallBack), true);
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             });
@@ -408,7 +406,7 @@ namespace DemoCleaner2
         //Обработка нажатия кнопки чистки демок
         private void buttonClean_Click(object sender, EventArgs e)
         {
-            job = JobType.CLEAN
+            job = JobType.CLEAN;
             runBackgroundThread();
         }
 
@@ -428,21 +426,26 @@ namespace DemoCleaner2
         {
             string text = "";
             switch (jobType) {
-                case (int)JobType.CLEAN:  text = "Cleaning demos finished\n"; break;
-                case (int)JobType.MOVE:   text = "Moving demos finished\n"; break;
-                case (int)JobType.RENAME: text = "Renaming demos finished\n"; break;
+                case (int)JobType.CLEAN: text = "Cleaning"; break;
+                case (int)JobType.MOVE: text = "Moving"; break;
+                case (int)JobType.RENAME: text = "Renaming"; break;
+            }
+            text += " demos finished\n";
+
+            if (jobType == (int)JobType.RENAME) {
+                text += getMessageText(_countRenameFiles, "\n{0} file{1} were renamed");
+            } else {
+                text += getMessageText(_countMoveFiles, "\n{0} file{1} were moved");
+                text += getMessageText(_countDeleteFiles, "\n{0} file{1} were deleted");
+                text += getMessageText(_countCreateDir, "\n{0} folder{1} were created");
+                text += getMessageText(_countDeleteDir, "\n{0} folder{1} were deleted");
             }
 
-            text += getMessageText(_countMoveFiles, "\n{0} file{1} were moved");
-            text += getMessageText(_countDeleteFiles, "\n{0} file{1} were deleted");
-            text += getMessageText(_countCreateDir, "\n{0} folder{1} were created");
-            text += getMessageText(_countDeleteDir, "\n{0} folder{1} were deleted");
-
-            if (!_catchTaskBar) {
+            if (_useTaskBarProgress) {
                 try {
                     TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.NoProgress);
                 } catch (Exception) {
-                    _catchTaskBar = true;
+                    _useTaskBarProgress = false;
                 }
             }
 
@@ -576,6 +579,22 @@ namespace DemoCleaner2
             }
         }
 
+        //Метод переименования файла
+        private string renameFile(FileInfo file, string newName)
+        {
+            string newPath = Path.Combine(file.Directory.FullName, newName);
+            if (!newPath.Equals(file.FullName)) {
+                if (File.Exists(newPath)) {
+                    if (checkBoxDeleteIdentical.Checked) {
+                        deleteCheckRules(file);
+                    }
+                } else {
+                    moveCheckRules(file, newPath);
+                }
+            }
+            return newPath;
+        }
+
         private void deleteCheckRules(FileInfo file)
         {
             _countDeleteFiles++;
@@ -611,8 +630,6 @@ namespace DemoCleaner2
                 }
             }
         }
-
-
 
         private void tryGetAccess(FileInfo file)
         {
@@ -799,14 +816,8 @@ namespace DemoCleaner2
         private void buttonSingleFileInfo_Click(object sender, EventArgs e)
         {
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK && openFileDialog1.FileName.Length > 0) {
-                openDemoFile = new FileInfo(openFileDialog1.FileName);
-
-                Q3HuffmanMapper.init();
-                var t = Q3HuffmanMapper.rootNode;
-                var cfg = Q3DemoParser.getRawConfigStrings(openDemoFile.FullName);
-
                 demoInfoForm = new DemoInfoForm();
-                demoInfoForm.info = cfg;
+                demoInfoForm.demoFile = new FileInfo(openFileDialog1.FileName);
                 demoInfoForm.Show();
             }
         }
@@ -816,6 +827,48 @@ namespace DemoCleaner2
         {
             job = JobType.RENAME;
             runBackgroundThread();
+        }
+
+
+        //Фиксим демки!
+        private void runRename(DirectoryInfo filedemos)
+        {
+            
+            var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
+                SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+            _countDemosAmount = files.Length;
+
+            if (radioRenameBad.Checked) {
+                files = files.Where(x => Demo.GetDemoFromFile(x).hasError == true).ToArray();
+            }
+
+            _countDemosAmount = files.Length;
+
+            Demo demo;
+
+            Exception exception = null;
+
+            foreach (var file in files) {
+                try {
+                    demo = Demo.GetDemoFromFileRaw(file);
+                    if (!checkBoxAddSign.Checked) {
+                        demo.errSymbol = "";
+                    }
+                    demo.useValidation = checkBoxRulesValidation.Checked;
+
+                    string newPath = renameFile(file, demo.demoNewName);
+
+                    if (checkBoxFixCreationTime.Checked && demo.recordTime.HasValue && File.Exists(newPath)) {
+                        File.SetCreationTime(newPath, demo.recordTime.Value);
+                    }
+
+                } catch (Exception ex) {
+                    exception = ex;
+                }
+            }
+            if (exception != null) {
+                throw exception;
+            }
         }
     }
 }

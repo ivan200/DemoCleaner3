@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using DemoCleaner2.DemoParser.parser;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using DemoCleaner2.DemoParser.huffman;
 
 namespace DemoCleaner2
 {
@@ -22,18 +23,21 @@ namespace DemoCleaner2
         public bool hasError;
         public DateTime? recordTime;
 
-        public string ruleset = "";
-
         string dfType;
         string physic;
         string modNum;
 
         string validity = "";
+        public bool useValidation = true;
+
+        public string errSymbol = "&_";
+
+        public RawInfo rawInfo = null;
 
         public string demoNewName {
             get {
                 if (hasError) {
-                    return "!BAD_" + file.Name;
+                    return file.Name.StartsWith(errSymbol) ? file.Name : errSymbol + file.Name;
                 }
 
                 string demoname = "";
@@ -56,10 +60,10 @@ namespace DemoCleaner2
                     oldName = removeDouble(oldName);                                        //убираем двойные символы (кроме  скобочек)
                     oldName = oldName.Replace("[]", "").Replace("()", "");                  //убираем пустые скобки
                     oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //убираем хрень в начале и в конце
-                    demoname = string.Format("&{0}[{1}]{2}({3})", mapName, modphysic, oldName, playerCountry);
+                    demoname = string.Format("{0}{1}[{2}]{3}({4})", errSymbol, mapName, modphysic, oldName, playerCountry);
                 }
 
-                if (validity.Length > 0) {
+                if (useValidation && validity.Length > 0) {
                     demoname = demoname + "{" + validity + "}"; //добавляем инфу о валидации
                 }
 
@@ -120,7 +124,7 @@ namespace DemoCleaner2
 
                 //Физика
                 demo.modphysic = sub[1];
-                if (sub[1].Length < 3) {
+                if (demo.modphysic.Length < 3) {
                     demo.hasError = true;
                 }
 
@@ -156,6 +160,12 @@ namespace DemoCleaner2
             return mod;
         }
 
+        public static Demo GetDemoFromFileRaw(FileInfo file)
+        {
+            Q3HuffmanMapper.init();
+            var raw = Q3DemoParser.getRawConfigStrings(file.FullName);
+            return Demo.GetDemoFromRawInfo(raw);
+        }
 
         //Получаем заполненную демку из детальной инфы выдернутой из демки
         public static Demo GetDemoFromRawInfo(RawInfo raw)
@@ -166,6 +176,8 @@ namespace DemoCleaner2
 
             Demo demo = new Demo();
 
+            demo.rawInfo = raw;
+
             //файл
             demo.file = file;
             if (frConfig.Count == 0  || !frConfig.ContainsKey(RawInfo.keyClient)) {
@@ -174,19 +186,33 @@ namespace DemoCleaner2
             }
 
             //Имя
-            if (frConfig.ContainsKey(RawInfo.keyPlayer)) {
-                demo.playerName = frConfig[RawInfo.keyPlayer]["dfn"];
+            string dfName = null;
+            string uName = null;
 
-                if (demo.playerName == null || demo.playerName.Length == 0) {
-                    var n = frConfig[RawInfo.keyPlayer]["n"];
+            if (frConfig.ContainsKey(RawInfo.keyPlayer)) {
+                dfName = frConfig[RawInfo.keyPlayer]["dfn"];
+                uName = frConfig[RawInfo.keyPlayer]["n"];
+
+                if (dfName == null || dfName.Length == 0 || dfName == "UnnamedPlayer") {
+                    var n = uName;
                     if (n != null) {
-                        demo.playerName = Regex.Replace(n, "(\\^[0-9])", "");
+                        n = Regex.Replace(n, "(\\^[0-9])", "");
+                        demo.playerName = n;
+                    } else {
+                        demo.playerName = dfName;
                     }
+                } else {
+                    demo.playerName = dfName;
                 }
             }
 
-            //время
-            if (raw.performedTimes.Count > 0) {
+            //оффлайн тайм
+            if (raw.performedTimes.Count == 1) {
+                demo.time = getTimeSpanForDemo(raw.performedTimes[0]);
+                if (raw.dateStamps.Count > 0) {
+                    demo.recordTime = getDateForDemo(raw.dateStamps[0]);
+                }
+            } else if (raw.performedTimes.Count > 1) {
                 double maxMillis = double.MaxValue;
                 for (int i = 0; i < raw.performedTimes.Count; i++) {
                     var time = getTimeSpanForDemo(raw.performedTimes[i]);
@@ -197,12 +223,21 @@ namespace DemoCleaner2
                         }
                     }
                 }
-            } else if (raw.onlineTimes.Count > 0) {
+            }
+
+            //онлайн тайм
+            if (raw.onlineTimes.Count == 1) {
+                demo.playerName = getOnlineName(raw.onlineTimes[0]);
+                demo.time = getOnlineTimeSpan(raw.onlineTimes[0]);
+            } else if (raw.onlineTimes.Count > 1) {
                 double maxMillis = double.MaxValue;
                 foreach (var timeString in raw.onlineTimes) {
-                    var time = getOnlineTimeSpanForDemo(timeString, demo.playerName);
-                    if (time.HasValue && time.Value.TotalMilliseconds < maxMillis) {
-                        demo.time = time.Value;
+                    var onlineName = getOnlineName(raw.onlineTimes[0]);
+                    if (onlineName == dfName || onlineName == uName) {
+                        var time = getOnlineTimeSpan(timeString);
+                        if (time.TotalMilliseconds < maxMillis) {
+                            demo.time = time;
+                        }
                     }
                 }
             }
@@ -277,16 +312,18 @@ namespace DemoCleaner2
         }
 
         //получение времени из онлайн надписи
-        static TimeSpan? getOnlineTimeSpanForDemo(string demoTimeCmd, string dfName)
+        static string getOnlineName(string demoTimeCmd)
         {
             //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
             string name = demoTimeCmd.Substring(6, demoTimeCmd.LastIndexOf(" reached") - 6); //Rom
-            string demoTime = demoTimeCmd.Substring(demoTimeCmd.LastIndexOf("in") + 3);      //3:38:208
+            return name;
+        }
 
-            if (!name.Equals(dfName)) {
-                return null;
-            }
+        static TimeSpan getOnlineTimeSpan(string demoTimeCmd) {
+            //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
+            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
+            string demoTime = demoTimeCmd.Substring(demoTimeCmd.LastIndexOf("in") + 3);      //3:38:208
             return getTimeSpan(demoTime);
         }
 

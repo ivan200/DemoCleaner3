@@ -50,10 +50,13 @@
     <Setting Name="renameOption" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="rulesValidation" Type="System.Boolean" Scope="User">
+    <Setting Name="renameValidation" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="fixDemoCreationTime" Type="System.Boolean" Scope="User">
+    <Setting Name="renameFixCreationTime" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="renameAddSign" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
