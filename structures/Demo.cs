@@ -28,6 +28,7 @@ namespace DemoCleaner2
 
         string validity = "";
         public bool useValidation = true;
+        public bool rawTime = false;
 
         public string errSymbol = "&_";
 
@@ -142,13 +143,9 @@ namespace DemoCleaner2
                 }
 
                 //Имя + страна
-                var name = sub[3].Split('.');
-                if (name.Length > 1) {
-                    demo.playerName = name[0];
-                    demo.country = name[1];
-                } else {
-                    demo.playerName = sub[3];
-                }
+                var countryName = sub[3];
+                demo.country = tryGetCountryFromBrackets(countryName);
+                demo.playerName = tryGetNameFromBrackets(countryName);
             } else {
                 demo.hasError = true;
             }
@@ -158,7 +155,7 @@ namespace DemoCleaner2
         //обработка группировки, если нажата галка с обработкой мдф как дф
         public static string mdfToDf(string mod, bool processIt)
         {
-            if (processIt && mod[0] == 'm') {
+            if (processIt && mod.Length > 0 && mod[0] == 'm') {
                 return mod.Substring(1);
             }
             return mod;
@@ -203,7 +200,7 @@ namespace DemoCleaner2
                 uName = Ext.GetOrNull(kPlayer, "n");
                 
                 if (!string.IsNullOrEmpty(uName)) {
-                    uName = Regex.Replace(uName, "(\\^[0-9])", "");
+                    uName = Regex.Replace(uName, "\\^.", "");
                     uName = Regex.Replace(uName, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
                 }
 
@@ -258,6 +255,15 @@ namespace DemoCleaner2
                     }
                 }
             }
+            //хоть какой то тайм (из имени демки)
+            if (demo.time.TotalMilliseconds > 0) {
+                demo.rawTime = true;
+            } else {
+                var time = tryGetTimeFromFileName(file);
+                if (time != null) {
+                    demo.time = time.Value;
+                }
+            }
 
             //Карта
             var mapInfo = raw.rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_MAP) ? raw.rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_MAP] : "";
@@ -310,14 +316,14 @@ namespace DemoCleaner2
             }
 
             //комбинируем
-            if (demo.physic != null && demo.modNum != null) {
+            if (demo.physic != null) {
                 demo.modphysic = string.Format("{0}.{1}{2}", demo.dfType, demo.physic, demo.modNum);
             } else {
                 demo.modphysic = demo.dfType;
             }
 
             //если есть читы, то пишем в демку
-            demo.validity = checkValidity(frConfig);
+            demo.validity = checkValidity(frConfig, demo.time.TotalMilliseconds > 0, demo.rawTime);
 
             demo.country = tryGetCountryFromBrackets(countryName);
             return demo;
@@ -334,7 +340,7 @@ namespace DemoCleaner2
 
         static string tryGetNameFromBrackets(string partname)
         {
-            int i = partname.IndexOf('.');
+            int i = partname.LastIndexOf('.');
             if (i > 0) {
                 partname = partname.Substring(0, i);
             }
@@ -344,16 +350,52 @@ namespace DemoCleaner2
         //Пытаемся получить страну, и только её, из имени и страны
         static string tryGetCountryFromBrackets(string partname)
         {
-            var p = partname.Replace("(", "").Replace(")", "");
-            int i = p.LastIndexOf('.');
-            if (i > 0 && i +1 < p.Length) {
-                var country = p.Substring(i+1, p.Length - i - 1);
+            int i = partname.LastIndexOf('.');
+            if (i > 0 && i +1 < partname.Length) {
+                var country = partname.Substring(i+1, partname.Length - i - 1);
                 if (country.Where(c => char.IsNumber(c)).Count() == 0) {
                     return country;
                 }
             }
             return "";
         }
+
+        //Пытаемся получить время из демки
+        static TimeSpan? tryGetTimeFromFileName(FileInfo file)
+        {
+            var sub = file.Name.Split("[]()_".ToArray());
+            foreach (string part in sub) {
+                var time = tryGetTimeFromBrackets(part);
+                if (time != null) {
+                    return time;
+                }
+            }
+            return null;
+        }
+
+        //Пытаемся получить время из куска имени демки
+        static TimeSpan? tryGetTimeFromBrackets(string partname)
+        {
+            var parts = partname.Split("-".ToArray());
+            if (parts.Length < 2 || parts.Length > 3) {
+                parts = partname.Split(".".ToArray());
+                if (parts.Length < 2 || parts.Length > 3) {
+                    return null;
+                }
+            }
+            foreach (string part in parts) {
+                if (part.Length == 0) {
+                    return null;
+                }
+                foreach (char c in part) {
+                    if (!char.IsDigit(c)) {
+                        return null;
+                    }
+                }
+            }
+            return getTimeSpan(partname);
+        }
+
 
         //получение времени из онлайн надписи
         static string getOnlineName(string demoTimeCmd)
@@ -372,7 +414,7 @@ namespace DemoCleaner2
             return getTimeSpan(demoTime);
         }
 
-        //получение времени из онффлайн надписи
+        //получение времени из оффлайн надписи
         static TimeSpan getTimeSpanForDemo(string demoTimeCmd)
         {
             //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
@@ -409,7 +451,7 @@ namespace DemoCleaner2
 
 
         //проверка демки на валидность
-        static string checkValidity(Dictionary<string, Dictionary<string, string>> frConfig) {
+        static string checkValidity(Dictionary<string, Dictionary<string, string>> frConfig, bool hasTime, bool hasRawTime) {
             if (!frConfig.ContainsKey(RawInfo.keyGame)) {
                 return "";
             }
@@ -432,11 +474,16 @@ namespace DemoCleaner2
             }
 
             res = checkKey(kGame, "timescale", 1);                  if (res.Length > 0) return res;
-            res = checkKey(kGame, "defrag_svfps", 125, "sv_fps");   if (res.Length > 0) return res;
-            res = checkKey(kGame, "g_knockback", 1000);             if (res.Length > 0) return res;
-            res = checkKey(kGame, "g_gravity", 800);                if (res.Length > 0) return res;
             res = checkKey(kGame, "g_speed", 320);                  if (res.Length > 0) return res;
+            res = checkKey(kGame, "g_gravity", 800);                if (res.Length > 0) return res;
+            res = checkKey(kGame, "g_knockback", 1000);             if (res.Length > 0) return res;
+
+            if (hasTime && !hasRawTime) {
+                return "client_finish=false";
+            }
+
             res = checkKey(kGame, "pmove_msec", 8);                 if (res.Length > 0) return res;
+            res = checkKey(kGame, "defrag_svfps", 125, "sv_fps");   if (res.Length > 0) return res;
 
             res = checkKey(kGame, "g_synchronousclients", (online ? 0 : 1), "g_sync"); if (res.Length > 0) return res;
             res = checkKey(kGame, "pmove_fixed", (online ? 1 : 0)); if (res.Length > 0) return res;
@@ -447,9 +494,12 @@ namespace DemoCleaner2
         static string checkKey(Dictionary<string, string> keysGame, string key, int val, string errorString = "") {
             if (keysGame.ContainsKey(key) && keysGame[key].Length > 0) {
                 var keyValue = keysGame[key];
-                int value = -1;
-                var success = int.TryParse(keyValue, out value);
-                if (!success || value != val) {
+                float value = -1;
+                try {
+                    value = float.Parse(keyValue, CultureInfo.InvariantCulture);
+                } catch (Exception ex) {
+                }
+                if (value < 0 || value != (float) val) {
                     if (keyValue.StartsWith(".")) {     //правим отображение таймскейла как .3 -> 0.3
                         keyValue = "0" + keyValue;
                     }

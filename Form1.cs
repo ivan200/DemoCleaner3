@@ -157,8 +157,6 @@ namespace DemoCleaner2
         //Сохранение настроек
         private void SaveSettings()
         {
-            var prop = Properties.Settings.Default;
-
             //main
             prop.demosFolder = _currentDemoPath.FullName;
             prop.tabSelectedIndex = tabControl1.SelectedIndex;
@@ -194,6 +192,24 @@ namespace DemoCleaner2
             prop.deleteIdentical = checkBoxDeleteIdentical.Checked;
             
             prop.Save();
+        }
+
+        //Получение корректной директории из текста
+        private DirectoryInfo checkGetFolder(TextBox textBox, string previousText)
+        {
+            DirectoryInfo folder = null;
+            if (textBox.Text.Length > 0 && textBox.Text != previousText) {
+                try {
+                    folder = new DirectoryInfo(textBox.Text);
+                } catch (Exception ex) {
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    if (!string.IsNullOrEmpty(previousText)) {
+                        textBox.Text = previousText;
+                    }
+                }
+            }
+            return folder;
         }
 
         private void checkBoxSplitFolders_CheckedChanged(object sender, EventArgs e)
@@ -238,36 +254,32 @@ namespace DemoCleaner2
         //По изменении основной папки с демками, меняем все остальные пути
         private void textBoxDemosFolder_TextChanged(object sender, EventArgs e)
         {
-            var text = (sender as TextBox).Text;
-            if (text.Length > 0) {
-                var folder = new DirectoryInfo(text);
-                if (folder.Exists) {
-                    _currentDemoPath = folder;
+            var folder = checkGetFolder(sender as TextBox, prop.demosFolder);
+            if (folder != null) {
+                _currentDemoPath = folder;
 
-                    textBoxBadDemos.Text = Path.Combine(_currentDemoPath.FullName, _badDemosDirName);
-                    textBoxBadDemos.SelectionStart = textBoxBadDemos.Text.Length;
-                    textBoxBadDemos.ScrollToCaret();
-                    textBoxBadDemos.Refresh();
+                textBoxBadDemos.Text = Path.Combine(_currentDemoPath.FullName, _badDemosDirName);
+                textBoxBadDemos.SelectionStart = textBoxBadDemos.Text.Length;
+                textBoxBadDemos.ScrollToCaret();
+                textBoxBadDemos.Refresh();
 
-                    textBoxSlowDemos.Text = Path.Combine(_currentDemoPath.FullName, _slowDemosDirName);
-                    textBoxSlowDemos.SelectionStart = textBoxSlowDemos.Text.Length;
-                    textBoxSlowDemos.ScrollToCaret();
-                    textBoxSlowDemos.Refresh();
+                textBoxSlowDemos.Text = Path.Combine(_currentDemoPath.FullName, _slowDemosDirName);
+                textBoxSlowDemos.SelectionStart = textBoxSlowDemos.Text.Length;
+                textBoxSlowDemos.ScrollToCaret();
+                textBoxSlowDemos.Refresh();
 
-                    textBoxMoveDemosFolder.Text = Path.Combine(_currentDemoPath.FullName, _moveDemosdirName);
-                    textBoxMoveDemosFolder.SelectionStart = textBoxBadDemos.Text.Length;
-                    textBoxMoveDemosFolder.ScrollToCaret();
-                    textBoxMoveDemosFolder.Refresh();
-                }
+                textBoxMoveDemosFolder.Text = Path.Combine(_currentDemoPath.FullName, _moveDemosdirName);
+                textBoxMoveDemosFolder.SelectionStart = textBoxBadDemos.Text.Length;
+                textBoxMoveDemosFolder.ScrollToCaret();
+                textBoxMoveDemosFolder.Refresh();
             }
         }
 
         //записываем путь медленных демок
         private void textBoxSlowDemos_TextChanged(object sender, EventArgs e)
         {
-            var text = (sender as TextBox).Text;
-            if (text.Length > 0) {
-                var folder = new DirectoryInfo(text);
+            var folder = checkGetFolder(sender as TextBox, prop.slowDemoFolder);
+            if (folder != null) {
                 _currentSlowDemosPath = folder;
             }
         }
@@ -275,23 +287,17 @@ namespace DemoCleaner2
         //записываем путь перемещения демок
         private void textBoxMoveDemosFolder_TextChanged(object sender, EventArgs e)
         {
-            var text = (sender as TextBox).Text;
-            if (text.Length > 0) {
-                try {
-                    var folder = new DirectoryInfo(text);
-                    _currentMovePath = folder;
-                } catch (Exception ex) {
-                    
-                }
+            var folder = checkGetFolder(sender as TextBox, prop.moveDemoFolder);
+            if (folder != null) {
+                _currentMovePath = folder;
             }
         }
 
         //записываем путь плохих демок
         private void textBoxBadDemos_TextChanged(object sender, EventArgs e)
         {
-            var text = (sender as TextBox).Text;
-            if (text.Length > 0) {
-                var folder = new DirectoryInfo(text);
+            var folder = checkGetFolder(sender as TextBox, prop.badDemoFolder);
+            if (folder != null) {
                 _currentBadDemosPath = folder;
             }
         }
@@ -382,6 +388,7 @@ namespace DemoCleaner2
                     this.Invoke(new SetItem(SetButtonCallBack), true);
                     this.Invoke(new SetItemInt(showEndMessage), job);
                 } catch (Exception ex) {
+                    this.Invoke(new SetItemInt(setProgress), 0);
                     this.Invoke(new SetItem(SetButtonCallBack), true);
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
@@ -687,6 +694,8 @@ namespace DemoCleaner2
         private void buttonSingleFileInfo_Click(object sender, EventArgs e)
         {
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK && openFileDialog1.FileName.Length > 0) {
+                SaveSettings();
+
                 demoInfoForm = new DemoInfoForm();
                 demoInfoForm.demoFile = new FileInfo(openFileDialog1.FileName);
                 demoInfoForm.Show();
