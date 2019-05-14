@@ -1,5 +1,6 @@
 ﻿using DemoCleaner2.DemoParser.huffman;
 using DemoCleaner2.DemoParser.parser;
+using DemoCleaner2.ExtClasses;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,6 +18,9 @@ namespace DemoCleaner2
 
         Demo demo = null;
 
+        FileHelper fileHelper;
+        Properties.Settings prop;
+
         public DemoInfoForm()
         {
             InitializeComponent();
@@ -25,8 +29,16 @@ namespace DemoCleaner2
         private void DemoInfoForm_Load(object sender, EventArgs e)
         {
             demo = Demo.GetDemoFromFileRaw(demoFile);
+            prop = Properties.Settings.Default;
+            if (!prop.renameAddSign) {
+                demo.errSymbol = "";
+            }
+            demo.useValidation = prop.renameValidation;
+
             loadFriendlyConfig(dataGridView);
             textNewName.Text = demo.demoNewName;
+
+            fileHelper = new FileHelper();
         }
 
         void loadFriendlyConfig(DataGridView grid)
@@ -59,14 +71,15 @@ namespace DemoCleaner2
 
         private void buttonRename_Click(object sender, EventArgs e)
         {
-            string newPath = Path.Combine(demo.file.Directory.FullName, textNewName.Text);
-            File.Move(demo.file.FullName, newPath);
-
-            if (demo.recordTime.HasValue) {
-                File.SetCreationTime(newPath, demo.recordTime.Value);
+            try {
+                string newPath = fileHelper.renameFile(demo.file, demo.demoNewName, prop.deleteIdentical);
+                if (prop.renameFixCreationTime && demo.recordTime.HasValue && File.Exists(newPath)) {
+                    File.SetCreationTime(newPath, demo.recordTime.Value);
+                }
+                MessageBox.Show("File was Renamed", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            } catch (Exception ex) {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-            MessageBox.Show("File was Renamed", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

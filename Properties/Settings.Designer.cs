@@ -250,5 +250,41 @@ namespace DemoCleaner2.Properties {
                 this["renameAddSign"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string moveDemoFolder {
+            get {
+                return ((string)(this["moveDemoFolder"]));
+            }
+            set {
+                this["moveDemoFolder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string badDemoFolder {
+            get {
+                return ((string)(this["badDemoFolder"]));
+            }
+            set {
+                this["badDemoFolder"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string slowDemoFolder {
+            get {
+                return ((string)(this["slowDemoFolder"]));
+            }
+            set {
+                this["slowDemoFolder"] = value;
+            }
+        }
     }
 }

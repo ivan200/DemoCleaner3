@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Collections;
 
 namespace DemoCleaner2
 {
-    public static class Extention
+    public static class Ext
     {
         public static List<KeyValuePair<TKey, TValue>> MakeListFromGroups<TKey, TValue>(IEnumerable<IGrouping<TKey, TValue>> folders)
         {
@@ -17,6 +18,14 @@ namespace DemoCleaner2
                 }
             }
             return dict;
+        }
+
+        public static TValue GetOrNull<TKey, TValue>(Dictionary<TKey, TValue> dictionary, TKey key)
+        {
+            if (dictionary.ContainsKey(key)) {
+                return dictionary[key];
+            }
+            return default(TValue);
         }
     }
 }

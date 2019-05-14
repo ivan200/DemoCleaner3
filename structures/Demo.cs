@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Runtime.InteropServices;
 using DemoCleaner2.DemoParser.parser;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using DemoCleaner2.DemoParser.huffman;
+using DemoCleaner2.DemoParser;
 
 namespace DemoCleaner2
 {
@@ -53,7 +52,6 @@ namespace DemoCleaner2
                     oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //убираем расширение
                     oldName = removeSubstr(oldName, mapName);                               //убираем имя карты
                     oldName = removeSubstr(oldName, playerName);                            //убираем имя игрока
-                    //oldName = removeSubstr(oldName, "\\." + country);                         //убираем страну
                     oldName = removeSubstr(oldName, country);                               //убираем страну
                     oldName = removeSubstr(oldName, modphysic);                             //убираем мод с физикой 
                     oldName = removeSubstr(oldName, physic);                                //убираем физику
@@ -94,7 +92,7 @@ namespace DemoCleaner2
         //берётся последний символ если их 2, и первый если только слева: test_abcxy -> test_xy
         string removeSubstr(string input, string include)
         {
-            if (!input.Contains(include) || include.Length == 0) {
+            if (include == null || include.Length == 0 || !input.Contains(include)) {
                 return input;
             }
             var symbol = "";
@@ -191,20 +189,26 @@ namespace DemoCleaner2
                 return demo;
             }
 
+            string countryName = getNameAndCountry(file);
+
             //Имя
+            string demoUserName = tryGetNameFromBrackets(countryName);  
             string dfName = null;
             string uName = null;
 
             if (frConfig.ContainsKey(RawInfo.keyPlayer)) {
-                dfName = frConfig[RawInfo.keyPlayer]["dfn"];
-                uName = frConfig[RawInfo.keyPlayer]["n"];
-                if (uName != null) {
+                var kPlayer = frConfig[RawInfo.keyPlayer];
+
+                dfName = Ext.GetOrNull(kPlayer, "dfn");
+                uName = Ext.GetOrNull(kPlayer, "n");
+                
+                if (!string.IsNullOrEmpty(uName)) {
                     uName = Regex.Replace(uName, "(\\^[0-9])", "");
                     uName = Regex.Replace(uName, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
                 }
 
-                if (dfName == null || dfName.Length == 0 || dfName == "UnnamedPlayer") {
-                    if (uName != null && uName.Length > 0) {
+                if (string.IsNullOrEmpty(dfName) || dfName == "UnnamedPlayer") {
+                    if (!string.IsNullOrEmpty(uName)) {
                         demo.playerName = uName;
                     } else {
                         demo.playerName = dfName;
@@ -212,6 +216,8 @@ namespace DemoCleaner2
                 } else {
                     demo.playerName = dfName;
                 }
+            } else {
+                demo.playerName = demoUserName;
             }
 
             //оффлайн тайм
@@ -244,7 +250,7 @@ namespace DemoCleaner2
                 double maxMillis = double.MaxValue;
                 foreach (var timeString in raw.onlineTimes) {
                     var onlineName = getOnlineName(timeString);
-                    if (onlineName == dfName || onlineName == uName) {
+                    if (onlineName == dfName || onlineName == uName || onlineName == demoUserName) {
                         var time = getOnlineTimeSpan(timeString);
                         if (time.TotalMilliseconds < maxMillis) {
                             demo.time = time;
@@ -254,82 +260,99 @@ namespace DemoCleaner2
             }
 
             //Карта
-            demo.mapName = frConfig[RawInfo.keyClient]["mapname"];
+            var mapInfo = raw.rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_MAP) ? raw.rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_MAP] : "";
+            var mapName = Ext.GetOrNull(frConfig[RawInfo.keyClient], "mapname");
+
+            //Если в mapInfo написано название этой же мапы, но с заглавными, то название берём оттуда
+            if (mapName.ToLower().Equals(mapInfo.ToLower())) {
+                demo.mapName = mapInfo;
+            } else {
+                demo.mapName = mapName;
+            }
 
             //геймтайп
-            int gType = int.Parse(frConfig[RawInfo.keyClient]["defrag_gametype"]);
-            switch (gType) {
-                case 1: demo.dfType = "df"; break;
-                case 2: demo.dfType = "fs"; break;
-                case 3: demo.dfType = "fc"; break;
+            var gameType = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_gametype");
+            int gType = 0;
+            if (!string.IsNullOrEmpty(gameType)) {
+                int.TryParse(gameType, out gType);
+                switch (gType) {
+                    case 1: demo.dfType = "df"; break;
+                    case 2: demo.dfType = "fs"; break;
+                    case 3: demo.dfType = "fc"; break;
 
-                case 5: demo.dfType = "mdf"; break;
-                case 6: demo.dfType = "mfs"; break;
-                case 7: demo.dfType = "mfc"; break;
+                    case 5: demo.dfType = "mdf"; break;
+                    case 6: demo.dfType = "mfs"; break;
+                    case 7: demo.dfType = "mfc"; break;
+                }
+            }
+
+            if (gType == 0) {
+                var vers = Ext.GetOrNull(frConfig[RawInfo.keyClient], "gamename");
+                if (vers == "defrag"){
+                    demo.dfType = "df";
+                } else {
+                    demo.dfType = "dm";
+                }
             }
 
             //промод
-            var promode = frConfig[RawInfo.keyClient]["df_promode"];
-            demo.physic = int.Parse(promode) == 1 ? "cpm" : "vq3";                  //vq3, cpm
+            var promode = Ext.GetOrNull(frConfig[RawInfo.keyClient], "df_promode");
+            if (!string.IsNullOrEmpty(promode)) {
+                int.TryParse(promode, out int phMode);
+                demo.physic = phMode == 1 ? "cpm" : "vq3";                  //vq3, cpm
+            } 
 
             //мод для fastcaps и freestyle
-            var gametype = int.Parse(frConfig[RawInfo.keyClient]["defrag_mode"]);   //>=0 = mode
-            demo.modNum = (gType != 1 && gType != 5) ? string.Format(".{0}", gametype) : "";         //.0 - .7
+            var dfMode = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_mode");
+            if (!string.IsNullOrEmpty(dfMode)) {
+                int.TryParse(dfMode, out int defragMode);                                                 //>=0 = mode
+                demo.modNum = (gType != 1 && gType != 5) ? string.Format(".{0}", defragMode) : null;      //.0 - .7
+            }
 
             //комбинируем
-            demo.modphysic = string.Format("{0}.{1}{2}", demo.dfType, demo.physic, demo.modNum);
+            if (demo.physic != null && demo.modNum != null) {
+                demo.modphysic = string.Format("{0}.{1}{2}", demo.dfType, demo.physic, demo.modNum);
+            } else {
+                demo.modphysic = demo.dfType;
+            }
 
             //если есть читы, то пишем в демку
             demo.validity = checkValidity(frConfig);
 
-            demo.country = tryGetCountryFromFilename(demo.file);
+            demo.country = tryGetCountryFromBrackets(countryName);
             return demo;
         }
 
-
-        //Пытаемся получить страну, и только её, из имени самой демки 
-        static string tryGetCountryFromFilename(FileInfo file) {
-            String name = file.Name;
-            name = name.Substring(0, name.Length - file.Extension.Length);
-
-            int c1 = 0;
-            int c2 = 0;
-            string country = "";
-
-            while (c1 >= 0 && c2 >= 0) {
-                c1 = name.LastIndexOf(")");
-                c2 = name.LastIndexOf("(");
-
-                if (c1 > c2) {
-                    country = tryGetCountryFromBrackets(name.Substring(c2 + 1, c1 - c2 - 1));
-                    if (country.Length > 0) {
-                        bool hasNumber = false;
-                        foreach (char c in country) {
-                            if (char.IsNumber(c)) {
-                                hasNumber = true;
-                            }
-                        }
-                        if (hasNumber) {
-                            country = "";
-                        } else {
-                            return country;
-                        }
-                    }
-                    name = name.Substring(0, c2);
-                } else {
-                    name = name.Substring(0, c1 + 1);
-                }
-            } 
-            return country;
+        //Пытаемся получить имя и страну из демки (первое вхождение двух круглых скобочек)
+        static string getNameAndCountry(FileInfo file) {
+            var brackets = Regex.Match(file.Name, "\\([^)]*\\)");
+            if (brackets.Success && brackets.Groups.Count > 0) {
+                return brackets.Groups[0].Value.Replace("(", "").Replace(")", "");
+            }
+            return "";
         }
 
+        static string tryGetNameFromBrackets(string partname)
+        {
+            int i = partname.IndexOf('.');
+            if (i > 0) {
+                partname = partname.Substring(0, i);
+            }
+            return partname;
+        }
+
+        //Пытаемся получить страну, и только её, из имени и страны
         static string tryGetCountryFromBrackets(string partname)
         {
             var p = partname.Replace("(", "").Replace(")", "");
             int i = p.LastIndexOf('.');
             if (i > 0 && i +1 < p.Length) {
-                return p.Substring(i+1, p.Length - i - 1);
-            } else return "";
+                var country = p.Substring(i+1, p.Length - i - 1);
+                if (country.Where(c => char.IsNumber(c)).Count() == 0) {
+                    return country;
+                }
+            }
+            return "";
         }
 
         //получение времени из онлайн надписи
@@ -392,8 +415,13 @@ namespace DemoCleaner2
             }
 
             var kGame = frConfig[RawInfo.keyGame];
-            
-            var gametype = int.Parse(frConfig[RawInfo.keyClient]["defrag_gametype"]);
+
+            var defrag_gametype = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_gametype");
+            int gametype = 0;
+            if (!string.IsNullOrEmpty(defrag_gametype)) {
+                int.TryParse(defrag_gametype, out gametype);
+            }
+
             var online = gametype > 3;
             string res;
 

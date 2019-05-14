@@ -16,9 +16,10 @@ namespace DemoCleaner2
         JobType job = JobType.CLEAN;
 
         FileHelper fileHelper;
+        Properties.Settings prop;
 
         //Используется в случае, если на данной ос нельзя использовать прогрессбар в таскбаре
-        bool _useTaskBarProgress = true; 
+        bool _useTaskBarProgress = true;
 
         private void setProgress(int num)
         {
@@ -69,11 +70,11 @@ namespace DemoCleaner2
         private void loadSettings()
         {
             try {
-                var prop = Properties.Settings.Default;
+                prop = Properties.Settings.Default;
 
                 //main
                 var dir = prop.demosFolder;
-                if (dir == null || dir.Length == 0) {
+                if (string.IsNullOrEmpty(dir)) {
                     dir = Application.ExecutablePath.Substring(0,
                         Application.ExecutablePath.Length
                         - Path.GetFileName(Application.ExecutablePath).Length);
@@ -105,6 +106,17 @@ namespace DemoCleaner2
                 textBoxYourName.Text = prop.yourName;
                 checkBoxSplitFolders.Checked = prop.splitBySmallFolders;
                 checkBoxUseSubfolders.Checked = prop.useSubFolders;
+
+                if (!string.IsNullOrEmpty(prop.moveDemoFolder)) {
+                    textBoxMoveDemosFolder.Text = prop.moveDemoFolder;
+                }
+                if (!string.IsNullOrEmpty(prop.slowDemoFolder)) {
+                    textBoxSlowDemos.Text = prop.slowDemoFolder;
+                }
+                if (!string.IsNullOrEmpty(prop.badDemoFolder)) {
+                    textBoxBadDemos.Text = prop.badDemoFolder;
+                }
+
 
                 //rename
                 setRadioFromInt(prop.renameOption, radioRenameBad, radioRenameAll);
@@ -164,6 +176,11 @@ namespace DemoCleaner2
             prop.maxFolders = decimal.ToInt32(numericUpDownMaxFolders.Value);
             prop.moveOnlyYourTimes = checkBoxMoveOnlyYour.Checked;
             prop.yourName = textBoxYourName.Text;
+
+            prop.moveDemoFolder = _currentMovePath?.FullName ?? "";
+            //prop.moveDemoFolder = _currentMovePath != null ? _currentMovePath.FullName : "";
+            prop.badDemoFolder = _currentBadDemosPath != null ? _currentBadDemosPath.FullName : "";
+            prop.slowDemoFolder = _currentSlowDemosPath != null ? _currentSlowDemosPath.FullName : "";
 
             //rename
             prop.renameOption = getIntFromParameters(radioRenameBad, radioRenameAll);
@@ -233,7 +250,7 @@ namespace DemoCleaner2
                     textBoxBadDemos.Refresh();
 
                     textBoxSlowDemos.Text = Path.Combine(_currentDemoPath.FullName, _slowDemosDirName);
-                    textBoxSlowDemos.SelectionStart = textBoxBadDemos.Text.Length;
+                    textBoxSlowDemos.SelectionStart = textBoxSlowDemos.Text.Length;
                     textBoxSlowDemos.ScrollToCaret();
                     textBoxSlowDemos.Refresh();
 
@@ -260,8 +277,12 @@ namespace DemoCleaner2
         {
             var text = (sender as TextBox).Text;
             if (text.Length > 0) {
-                var folder = new DirectoryInfo(text);
-                _currentMovePath = folder;
+                try {
+                    var folder = new DirectoryInfo(text);
+                    _currentMovePath = folder;
+                } catch (Exception ex) {
+                    
+                }
             }
         }
 
@@ -342,13 +363,7 @@ namespace DemoCleaner2
             }
 
             if (job == JobType.MOVE) {
-                try {
-                    dirdemos = new DirectoryInfo(textBoxMoveDemosFolder.Text);
-                } catch (Exception) {}
-                if (dirdemos == null || !dirdemos.Exists) {
-                    MessageBox.Show("Directory does not exist\n\n" + textBoxMoveDemosFolder.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
+                dirdemos = new DirectoryInfo(textBoxMoveDemosFolder.Text);
             }
 
             //Запускаем поток, в котором всё будем обрабатывать
@@ -608,7 +623,7 @@ namespace DemoCleaner2
             //Группируем все названия папок и там же получаем полные пути к ним
             var groupedFolders = groupFolders(onlyDirNames, indexInside);
 
-            var ListFolders = Extention.MakeListFromGroups(groupedFolders);
+            var ListFolders = Ext.MakeListFromGroups(groupedFolders);
 
             //Проходим по всем файлам и перемещаем их в каталоги
             for (int i = 0; i < groupedFiles.Count(); i++) {
