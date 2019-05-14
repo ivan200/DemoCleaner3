@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.groupBoxBadDemos = new System.Windows.Forms.GroupBox();
             this.buttonBadDemosBrowse = new System.Windows.Forms.Button();
@@ -40,7 +41,7 @@
             this.textBoxDemosFolder = new System.Windows.Forms.TextBox();
             this.checkBoxUseSubfolders = new System.Windows.Forms.CheckBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.label3 = new System.Windows.Forms.Label();
+            this.labelCountOfBest = new System.Windows.Forms.Label();
             this.numericUpDownCountOfBest = new System.Windows.Forms.NumericUpDown();
             this.checkBoxProcessMdf = new System.Windows.Forms.CheckBox();
             this.radioBestTimeOfEachPlayer = new System.Windows.Forms.RadioButton();
@@ -60,11 +61,11 @@
             this.checkBoxMoveOnlyYour = new System.Windows.Forms.CheckBox();
             this.checkBoxSplitFolders = new System.Windows.Forms.CheckBox();
             this.groupBoxSplit = new System.Windows.Forms.GroupBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
+            this.labelMaxFiles = new System.Windows.Forms.Label();
+            this.labelMaxFolders = new System.Windows.Forms.Label();
             this.numericUpDownMaxFolders = new System.Windows.Forms.NumericUpDown();
             this.groupBoxName = new System.Windows.Forms.GroupBox();
-            this.label6 = new System.Windows.Forms.Label();
+            this.labelYourName = new System.Windows.Forms.Label();
             this.textBoxYourName = new System.Windows.Forms.TextBox();
             this.groupBoxMoveDemos = new System.Windows.Forms.GroupBox();
             this.buttonBrowseWhereMove = new System.Windows.Forms.Button();
@@ -79,13 +80,17 @@
             this.buttonRename = new System.Windows.Forms.Button();
             this.buttonSingleFileInfo = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
+            this.linkLabelInfoAdditional = new System.Windows.Forms.LinkLabel();
             this.checkBoxDeleteIdentical = new System.Windows.Forms.CheckBox();
             this.checkBoxDeleteEmptyDirs = new System.Windows.Forms.CheckBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.linkLabelInfoCleaner = new System.Windows.Forms.LinkLabel();
+            this.linkLabelInfoMover = new System.Windows.Forms.LinkLabel();
+            this.linkLabelInfoRenamer = new System.Windows.Forms.LinkLabel();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -224,7 +229,7 @@
             // 
             this.groupBox4.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox4.Controls.Add(this.label3);
+            this.groupBox4.Controls.Add(this.labelCountOfBest);
             this.groupBox4.Controls.Add(this.numericUpDownCountOfBest);
             this.groupBox4.Controls.Add(this.checkBoxProcessMdf);
             this.groupBox4.Controls.Add(this.radioBestTimeOfEachPlayer);
@@ -236,14 +241,14 @@
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Clean option";
             // 
-            // label3
+            // labelCountOfBest
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(153, 44);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(104, 13);
-            this.label3.TabIndex = 25;
-            this.label3.Text = "Count of best demos";
+            this.labelCountOfBest.AutoSize = true;
+            this.labelCountOfBest.Location = new System.Drawing.Point(153, 44);
+            this.labelCountOfBest.Name = "labelCountOfBest";
+            this.labelCountOfBest.Size = new System.Drawing.Size(104, 13);
+            this.labelCountOfBest.TabIndex = 25;
+            this.labelCountOfBest.Text = "Count of best demos";
             // 
             // numericUpDownCountOfBest
             // 
@@ -357,6 +362,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.linkLabelInfoCleaner);
             this.tabPage1.Controls.Add(this.groupBoxSlowDemos);
             this.tabPage1.Controls.Add(this.groupBox4);
             this.tabPage1.Controls.Add(this.buttonClean);
@@ -441,6 +447,7 @@
             // tabPage3
             // 
             this.tabPage3.AllowDrop = true;
+            this.tabPage3.Controls.Add(this.linkLabelInfoMover);
             this.tabPage3.Controls.Add(this.checkBoxMoveOnlyYour);
             this.tabPage3.Controls.Add(this.checkBoxSplitFolders);
             this.tabPage3.Controls.Add(this.groupBoxSplit);
@@ -483,9 +490,9 @@
             // 
             // groupBoxSplit
             // 
-            this.groupBoxSplit.Controls.Add(this.label2);
+            this.groupBoxSplit.Controls.Add(this.labelMaxFiles);
             this.groupBoxSplit.Controls.Add(this.numericUpDownMaxFiles);
-            this.groupBoxSplit.Controls.Add(this.label1);
+            this.groupBoxSplit.Controls.Add(this.labelMaxFolders);
             this.groupBoxSplit.Controls.Add(this.numericUpDownMaxFolders);
             this.groupBoxSplit.Location = new System.Drawing.Point(6, 62);
             this.groupBoxSplit.Name = "groupBoxSplit";
@@ -493,23 +500,23 @@
             this.groupBoxSplit.TabIndex = 30;
             this.groupBoxSplit.TabStop = false;
             // 
-            // label2
+            // labelMaxFiles
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(24, 23);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(89, 13);
-            this.label2.TabIndex = 24;
-            this.label2.Text = "Max files In folder";
+            this.labelMaxFiles.AutoSize = true;
+            this.labelMaxFiles.Location = new System.Drawing.Point(24, 23);
+            this.labelMaxFiles.Name = "labelMaxFiles";
+            this.labelMaxFiles.Size = new System.Drawing.Size(89, 13);
+            this.labelMaxFiles.TabIndex = 24;
+            this.labelMaxFiles.Text = "Max files In folder";
             // 
-            // label1
+            // labelMaxFolders
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(11, 49);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(102, 13);
-            this.label1.TabIndex = 23;
-            this.label1.Text = "Max folders In folder";
+            this.labelMaxFolders.AutoSize = true;
+            this.labelMaxFolders.Location = new System.Drawing.Point(11, 49);
+            this.labelMaxFolders.Name = "labelMaxFolders";
+            this.labelMaxFolders.Size = new System.Drawing.Size(102, 13);
+            this.labelMaxFolders.TabIndex = 23;
+            this.labelMaxFolders.Text = "Max folders In folder";
             // 
             // numericUpDownMaxFolders
             // 
@@ -537,7 +544,7 @@
             // 
             this.groupBoxName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBoxName.Controls.Add(this.label6);
+            this.groupBoxName.Controls.Add(this.labelYourName);
             this.groupBoxName.Controls.Add(this.textBoxYourName);
             this.groupBoxName.Location = new System.Drawing.Point(183, 63);
             this.groupBoxName.Name = "groupBoxName";
@@ -545,14 +552,14 @@
             this.groupBoxName.TabIndex = 27;
             this.groupBoxName.TabStop = false;
             // 
-            // label6
+            // labelYourName
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(3, 27);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(58, 13);
-            this.label6.TabIndex = 26;
-            this.label6.Text = "Your name";
+            this.labelYourName.AutoSize = true;
+            this.labelYourName.Location = new System.Drawing.Point(3, 27);
+            this.labelYourName.Name = "labelYourName";
+            this.labelYourName.Size = new System.Drawing.Size(58, 13);
+            this.labelYourName.TabIndex = 26;
+            this.labelYourName.Text = "Your name";
             // 
             // textBoxYourName
             // 
@@ -599,6 +606,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.linkLabelInfoRenamer);
             this.tabPage4.Controls.Add(this.checkBoxAddSign);
             this.tabPage4.Controls.Add(this.checkBoxFixCreationTime);
             this.tabPage4.Controls.Add(this.groupBox2);
@@ -710,7 +718,7 @@
             // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this.linkLabel1);
+            this.tabPage2.Controls.Add(this.linkLabelInfoAdditional);
             this.tabPage2.Controls.Add(this.checkBoxDeleteIdentical);
             this.tabPage2.Controls.Add(this.groupBoxBadDemos);
             this.tabPage2.Controls.Add(this.checkBoxDeleteEmptyDirs);
@@ -722,17 +730,17 @@
             this.tabPage2.Text = "Additional options";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // linkLabel1
+            // linkLabelInfoAdditional
             // 
-            this.linkLabel1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.linkLabel1.AutoSize = true;
-            this.linkLabel1.Location = new System.Drawing.Point(307, 154);
-            this.linkLabel1.Name = "linkLabel1";
-            this.linkLabel1.Size = new System.Drawing.Size(13, 13);
-            this.linkLabel1.TabIndex = 24;
-            this.linkLabel1.TabStop = true;
-            this.linkLabel1.Text = "?";
-            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            this.linkLabelInfoAdditional.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabelInfoAdditional.AutoSize = true;
+            this.linkLabelInfoAdditional.Location = new System.Drawing.Point(307, 154);
+            this.linkLabelInfoAdditional.Name = "linkLabelInfoAdditional";
+            this.linkLabelInfoAdditional.Size = new System.Drawing.Size(13, 13);
+            this.linkLabelInfoAdditional.TabIndex = 24;
+            this.linkLabelInfoAdditional.TabStop = true;
+            this.linkLabelInfoAdditional.Text = "?";
+            this.linkLabelInfoAdditional.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
             // checkBoxDeleteIdentical
             // 
@@ -786,6 +794,49 @@
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Filter = "Demo files|*.dm_68;*.dm_67;*.dm_66";
             // 
+            // toolTip1
+            // 
+            this.toolTip1.AutoPopDelay = 15000;
+            this.toolTip1.InitialDelay = 300;
+            this.toolTip1.IsBalloon = true;
+            this.toolTip1.ReshowDelay = 100;
+            // 
+            // linkLabelInfoCleaner
+            // 
+            this.linkLabelInfoCleaner.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabelInfoCleaner.AutoSize = true;
+            this.linkLabelInfoCleaner.Location = new System.Drawing.Point(307, 154);
+            this.linkLabelInfoCleaner.Name = "linkLabelInfoCleaner";
+            this.linkLabelInfoCleaner.Size = new System.Drawing.Size(13, 13);
+            this.linkLabelInfoCleaner.TabIndex = 25;
+            this.linkLabelInfoCleaner.TabStop = true;
+            this.linkLabelInfoCleaner.Text = "?";
+            this.linkLabelInfoCleaner.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            // 
+            // linkLabelInfoMover
+            // 
+            this.linkLabelInfoMover.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabelInfoMover.AutoSize = true;
+            this.linkLabelInfoMover.Location = new System.Drawing.Point(307, 154);
+            this.linkLabelInfoMover.Name = "linkLabelInfoMover";
+            this.linkLabelInfoMover.Size = new System.Drawing.Size(13, 13);
+            this.linkLabelInfoMover.TabIndex = 31;
+            this.linkLabelInfoMover.TabStop = true;
+            this.linkLabelInfoMover.Text = "?";
+            this.linkLabelInfoMover.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            // 
+            // linkLabelInfoRenamer
+            // 
+            this.linkLabelInfoRenamer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabelInfoRenamer.AutoSize = true;
+            this.linkLabelInfoRenamer.Location = new System.Drawing.Point(307, 154);
+            this.linkLabelInfoRenamer.Name = "linkLabelInfoRenamer";
+            this.linkLabelInfoRenamer.Size = new System.Drawing.Size(13, 13);
+            this.linkLabelInfoRenamer.TabIndex = 32;
+            this.linkLabelInfoRenamer.TabStop = true;
+            this.linkLabelInfoRenamer.Text = "?";
+            this.linkLabelInfoRenamer.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -811,6 +862,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMaxFiles)).EndInit();
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
+            this.tabPage1.PerformLayout();
             this.groupBoxSlowDemos.ResumeLayout(false);
             this.groupBoxSlowDemos.PerformLayout();
             this.tabPage3.ResumeLayout(false);
@@ -853,15 +905,15 @@
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.NumericUpDown numericUpDownMaxFolders;
         private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labelMaxFiles;
+        private System.Windows.Forms.Label labelMaxFolders;
         private System.Windows.Forms.CheckBox checkBoxDeleteEmptyDirs;
         private System.Windows.Forms.CheckBox checkBoxProcessMdf;
         private System.Windows.Forms.GroupBox groupBoxMoveDemos;
         private System.Windows.Forms.Button buttonBrowseWhereMove;
         private System.Windows.Forms.TextBox textBoxMoveDemosFolder;
         private System.Windows.Forms.GroupBox groupBoxName;
-        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label labelYourName;
         private System.Windows.Forms.TextBox textBoxYourName;
         private System.Windows.Forms.CheckBox checkBoxMoveOnlyYour;
         private System.Windows.Forms.GroupBox groupBoxSplit;
@@ -880,9 +932,9 @@
         private System.Windows.Forms.RadioButton radioButtonSkipBad;
         private System.Windows.Forms.RadioButton radioButtonDeleteBad;
         private System.Windows.Forms.CheckBox checkBoxUseSubfolders;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label labelCountOfBest;
         private System.Windows.Forms.NumericUpDown numericUpDownCountOfBest;
-        private System.Windows.Forms.LinkLabel linkLabel1;
+        private System.Windows.Forms.LinkLabel linkLabelInfoAdditional;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.Button buttonSingleFileInfo;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
@@ -893,5 +945,9 @@
         private System.Windows.Forms.CheckBox checkBoxRulesValidation;
         private System.Windows.Forms.CheckBox checkBoxFixCreationTime;
         private System.Windows.Forms.CheckBox checkBoxAddSign;
+        private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.LinkLabel linkLabelInfoCleaner;
+        private System.Windows.Forms.LinkLabel linkLabelInfoMover;
+        private System.Windows.Forms.LinkLabel linkLabelInfoRenamer;
     }
 }

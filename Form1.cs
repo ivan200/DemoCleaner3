@@ -64,6 +64,101 @@ namespace DemoCleaner2
         private void Form1_Load(object sender, EventArgs e)
         {
             loadSettings();
+
+            var lang = System.Globalization.CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+            if (lang == "ru" || lang == "uk") {
+                toolTip1.SetToolTip(checkBoxUseSubfolders, "Искать демки в подкаталогах тоже?");
+
+                //clean
+                toolTip1.SetToolTip(radioBestTimeOfEachPlayer, "Сохранять лучшие таймы каждого из игроков на карте");
+                toolTip1.SetToolTip(radioBestTimesOnMap, "Сохранять лучшие таймы на карте");
+                toolTip1.SetToolTip(checkBoxProcessMdf, "Если будут и онлайн и оффлайн демки на одной карте у одного игрока,\nдолжны ли мы сохранить только лучший тайм из них?");
+                toolTip1.SetToolTip(numericUpDownCountOfBest, "Количество лучших демок для сохранения");
+                toolTip1.SetToolTip(labelCountOfBest, "Количество лучших демок для сохранения");
+                toolTip1.SetToolTip(radioButtonDeleteSlow, "Медленные демки - УДАЛИТЬ");
+                toolTip1.SetToolTip(radioButtonSkipSlow, "Медленные демки - не обрабатывать.\nЭтот пункт нужен, если вы хотите только обработать демки с неправильными именами,\nили поудалять пустые папки (см. дополнительные опции)");
+                toolTip1.SetToolTip(radioButtonMoveSlow, "Медленные демки - переместить в папку:");
+
+                //move
+                toolTip1.SetToolTip(textBoxMoveDemosFolder, "Расположение демок после перемещения:");
+                toolTip1.SetToolTip(checkBoxSplitFolders, "Разложить все демки по подкаталогам");
+                toolTip1.SetToolTip(labelMaxFiles, "Максимальное количество демок в одном каталоге");
+                toolTip1.SetToolTip(numericUpDownMaxFiles, "Максимальное количество демок в одном каталоге");
+                toolTip1.SetToolTip(labelMaxFolders, "Максимальное количество папок в одном каталоге");
+                toolTip1.SetToolTip(numericUpDownMaxFolders, "Максимальное количество папок в одном каталоге");
+                toolTip1.SetToolTip(checkBoxMoveOnlyYour, "Перемещать только твои демки");
+                toolTip1.SetToolTip(labelYourName, "Твой ник");
+                toolTip1.SetToolTip(textBoxYourName, "Твой ник");
+
+                //rename
+                toolTip1.SetToolTip(radioRenameBad, "Будут обрабатываться только те демо файлы,\nв которых название не соответствует паттерну по умолчанию\nmap[gametype.physic]time(player.country)");
+                toolTip1.SetToolTip(radioRenameAll, "Попробуем обработать все файлы\n(возможно чтобы проверить на корректность установленных правил,\nили поменять даты создания)");
+                toolTip1.SetToolTip(checkBoxRulesValidation, "Если у демки неправильно установлены параметры в консоли,\nто в имя демки добавится информация (вроде \"{ sv_cheats = 1}\")");
+                toolTip1.SetToolTip(checkBoxFixCreationTime, "Если в демо файле есть информация о дате финиширования карты,\nто поменять дату создания файла на дату прохождения.");
+                toolTip1.SetToolTip(checkBoxAddSign, "Если в демо файле не будет найдено время прохождения,\nто такие файлы будут помечаться \"&_\" знаком,\nвроде фристайл демок или непройденных до конца карт.");
+                toolTip1.SetToolTip(buttonSingleFileInfo, "Просмотреть детальную информацию об одной демке.");
+
+                //additional
+                toolTip1.SetToolTip(radioButtonDeleteBad, "Некорректно именованые демки - УДАЛИТЬ");
+                toolTip1.SetToolTip(radioButtonSkipBad, "Некорректно именованые демки - пропустить");
+                toolTip1.SetToolTip(radioButtonMoveBad, "Некорректно именованые демки - переместить в каталог:");
+                toolTip1.SetToolTip(checkBoxDeleteEmptyDirs, "Удалить пустые папки если такие останутся после обработки.");
+                toolTip1.SetToolTip(checkBoxDeleteIdentical, "Удалять демку, если при перемещении демка с таким именем уже существует в папке назначения");
+
+                //Info
+                toolTip1.SetToolTip(linkLabelInfoCleaner, "В данном разделе можно произвести очистку папки с демками.\nЕсли у вас их большое количество, и они вам мешают, то можно оставить только самые лучшие из них,\nа остальные удалить или переместить в определённую папку.");
+                toolTip1.SetToolTip(linkLabelInfoMover, "В данном разделе можно произвести распределение всех демок по подкаталогам.\nЭто требуется потому что Quake 3 не умеет отображать большок количество файлов\nв каталоге с демками, обрезая их отображение. Плюс при их большом количестве\nухудшается поиск определённого файла."
+                                                        + "\nКаталоги будут именоваться на начальную букву карты (например a\\ark3...),\nа при превышении количества демок в таком каталоге,\nбудут создаваться дополнительные каталоги (например a\\ar\\ark3...)");
+                toolTip1.SetToolTip(linkLabelInfoRenamer, "В данном разделе можно посмотреть информацию о отдельных демо файлах\nи попробовать пачкой переименовать все кривоименованые демки,\nа также проверить демки на соответствие правилам."
+                                                        + "\nУ вас же наверняка есть каталоги с пачками демок вроде demo0001,\nтак вот этот раздел поможет получить для них всех нормальные названия.");
+                toolTip1.SetToolTip(linkLabelInfoAdditional, "Это дополнительный раздел, который влияет на каждую из вкладок.");
+            } else {
+                toolTip1.SetToolTip(checkBoxUseSubfolders, "Search for demos in subdirectories too?");
+
+                //clean
+                toolTip1.SetToolTip(radioBestTimeOfEachPlayer, "Save the best times of each player on the map");
+                toolTip1.SetToolTip(radioBestTimesOnMap, "Save the best times on the map");
+                toolTip1.SetToolTip(checkBoxProcessMdf, "If there are both online and offline demos on the same map for one player,\nshould we keep only the best time of them?");
+                toolTip1.SetToolTip(numericUpDownCountOfBest, "A number of the best demos to save");
+                toolTip1.SetToolTip(labelCountOfBest, "A number of the best demos to save");
+                toolTip1.SetToolTip(radioButtonDeleteSlow, "Slow demos - DELETE");
+                toolTip1.SetToolTip(radioButtonSkipSlow, "Slow demos - do not process.\nThis option is needed if you only want to process demos with incorrect names,\nor delete empty folders (see additional options)");
+                toolTip1.SetToolTip(radioButtonMoveSlow, "Slow demos - move to folder:");
+
+                //move
+                toolTip1.SetToolTip(textBoxMoveDemosFolder, "The location of the demos after they move:");
+                toolTip1.SetToolTip(checkBoxSplitFolders, "Split all the demos by the subdirectories");
+                toolTip1.SetToolTip(labelMaxFiles, "Maximum number of demos in one directory");
+                toolTip1.SetToolTip(numericUpDownMaxFiles, "Maximum number of demos in one directory");
+                toolTip1.SetToolTip(labelMaxFolders, "Maximum number of folders in one directory");
+                toolTip1.SetToolTip(numericUpDownMaxFolders, "Maximum number of folders in one directory");
+                toolTip1.SetToolTip(checkBoxMoveOnlyYour, "Move only your demos");
+                toolTip1.SetToolTip(labelYourName, "Your nickname");
+                toolTip1.SetToolTip(textBoxYourName, "Your nickname");
+
+                //rename
+                toolTip1.SetToolTip(radioRenameBad, "Only demo files will be processed,\nin which the name does not match the default pattern\nmap[gametype.physic]time(player.country)");
+                toolTip1.SetToolTip(radioRenameAll, "Let's try to process all the files\n(perhaps to check for correctness of the set rules or change the dates of creation)");
+                toolTip1.SetToolTip(checkBoxRulesValidation, "If the demo has the wrong parameters, information will be added\nto the name of the demo (e.g. \"{sv_cheats = 1}\")");
+                toolTip1.SetToolTip(checkBoxFixCreationTime, "If the demo file contains information about completion date,\nchange the file creation date to the completion date.");
+                toolTip1.SetToolTip(checkBoxAddSign, "If no time is found in the demo file, such files will be marked with a \"&_\" sign,\nsuch as a freestyle demos or map not passed to the end.");
+                toolTip1.SetToolTip(buttonSingleFileInfo, "View detailed information about one demo.");
+
+                //additional
+                toolTip1.SetToolTip(radioButtonDeleteBad, "Incorrectly named demos - DELETE");
+                toolTip1.SetToolTip(radioButtonSkipBad, "Incorrectly named demos - skip");
+                toolTip1.SetToolTip(radioButtonMoveBad, "Incorrectly named demos - move to the directory:");
+                toolTip1.SetToolTip(checkBoxDeleteEmptyDirs, "Delete empty folders if they remain after processing.");
+                toolTip1.SetToolTip(checkBoxDeleteIdentical, "Delete a demo if a demo with the same name already exists\nin the destination folder when you move it");
+
+                //Info
+                toolTip1.SetToolTip(linkLabelInfoCleaner, "In this tab, you can clean up the folder with demos.\nIf you have a large number of them, and they interfere with you,\nyou can leave only the best of them, and remove the rest or move to a specific folder.");
+                toolTip1.SetToolTip(linkLabelInfoMover, "In this tab it is possible to make the splitting of all the demos in the subdirectories.\nThis is required because Quake 3 does not know how to display a large number of files\nin the directory with demos, cutting their display.\nPlus, if there are a lot of them, the search for a particular file gets worse."
+                                                        + "\nCatalogs will be named on the initial letter of the demo (e.g. a\\ark3...)\nand if the number of demos in such a directory exceeds the number of demos,\nadditional directories will be created (e.g. a\\ar\\ark3...)");
+                toolTip1.SetToolTip(linkLabelInfoRenamer, "In this tab you can view information about individual demo files\nand try to rename all incorrectly named demos in a batch,\nas well as check demos for compliance with the rules."
+                                                        + "\nYou probably have directories with stacks of demo files like \"demo0001\",\nso this section will help you to get normal names for them all.");
+                toolTip1.SetToolTip(linkLabelInfoAdditional, "This is an additional tab that affects each of the tabs.");
+            }
         }
 
         //Загрузка настроек форм
