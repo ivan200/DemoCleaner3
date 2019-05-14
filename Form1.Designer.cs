@@ -71,7 +71,6 @@
             this.buttonBrowseWhereMove = new System.Windows.Forms.Button();
             this.textBoxMoveDemosFolder = new System.Windows.Forms.TextBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.checkBoxAddSign = new System.Windows.Forms.CheckBox();
             this.checkBoxFixCreationTime = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.radioRenameBad = new System.Windows.Forms.RadioButton();
@@ -607,7 +606,6 @@
             // tabPage4
             // 
             this.tabPage4.Controls.Add(this.linkLabelInfoRenamer);
-            this.tabPage4.Controls.Add(this.checkBoxAddSign);
             this.tabPage4.Controls.Add(this.checkBoxFixCreationTime);
             this.tabPage4.Controls.Add(this.groupBox2);
             this.tabPage4.Controls.Add(this.checkBoxRulesValidation);
@@ -620,18 +618,6 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Demo renamer";
             this.tabPage4.UseVisualStyleBackColor = true;
-            // 
-            // checkBoxAddSign
-            // 
-            this.checkBoxAddSign.AutoSize = true;
-            this.checkBoxAddSign.Checked = true;
-            this.checkBoxAddSign.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxAddSign.Location = new System.Drawing.Point(6, 124);
-            this.checkBoxAddSign.Name = "checkBoxAddSign";
-            this.checkBoxAddSign.Size = new System.Drawing.Size(191, 17);
-            this.checkBoxAddSign.TabIndex = 22;
-            this.checkBoxAddSign.Text = "Add \'&&_\' to demos with missing time";
-            this.checkBoxAddSign.UseVisualStyleBackColor = true;
             // 
             // checkBoxFixCreationTime
             // 
@@ -944,7 +930,6 @@
         private System.Windows.Forms.RadioButton radioRenameAll;
         private System.Windows.Forms.CheckBox checkBoxRulesValidation;
         private System.Windows.Forms.CheckBox checkBoxFixCreationTime;
-        private System.Windows.Forms.CheckBox checkBoxAddSign;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.LinkLabel linkLabelInfoCleaner;
         private System.Windows.Forms.LinkLabel linkLabelInfoMover;

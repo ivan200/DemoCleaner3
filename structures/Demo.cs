@@ -30,14 +30,18 @@ namespace DemoCleaner2
         public bool useValidation = true;
         public bool rawTime = false;
 
-        public string errSymbol = "&_";
-
         public RawInfo rawInfo = null;
+
+        private string _demoNewName = "";
 
         public string demoNewName {
             get {
+                if (!string.IsNullOrEmpty(_demoNewName)) {
+                    return _demoNewName;
+                }
+
                 if (hasError) {
-                    return file.Name.StartsWith(errSymbol) ? file.Name : errSymbol + file.Name;
+                    return file.Name;
                 }
 
                 string demoname = "";
@@ -48,6 +52,7 @@ namespace DemoCleaner2
                     demoname = string.Format("{0}[{1}]{2:D2}.{3:D2}.{4:D3}({5})",
                     mapName, modphysic, (int) time.TotalMinutes, time.Seconds, time.Milliseconds, playerCountry);
                 } else {
+                    hasError = true;
                     //если нет тайма, то мучаемся с генерацией текста
                     string oldName = file.Name;
                     oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //убираем расширение
@@ -63,7 +68,7 @@ namespace DemoCleaner2
                     oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //убираем хрень в начале и в конце
                     oldName = oldName.Replace(" ", "_");                                    //убираем пробелы
                     
-                    demoname = string.Format("{0}{1}[{2}]{3}({4})", errSymbol, mapName, modphysic, oldName, playerCountry);
+                    demoname = string.Format("{0}[{1}]{2}({3})", mapName, modphysic, oldName, playerCountry);
 
                     demoname = demoname.Replace(").)", ")").Replace(".)", ")");
                 }
@@ -72,7 +77,8 @@ namespace DemoCleaner2
                     demoname = demoname + "{" + validity + "}"; //добавляем инфу о валидации
                 }
 
-                return demoname + file.Extension;
+                _demoNewName = demoname + file.Extension;
+                return _demoNewName;
             }
         }
 

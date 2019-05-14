@@ -38,12 +38,14 @@ namespace DemoCleaner2.ExtClasses
         }
 
         //Обнуляем счётчик
-        public void resetValues(int demosAmount)
+        public void resetValues(int demosAmount, bool clearCounter = true)
         {
-            _countMoveFiles = 0;
-            _countDeleteFiles = 0;
-            _countCreateDir = 0;
-            _countDeleteDir = 0;
+            if (clearCounter) {
+                _countMoveFiles = 0;
+                _countDeleteFiles = 0;
+                _countCreateDir = 0;
+                _countDeleteDir = 0;
+            }
 
             _CountProgressDemos = 0;
             _countDemosAmount = demosAmount;
@@ -80,7 +82,7 @@ namespace DemoCleaner2.ExtClasses
         public string renameFile(FileInfo file, string newName, bool deleteIdentical)
         {
             string newPath = Path.Combine(file.Directory.FullName, newName);
-            if (!newPath.Equals(file.FullName)) {
+            if (!newPath.ToLowerInvariant().Equals(file.FullName.ToLowerInvariant())) {
                 if (File.Exists(newPath)) {
                     if (deleteIdentical) {
                         deleteCheckRules(file);
@@ -91,7 +93,9 @@ namespace DemoCleaner2.ExtClasses
                     moveCheckRules(file, newPath);
                 }
             } else {
-                _CountProgressDemos++;
+                if (!newPath.Equals(file.FullName)) {
+                    moveCheckRules(file, newPath);
+                }
             }
             return newPath;
         }

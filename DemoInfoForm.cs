@@ -30,9 +30,6 @@ namespace DemoCleaner2
         {
             demo = Demo.GetDemoFromFileRaw(demoFile);
             prop = Properties.Settings.Default;
-            if (!prop.renameAddSign) {
-                demo.errSymbol = "";
-            }
             demo.useValidation = prop.renameValidation;
 
             loadFriendlyConfig(dataGridView);

@@ -42,8 +42,8 @@ namespace DemoCleaner2
 
         Thread backgroundThread;
 
-        string _badDemosDirName = ".incorrectly named";
-        string _slowDemosDirName = ".slow demos";
+        string _badDemosDirName = ".no_time";
+        string _slowDemosDirName = ".slow_demos";
         string _moveDemosdirName = "!demos";
 
         public Form1()
@@ -95,7 +95,6 @@ namespace DemoCleaner2
                 toolTip1.SetToolTip(radioRenameAll, "Попробуем обработать все файлы\n(возможно чтобы проверить на корректность установленных правил,\nили поменять даты создания)");
                 toolTip1.SetToolTip(checkBoxRulesValidation, "Если у демки неправильно установлены параметры в консоли,\nто в имя демки добавится информация (вроде \"{ sv_cheats = 1}\")");
                 toolTip1.SetToolTip(checkBoxFixCreationTime, "Если в демо файле есть информация о дате финиширования карты,\nто поменять дату создания файла на дату прохождения.");
-                toolTip1.SetToolTip(checkBoxAddSign, "Если в демо файле не будет найдено время прохождения,\nто такие файлы будут помечаться \"&_\" знаком,\nвроде фристайл демок или непройденных до конца карт.");
                 toolTip1.SetToolTip(buttonSingleFileInfo, "Просмотреть детальную информацию об одной демке.");
 
                 //additional
@@ -141,7 +140,6 @@ namespace DemoCleaner2
                 toolTip1.SetToolTip(radioRenameAll, "Let's try to process all the files\n(perhaps to check for correctness of the set rules or change the dates of creation)");
                 toolTip1.SetToolTip(checkBoxRulesValidation, "If the demo has the wrong parameters, information will be added\nto the name of the demo (e.g. \"{sv_cheats = 1}\")");
                 toolTip1.SetToolTip(checkBoxFixCreationTime, "If the demo file contains information about completion date,\nchange the file creation date to the completion date.");
-                toolTip1.SetToolTip(checkBoxAddSign, "If no time is found in the demo file, such files will be marked with a \"&_\" sign,\nsuch as a freestyle demos or map not passed to the end.");
                 toolTip1.SetToolTip(buttonSingleFileInfo, "View detailed information about one demo.");
 
                 //additional
@@ -217,7 +215,6 @@ namespace DemoCleaner2
                 setRadioFromInt(prop.renameOption, radioRenameBad, radioRenameAll);
                 checkBoxFixCreationTime.Checked = prop.renameFixCreationTime;
                 checkBoxRulesValidation.Checked = prop.renameValidation;
-                checkBoxAddSign.Checked = prop.renameAddSign;
                 openFileDialog1.InitialDirectory = dir;
 
                 //additional
@@ -279,7 +276,6 @@ namespace DemoCleaner2
             prop.renameOption = getIntFromParameters(radioRenameBad, radioRenameAll);
             prop.renameFixCreationTime = checkBoxFixCreationTime.Checked;
             prop.renameValidation = checkBoxRulesValidation.Checked;
-            prop.renameAddSign = checkBoxAddSign.Checked;
 
             //additional
             prop.badDemosOption = getIntFromParameters(radioButtonDeleteBad, radioButtonSkipBad, radioButtonMoveBad);
@@ -293,7 +289,7 @@ namespace DemoCleaner2
         private DirectoryInfo checkGetFolder(TextBox textBox, string previousText)
         {
             DirectoryInfo folder = null;
-            if (textBox.Text.Length > 0 && textBox.Text != previousText) {
+            if (textBox.Text.Length > 0) {
                 try {
                     folder = new DirectoryInfo(textBox.Text);
                 } catch (Exception ex) {
@@ -467,6 +463,16 @@ namespace DemoCleaner2
                 dirdemos = new DirectoryInfo(textBoxMoveDemosFolder.Text);
             }
 
+            if (string.IsNullOrEmpty(textBoxBadDemos.Text)) {
+                textBoxBadDemos.Text = Path.Combine(_currentDemoPath.FullName, _badDemosDirName);
+            } 
+            if (string.IsNullOrEmpty(textBoxSlowDemos.Text)) {
+                textBoxSlowDemos.Text = Path.Combine(_currentDemoPath.FullName, _slowDemosDirName);
+            }
+            if (string.IsNullOrEmpty(textBoxMoveDemosFolder.Text)) {
+                textBoxMoveDemosFolder.Text = Path.Combine(_currentDemoPath.FullName, _moveDemosdirName);
+            }
+
             //Запускаем поток, в котором всё будем обрабатывать
             backgroundThread = new Thread(delegate () {
                 try {
@@ -552,13 +558,13 @@ namespace DemoCleaner2
         }
 
         //Обрабатываем плохие демки
-        private void operateBadDemos(IEnumerable<Demo> demos)
+        private void operateBadDemos(IEnumerable<Demo> badDemos)
         {
             if (radioButtonSkipBad.Checked) {
                 return;
             }
 
-            var badDemos = demos.Where(x => x.hasError == true);//.OrderBy(x => x.file.Name);
+            //var badDemos = demos.Where(x => x.hasError == true);//.OrderBy(x => x.file.Name);
 
             var count = badDemos.Count();
 
@@ -571,7 +577,6 @@ namespace DemoCleaner2
                 }
                 if (radioButtonMoveBad.Checked) {
                     //или перемещавем по подкатегориям (0-10)
-                    _currentBadDemosPath = new DirectoryInfo(textBoxBadDemos.Text);
                     if (!_currentBadDemosPath.Exists)
                         _currentBadDemosPath.Create();
 
@@ -603,7 +608,8 @@ namespace DemoCleaner2
 
             var demos = files.Select(x => Demo.GetDemoFromFile(x));
 
-            operateBadDemos(demos);
+            var badDemos = demos.Where(x => x.hasError == true);
+            operateBadDemos(badDemos);
 
             if (radioButtonSkipSlow.Checked) {
                 return;
@@ -698,7 +704,8 @@ namespace DemoCleaner2
             var demos = files.Select(x => Demo.GetDemoFromFile(x));
 
             //Отбираем бракованые файлы
-            operateBadDemos(demos);
+            var badDemos = demos.Where(x => x.hasError == true);
+            operateBadDemos(badDemos);
 
             var goodFiles = demos.Where(x => x.hasError == false);
 
@@ -808,7 +815,6 @@ namespace DemoCleaner2
         //Фиксим демки!
         private void runRename(DirectoryInfo filedemos)
         {
-            
             var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
                 SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
             if (radioRenameBad.Checked) {
@@ -821,24 +827,34 @@ namespace DemoCleaner2
 
             Exception exception = null;
 
+            List<Demo> badDemos = new List<Demo>();
+
             foreach (var file in files) {
                 try {
                     demo = Demo.GetDemoFromFileRaw(file);
-                    if (!checkBoxAddSign.Checked) {
-                        demo.errSymbol = "";
-                    }
                     demo.useValidation = checkBoxRulesValidation.Checked;
 
                     string newPath = fileHelper.renameFile(file, demo.demoNewName, checkBoxDeleteIdentical.Checked);
 
-                    if (checkBoxFixCreationTime.Checked && demo.recordTime.HasValue && File.Exists(newPath)) {
-                        File.SetCreationTime(newPath, demo.recordTime.Value);
+                    if (File.Exists(newPath)) {
+                        demo.file = new FileInfo(newPath);
+
+                        if (checkBoxFixCreationTime.Checked && demo.recordTime.HasValue && File.Exists(newPath)) {
+                            File.SetCreationTime(newPath, demo.recordTime.Value);
+                        }
                     }
 
+                    if (demo.hasError) {
+                        badDemos.Add(demo);
+                    }
                 } catch (Exception ex) {
                     exception = ex;
                 }
             }
+
+            fileHelper.resetValues(badDemos.Count, false);
+            operateBadDemos(badDemos);
+
             if (exception != null) {
                 throw exception;
             }
