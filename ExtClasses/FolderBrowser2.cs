@@ -7,7 +7,7 @@ using System.Text;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace DemoCleaner2
+namespace DemoCleaner3
 {
     public class FolderNameEditor2 : UITypeEditor
     {

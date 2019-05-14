@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 
-namespace DemoCleaner2
+namespace DemoCleaner3
 {
     static class Program
     {

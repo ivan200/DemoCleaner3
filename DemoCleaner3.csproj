@@ -7,7 +7,7 @@
     <ProjectGuid>{488BF34D-664D-47BB-A2C7-B9ADF2232454}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DemoCleaner2</RootNamespace>
+    <RootNamespace>DemoCleaner3</RootNamespace>
     <AssemblyName>DemoCleaner3</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

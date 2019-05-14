@@ -4,7 +4,7 @@ using System.Text;
 using System.Linq;
 using System.Collections;
 
-namespace DemoCleaner2
+namespace DemoCleaner3
 {
     public static class Ext
     {

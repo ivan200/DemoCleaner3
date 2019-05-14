@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DemoCleaner2.DemoParser.huffman
+namespace DemoCleaner3.DemoParser.huffman
 {
     class Q3HuffmanNode
     {

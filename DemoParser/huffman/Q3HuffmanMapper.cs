@@ -1,9 +1,9 @@
-﻿using DemoCleaner2.DemoParser.utils;
+﻿using DemoCleaner3.DemoParser.utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace DemoCleaner2.DemoParser.huffman
+namespace DemoCleaner3.DemoParser.huffman
 {
     class Q3HuffmanMapper
     {

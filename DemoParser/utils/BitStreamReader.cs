@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DemoCleaner2.DemoParser.utils
+namespace DemoCleaner3.DemoParser.utils
 {
     class BitStreamReader
     {

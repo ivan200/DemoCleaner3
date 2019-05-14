@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using DemoCleaner2.DemoParser.parser;
+using DemoCleaner3.DemoParser.parser;
 using System.Text.RegularExpressions;
 using System.Globalization;
-using DemoCleaner2.DemoParser.huffman;
-using DemoCleaner2.DemoParser;
+using DemoCleaner3.DemoParser.huffman;
+using DemoCleaner3.DemoParser;
 
-namespace DemoCleaner2
+namespace DemoCleaner3
 {
     public class Demo
     {

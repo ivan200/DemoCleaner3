@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace DemoCleaner2.ExtClasses
+namespace DemoCleaner3.ExtClasses
 {
     class FileHelper
     {

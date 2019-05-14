@@ -1,10 +1,10 @@
-﻿using DemoCleaner2.DemoParser.utils;
+﻿using DemoCleaner3.DemoParser.utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace DemoCleaner2.DemoParser.parser
+namespace DemoCleaner3.DemoParser.parser
 {
     class Q3DemoParser
     {

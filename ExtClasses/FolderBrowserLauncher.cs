@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace DemoCleaner2
+namespace DemoCleaner3
 {
     public static class FolderBrowserLauncher
     {

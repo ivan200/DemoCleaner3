@@ -4,11 +4,11 @@ using System.Linq;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
-using DemoCleaner2.DemoParser.huffman;
-using DemoCleaner2.DemoParser.parser;
-using DemoCleaner2.ExtClasses;
+using DemoCleaner3.DemoParser.huffman;
+using DemoCleaner3.DemoParser.parser;
+using DemoCleaner3.ExtClasses;
 
-namespace DemoCleaner2
+namespace DemoCleaner3
 {
     public partial class Form1 : Form
     {

@@ -1,4 +1,4 @@
-﻿namespace DemoCleaner2
+﻿namespace DemoCleaner3
 {
     partial class Form1
     {

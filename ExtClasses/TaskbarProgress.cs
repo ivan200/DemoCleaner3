@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace DemoCleaner2
+namespace DemoCleaner3
 {
     public static class TaskbarProgress
     {

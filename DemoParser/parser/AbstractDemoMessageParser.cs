@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DemoCleaner2.DemoParser.parser
+namespace DemoCleaner3.DemoParser.parser
 {
     interface AbstractDemoMessageParser
     {

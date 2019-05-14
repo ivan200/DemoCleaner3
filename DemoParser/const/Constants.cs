@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DemoCleaner2.DemoParser
+namespace DemoCleaner3.DemoParser
 {
     class Constants
     {

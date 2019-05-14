@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Linq;
 
-namespace DemoCleaner2
+namespace DemoCleaner3
 {
     public class DemoFolder
     {
