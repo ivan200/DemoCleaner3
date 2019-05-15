@@ -276,10 +276,10 @@ namespace DemoCleaner3
             var mapName = Ext.GetOrNull(frConfig[RawInfo.keyClient], "mapname");
 
             //Если в mapInfo написано название этой же мапы, но с заглавными, то название берём оттуда
-            if (mapName.ToLower().Equals(mapInfo.ToLower())) {
+            if (mapName.ToLowerInvariant().Equals(mapInfo.ToLowerInvariant())) {
                 demo.mapName = mapInfo;
             } else {
-                demo.mapName = mapName;
+                demo.mapName = mapName.ToLowerInvariant();
             }
 
             //геймтайп
@@ -447,12 +447,14 @@ namespace DemoCleaner3
         }
 
         //получение даты записи демки если она есть
-        static DateTime getDateForDemo(string s)
+        static DateTime? getDateForDemo(string s)
         {
             //print "Date: 10-25-14 02:43\n"
             string dateString = s.Substring(13).Replace("\n", "").Replace("\"", "").Trim();
-
-            return DateTime.ParseExact(dateString, "MM-dd-yy HH:mm", CultureInfo.InvariantCulture);
+            try {
+                return DateTime.ParseExact(dateString, "MM-dd-yy HH:mm", CultureInfo.InvariantCulture);
+            } catch (Exception ex) {}
+            return null;
         }
 
 
@@ -475,7 +477,10 @@ namespace DemoCleaner3
 
             var fs = (gametype == 2 || gametype == 6);
             if (!fs) {
-                res = checkKey(kGame, "sv_cheats", 0);              if (res.Length > 0) return res;
+                res = checkKey(kGame, "sv_cheats", 0); if (res.Length > 0) return res;
+            }
+
+            if(online && !fs) { 
                 res = checkKey(kGame, "df_mp_interferenceoff", 3);  if (res.Length > 0) return res;
             }
 

@@ -29,7 +29,7 @@ namespace DemoCleaner3.DemoParser.utils
             int begin_ind = src.Substring(0, 1) == "\\" ? 1 : 0;
             string[] src2 = src.Split('\\');
             Dictionary<string, string> rez = new Dictionary<string, string>();
-            for (int k = begin_ind; k < src2.Length; k += 2)
+            for (int k = begin_ind; k < src2.Length-1; k += 2)
             {
                 rez.Add(src2[k].ToLower(), src2[k + 1]);
             }

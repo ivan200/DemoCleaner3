@@ -70,8 +70,8 @@ namespace DemoCleaner3
         {
             try {
                 string newPath = fileHelper.renameFile(demo.file, demo.demoNewName, prop.deleteIdentical);
-                if (prop.renameFixCreationTime && demo.recordTime.HasValue && File.Exists(newPath)) {
-                    File.SetCreationTime(newPath, demo.recordTime.Value);
+                if (prop.renameFixCreationTime) {
+                    fileHelper.fixCreationTime(demo.file, demo.recordTime);
                 }
                 MessageBox.Show("File was Renamed", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             } catch (Exception ex) {

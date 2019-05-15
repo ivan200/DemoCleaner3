@@ -51,6 +51,7 @@
             this.buttonMove = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.linkLabelInfoCleaner = new System.Windows.Forms.LinkLabel();
             this.groupBoxSlowDemos = new System.Windows.Forms.GroupBox();
             this.buttonSlowDemosBrowse = new System.Windows.Forms.Button();
             this.radioButtonMoveSlow = new System.Windows.Forms.RadioButton();
@@ -58,6 +59,7 @@
             this.radioButtonDeleteSlow = new System.Windows.Forms.RadioButton();
             this.textBoxSlowDemos = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.linkLabelInfoMover = new System.Windows.Forms.LinkLabel();
             this.checkBoxMoveOnlyYour = new System.Windows.Forms.CheckBox();
             this.checkBoxSplitFolders = new System.Windows.Forms.CheckBox();
             this.groupBoxSplit = new System.Windows.Forms.GroupBox();
@@ -71,6 +73,7 @@
             this.buttonBrowseWhereMove = new System.Windows.Forms.Button();
             this.textBoxMoveDemosFolder = new System.Windows.Forms.TextBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.linkLabelInfoRenamer = new System.Windows.Forms.LinkLabel();
             this.checkBoxFixCreationTime = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.radioRenameBad = new System.Windows.Forms.RadioButton();
@@ -87,9 +90,6 @@
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.linkLabelInfoCleaner = new System.Windows.Forms.LinkLabel();
-            this.linkLabelInfoMover = new System.Windows.Forms.LinkLabel();
-            this.linkLabelInfoRenamer = new System.Windows.Forms.LinkLabel();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -373,6 +373,18 @@
             this.tabPage1.Text = "Demo cleaner";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // linkLabelInfoCleaner
+            // 
+            this.linkLabelInfoCleaner.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabelInfoCleaner.AutoSize = true;
+            this.linkLabelInfoCleaner.Location = new System.Drawing.Point(307, 154);
+            this.linkLabelInfoCleaner.Name = "linkLabelInfoCleaner";
+            this.linkLabelInfoCleaner.Size = new System.Drawing.Size(13, 13);
+            this.linkLabelInfoCleaner.TabIndex = 25;
+            this.linkLabelInfoCleaner.TabStop = true;
+            this.linkLabelInfoCleaner.Text = "?";
+            this.linkLabelInfoCleaner.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            // 
             // groupBoxSlowDemos
             // 
             this.groupBoxSlowDemos.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -460,6 +472,18 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Demo mover";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // linkLabelInfoMover
+            // 
+            this.linkLabelInfoMover.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabelInfoMover.AutoSize = true;
+            this.linkLabelInfoMover.Location = new System.Drawing.Point(307, 154);
+            this.linkLabelInfoMover.Name = "linkLabelInfoMover";
+            this.linkLabelInfoMover.Size = new System.Drawing.Size(13, 13);
+            this.linkLabelInfoMover.TabIndex = 31;
+            this.linkLabelInfoMover.TabStop = true;
+            this.linkLabelInfoMover.Text = "?";
+            this.linkLabelInfoMover.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
             // checkBoxMoveOnlyYour
             // 
@@ -619,6 +643,18 @@
             this.tabPage4.Text = "Demo renamer";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // linkLabelInfoRenamer
+            // 
+            this.linkLabelInfoRenamer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabelInfoRenamer.AutoSize = true;
+            this.linkLabelInfoRenamer.Location = new System.Drawing.Point(307, 154);
+            this.linkLabelInfoRenamer.Name = "linkLabelInfoRenamer";
+            this.linkLabelInfoRenamer.Size = new System.Drawing.Size(13, 13);
+            this.linkLabelInfoRenamer.TabIndex = 32;
+            this.linkLabelInfoRenamer.TabStop = true;
+            this.linkLabelInfoRenamer.Text = "?";
+            this.linkLabelInfoRenamer.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            // 
             // checkBoxFixCreationTime
             // 
             this.checkBoxFixCreationTime.AutoSize = true;
@@ -755,8 +791,8 @@
             // statusStrip1
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel1,
-            this.toolStripProgressBar1});
+            this.toolStripProgressBar1,
+            this.toolStripStatusLabel1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 278);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(369, 22);
@@ -786,42 +822,6 @@
             this.toolTip1.InitialDelay = 300;
             this.toolTip1.IsBalloon = true;
             this.toolTip1.ReshowDelay = 100;
-            // 
-            // linkLabelInfoCleaner
-            // 
-            this.linkLabelInfoCleaner.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.linkLabelInfoCleaner.AutoSize = true;
-            this.linkLabelInfoCleaner.Location = new System.Drawing.Point(307, 154);
-            this.linkLabelInfoCleaner.Name = "linkLabelInfoCleaner";
-            this.linkLabelInfoCleaner.Size = new System.Drawing.Size(13, 13);
-            this.linkLabelInfoCleaner.TabIndex = 25;
-            this.linkLabelInfoCleaner.TabStop = true;
-            this.linkLabelInfoCleaner.Text = "?";
-            this.linkLabelInfoCleaner.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
-            // 
-            // linkLabelInfoMover
-            // 
-            this.linkLabelInfoMover.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.linkLabelInfoMover.AutoSize = true;
-            this.linkLabelInfoMover.Location = new System.Drawing.Point(307, 154);
-            this.linkLabelInfoMover.Name = "linkLabelInfoMover";
-            this.linkLabelInfoMover.Size = new System.Drawing.Size(13, 13);
-            this.linkLabelInfoMover.TabIndex = 31;
-            this.linkLabelInfoMover.TabStop = true;
-            this.linkLabelInfoMover.Text = "?";
-            this.linkLabelInfoMover.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
-            // 
-            // linkLabelInfoRenamer
-            // 
-            this.linkLabelInfoRenamer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.linkLabelInfoRenamer.AutoSize = true;
-            this.linkLabelInfoRenamer.Location = new System.Drawing.Point(307, 154);
-            this.linkLabelInfoRenamer.Name = "linkLabelInfoRenamer";
-            this.linkLabelInfoRenamer.Size = new System.Drawing.Size(13, 13);
-            this.linkLabelInfoRenamer.TabIndex = 32;
-            this.linkLabelInfoRenamer.TabStop = true;
-            this.linkLabelInfoRenamer.Text = "?";
-            this.linkLabelInfoRenamer.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
             // Form1
             // 

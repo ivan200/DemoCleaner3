@@ -826,6 +826,7 @@ namespace DemoCleaner3
             Demo demo;
 
             Exception exception = null;
+            string filepath = "";
 
             List<Demo> badDemos = new List<Demo>();
 
@@ -838,17 +839,16 @@ namespace DemoCleaner3
 
                     if (File.Exists(newPath)) {
                         demo.file = new FileInfo(newPath);
-
-                        if (checkBoxFixCreationTime.Checked && demo.recordTime.HasValue && File.Exists(newPath)) {
-                            File.SetCreationTime(newPath, demo.recordTime.Value);
+                        if (checkBoxFixCreationTime.Checked) {
+                            fileHelper.fixCreationTime(demo.file, demo.recordTime);
                         }
                     }
-
                     if (demo.hasError) {
                         badDemos.Add(demo);
                     }
                 } catch (Exception ex) {
                     exception = ex;
+                    filepath = file.FullName;
                 }
             }
 
@@ -856,7 +856,7 @@ namespace DemoCleaner3
             operateBadDemos(badDemos);
 
             if (exception != null) {
-                throw exception;
+                throw new Exception(exception.Message + "\nFile:\n" + filepath);
             }
         }
     }

@@ -95,6 +95,8 @@ namespace DemoCleaner3.ExtClasses
             } else {
                 if (!newPath.Equals(file.FullName)) {
                     moveCheckRules(file, newPath);
+                } else {
+                    _CountProgressDemos++;
                 }
             }
             return newPath;
@@ -173,6 +175,35 @@ namespace DemoCleaner3.ExtClasses
                         } catch (Exception) { }
                         _countDeleteDir++;
                     }
+                }
+            }
+        }
+
+        public void tryOperateFile(FileInfo file, Action<FileInfo> function) {
+            if (file.Exists) {
+                try {
+                    function(file);
+                } catch (Exception ex) {
+                    if (ex is UnauthorizedAccessException) {
+                        tryGetAccess(file);
+                        function(file);
+                    }
+                }
+            }
+        }
+
+        public void fixCreationTime(FileInfo file, DateTime? date) {
+            if (date.HasValue) {
+                tryOperateFile(file, f => {
+                    f.CreationTime = date.Value;
+                });
+            } else {
+                var now = DateTime.Now;
+                if (file.CreationTime > now || file.LastWriteTime > now) {
+                    tryOperateFile(file, f => {
+                        f.CreationTime = now;
+                        f.LastWriteTime = now;
+                    });
                 }
             }
         }
