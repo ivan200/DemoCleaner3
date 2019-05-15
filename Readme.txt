@@ -1,28 +1,14 @@
-﻿Democleaner2
+﻿Democleaner3
 
- A program for processing (moving / deleting) demo files created when recording the completion of maps in Quake3.
+A program for processing (moving / deleting / renaming) demo files created when recording the completion of maps in Quake3.
 
- Supports many options:
- - Ability to process also subdirectories
- At the very beginning, depending on the type of the expected directory processing (with subdirectories or not), the program passes through all the files and then, in a certain way, processes the found files.
+Clean tab
+Here you can clean up the folder with demos. If you have a large number of them, and they interfere with you, you can leave only the best of them, and remove the rest, or move to a specific folder.
 
- - cleaning (deleting / moving files) can occur both for a better time on the map, and for the best time of each player
- - There is a choice of the number of files with the best time that you want to keep.
- (for example, you can save the two best demos of each player)
- - It is possible to process mdf timings as df, that is, if there are two types of records, only the best time will be selected.
- - several possibilities of processing records with slow time:
- Or delete, or move (all in 1 folder), or skip, for example, in order to process only badly-named demos. 
- 
- Department "Demo mover"
- Allows you to move files in a specific folder by subdirectories.
- Actual in large file directories.
- Its main function is not only to move files in alphabetical order, but also to separate records in subdirectories, and also to subdivide the subdirectories themselves into subdirectories!
- Mainly because this modification of the game can not display more than a certain number of records (1024) and more than 64 directories in the selection list.
- Because of this, you have to divide them into subdirectories for viewing, and if it is done manually, there is a lot of confusion, and it also takes time.
- Basically, that's why this program was developed for the algorithm of file distribution algorithm.
- - Also allows you to move only the records of a certain player
+Move tab
+Here it is possible to make the splitting of all the demos in the subdirectories. This is required because Quake 3 does not know how to display a large number of files in the directory with demos, cutting their display. Plus, if there are a lot of them, the search for a particular file gets worse.
+Catalogs will be named on the initial letter of the demo (e.g. a\ark3...) and if the number of demos in such a directory exceeds the number of demos, additional directories will be created (e.g. a\ar\ark3...)
 
- Additional options apply both to the part with the removal of files, and to the part with the move.
- - handle all the incorrectly named entries (grab, move, skip)
- - Delete empty directories.  After cleaning or moving records, empty directories can be created, which the program must delete.
- - Delete identically named files.  That is, if there are 2 identical records in 2 directories (only the name is checked, but not the content), the program leaves only the first one.  Otherwise - just skip it.
+Rename tab
+In this tab you can view information about individual demo files and try to rename all incorrectly named demos in a batch, as well as check demos for compliance with the rules.
+You probably have directories with stacks of demo files like "demo0001",so this section will help you to get normal names for them all.
