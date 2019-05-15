@@ -92,7 +92,7 @@ namespace DemoCleaner3
 
                 //rename
                 toolTip1.SetToolTip(radioRenameBad, "Будут обрабатываться только те демо файлы,\nв которых название не соответствует паттерну по умолчанию\nmap[gametype.physic]time(player.country)");
-                toolTip1.SetToolTip(radioRenameAll, "Попробуем обработать все файлы\n(возможно чтобы проверить на корректность установленных правил,\nили поменять даты создания)");
+                toolTip1.SetToolTip(radioRenameAll, "Попробуем обработать все файлы\n(Например чтобы проверить на корректность конфига в демках,\nили поменять даты создания)");
                 toolTip1.SetToolTip(checkBoxRulesValidation, "Если у демки неправильно установлены параметры в консоли,\nто в имя демки добавится информация (вроде \"{ sv_cheats = 1}\")");
                 toolTip1.SetToolTip(checkBoxFixCreationTime, "Если в демо файле есть информация о дате финиширования карты,\nто поменять дату создания файла на дату прохождения.");
                 toolTip1.SetToolTip(buttonSingleFileInfo, "Просмотреть детальную информацию об одной демке.");
@@ -486,6 +486,7 @@ namespace DemoCleaner3
                         fileHelper.deleteEmpty(demosFolder);
                     }
 
+                    this.Invoke(new SetItemInt(setProgress), 0);
                     this.Invoke(new SetItem(SetButtonCallBack), true);
                     this.Invoke(new SetItemInt(showEndMessage), job);
                 } catch (Exception ex) {
@@ -526,15 +527,11 @@ namespace DemoCleaner3
             }
             text += " demos finished\n";
 
-            if (jobType == (int)JobType.RENAME) {
-                text += getMessageText(fileHelper._countRenameFiles, "\n{0} file{1} were renamed");
-                text += getMessageText(fileHelper._countDeleteFiles, "\n{0} file{1} were deleted");
-            } else {
-                text += getMessageText(fileHelper._countMoveFiles, "\n{0} file{1} were moved");
-                text += getMessageText(fileHelper._countDeleteFiles, "\n{0} file{1} were deleted");
-                text += getMessageText(fileHelper._countCreateDir, "\n{0} folder{1} were created");
-                text += getMessageText(fileHelper._countDeleteDir, "\n{0} folder{1} were deleted");
-            }
+            text += getMessageText(fileHelper._countRenameFiles, "\n{0} file{1} were renamed");
+            text += getMessageText(fileHelper._countMoveFiles, "\n{0} file{1} were moved");
+            text += getMessageText(fileHelper._countDeleteFiles, "\n{0} file{1} were deleted");
+            text += getMessageText(fileHelper._countCreateDir, "\n{0} folder{1} were created");
+            text += getMessageText(fileHelper._countDeleteDir, "\n{0} folder{1} were deleted");
 
             if (_useTaskBarProgress) {
                 try {
@@ -843,7 +840,7 @@ namespace DemoCleaner3
                             fileHelper.fixCreationTime(demo.file, demo.recordTime);
                         }
                     }
-                    if (demo.hasError) {
+                    if (!demo.hasCorrectName) {
                         badDemos.Add(demo);
                     }
                 } catch (Exception ex) {

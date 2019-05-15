@@ -20,6 +20,7 @@ namespace DemoCleaner3
         public string country;
         public FileInfo file;
         public bool hasError;
+        public bool hasCorrectName = false;
         public DateTime? recordTime;
 
         string dfType;
@@ -51,15 +52,16 @@ namespace DemoCleaner3
                     //если есть тайм, то пишем нормальный name для демки
                     demoname = string.Format("{0}[{1}]{2:D2}.{3:D2}.{4:D3}({5})",
                     mapName, modphysic, (int) time.TotalMinutes, time.Seconds, time.Milliseconds, playerCountry);
+                    hasCorrectName = true;
                 } else {
-                    hasError = true;
+                    hasCorrectName = false;
                     //если нет тайма, то мучаемся с генерацией текста
                     string oldName = file.Name;
                     oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //убираем расширение
                     oldName = removeSubstr(oldName, mapName);                               //убираем имя карты
-                    oldName = removeSubstr(oldName, playerName);                            //убираем имя игрока
-                    oldName = removeSubstr(oldName, country);                               //убираем страну
-                    oldName = removeSubstr(oldName, modphysic);                             //убираем мод с физикой 
+                    oldName = removeSubstr(oldName, playerName, false);                     //убираем имя игрока
+                    oldName = removeSubstr(oldName, country, false);                        //убираем страну
+                    oldName = removeSubstr(oldName, modphysic);                             //убираем мод с физикой
                     oldName = removeSubstr(oldName, physic);                                //убираем физику
                     oldName = removeSubstr(oldName, validity);                              //убираем строки валидации
                     oldName = removeDouble(oldName);                                        //убираем двойные символы (кроме  скобочек)
@@ -97,7 +99,7 @@ namespace DemoCleaner3
 
         //убирание подстроки с граничащими символами например: test_abc.xy -> test.xy
         //берётся последний символ если их 2, и первый если только слева: test_abcxy -> test_xy
-        string removeSubstr(string input, string include)
+        string removeSubstr(string input, string include, bool fromstart = true)
         {
             if (include == null || include.Length == 0 || !input.Contains(include)) {
                 return input;
@@ -106,7 +108,7 @@ namespace DemoCleaner3
 
             int cropstart = 0;
             int cropend = 0;
-            int pos = input.IndexOf(include);
+            int pos = fromstart ? input.IndexOf(include) : input.LastIndexOf(include);
             if (pos > 0) {
                 symbol = input[pos - 1] + "";
                 cropstart = char.IsLetterOrDigit(input[pos - 1]) ? 0 : 1;
