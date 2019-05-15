@@ -48,4 +48,12 @@ Temporary Items
 obj/
 .vs/
 *.pdb
-bin/Debug/DemoCleaner2.exe
+bin/Debug/
+bin/Release/DemoCleaner2.vshost.exe
+bin/Release/DemoCleaner2.vshost.exe.config
+bin/Release/DemoCleaner2.vshost.exe.manifest
+bin/Release/DemoCleaner3.pdb
+bin/Release/DemoCleaner3.exe.config
+bin/Release/WindowsFormsApplication1.vshost.exe
+bin/Release/WindowsFormsApplication1.vshost.exe.config
+bin/Release/WindowsFormsApplication1.vshost.exe.manifest
