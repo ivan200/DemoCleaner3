@@ -785,7 +785,7 @@ namespace DemoCleaner3
         {
             MessageBox.Show("Made by Enter"
                 + "\nusing MS Visual Studio 2017"
-                + "\nmail: wilerat@gmail.com"
+                + "\nmail: 79067180651@ya.ru"
                 + "\nskype: Ivan.1010"
                 + "\ndiscord: Enter#4725",
                 "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
