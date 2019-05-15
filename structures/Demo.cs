@@ -244,6 +244,8 @@ namespace DemoCleaner3
                 }
             }
 
+            var demonameTime = tryGetTimeFromFileName(file);
+
             //онлайн тайм
             if (raw.onlineTimes.Count == 1) {
                 var onlineName = getOnlineName(raw.onlineTimes[0]);
@@ -255,11 +257,14 @@ namespace DemoCleaner3
                 double maxMillis = double.MaxValue;
                 foreach (var timeString in raw.onlineTimes) {
                     var onlineName = getOnlineName(timeString);
+                    var time = getOnlineTimeSpan(timeString);
                     if (onlineName == dfName || onlineName == uName || onlineName == demoUserName) {
-                        var time = getOnlineTimeSpan(timeString);
                         if (time.TotalMilliseconds < maxMillis) {
                             demo.time = time;
                         }
+                    } else if (demonameTime.HasValue && demonameTime.Value.TotalMilliseconds == time.TotalMilliseconds) {
+                        demo.time = time;
+                        demo.playerName = onlineName;
                     }
                 }
             }
@@ -267,9 +272,8 @@ namespace DemoCleaner3
             if (demo.time.TotalMilliseconds > 0) {
                 demo.rawTime = true;
             } else {
-                var time = tryGetTimeFromFileName(file);
-                if (time != null) {
-                    demo.time = time.Value;
+                if (demonameTime != null) {
+                    demo.time = demonameTime.Value;
                 }
             }
 
