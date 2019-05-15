@@ -189,7 +189,7 @@ namespace DemoCleaner3
 
             //файл
             demo.file = file;
-            if (frConfig.Count == 0  || !frConfig.ContainsKey(RawInfo.keyClient)) {
+            if (frConfig.Count == 0 || !frConfig.ContainsKey(RawInfo.keyClient)) {
                 demo.hasError = true;
                 return demo;
             }
@@ -197,7 +197,7 @@ namespace DemoCleaner3
             string countryName = getNameAndCountry(file);
 
             //Имя
-            string demoUserName = tryGetNameFromBrackets(countryName);  
+            string demoUserName = tryGetNameFromBrackets(countryName);
             string dfName = null;
             string uName = null;
 
@@ -206,7 +206,7 @@ namespace DemoCleaner3
 
                 dfName = Ext.GetOrNull(kPlayer, "dfn");
                 uName = Ext.GetOrNull(kPlayer, "n");
-                
+
                 if (!string.IsNullOrEmpty(uName)) {
                     uName = Regex.Replace(uName, "\\^.", "");
                     uName = Regex.Replace(uName, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
@@ -300,9 +300,16 @@ namespace DemoCleaner3
                 }
             }
 
+
+            int protocol = 0;
+            var protocolString = Ext.GetOrNull(frConfig[RawInfo.keyClient], "protocol");
+            if (!string.IsNullOrEmpty(protocolString)) {
+                int.TryParse(protocolString, out protocol);
+            }
+
             if (gType == 0) {
                 var vers = Ext.GetOrNull(frConfig[RawInfo.keyClient], "gamename");
-                if (vers == "defrag"){
+                if (vers == "defrag" || protocol >= 66) {
                     demo.dfType = "df";
                 } else {
                     demo.dfType = "dm";
@@ -314,7 +321,12 @@ namespace DemoCleaner3
             if (!string.IsNullOrEmpty(promode)) {
                 int.TryParse(promode, out int phMode);
                 demo.physic = phMode == 1 ? "cpm" : "vq3";                  //vq3, cpm
-            } 
+            }
+
+            //в старых протоколах может не быть инфы о промоде, тогда там вку3
+            if (string.IsNullOrEmpty(demo.physic) && (protocol == 66 || protocol == 67)) {
+                demo.physic = "vq3";
+            }
 
             //мод для fastcaps и freestyle
             var dfMode = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_mode");
@@ -331,7 +343,7 @@ namespace DemoCleaner3
             }
 
             //если есть читы, то пишем в демку
-            demo.validity = checkValidity(frConfig, demo.time.TotalMilliseconds > 0, demo.rawTime);
+            demo.validity = checkValidity(frConfig, demo.time.TotalMilliseconds > 0, demo.rawTime, protocol);
 
             demo.country = tryGetCountryFromBrackets(countryName);
             return demo;
@@ -461,7 +473,7 @@ namespace DemoCleaner3
 
 
         //проверка демки на валидность
-        static string checkValidity(Dictionary<string, Dictionary<string, string>> frConfig, bool hasTime, bool hasRawTime) {
+        static string checkValidity(Dictionary<string, Dictionary<string, string>> frConfig, bool hasTime, bool hasRawTime, int protocol) {
             if (!frConfig.ContainsKey(RawInfo.keyGame)) {
                 return "";
             }
@@ -491,7 +503,7 @@ namespace DemoCleaner3
             res = checkKey(kGame, "g_gravity", 800);                if (res.Length > 0) return res;
             res = checkKey(kGame, "g_knockback", 1000);             if (res.Length > 0) return res;
 
-            if (hasTime && !hasRawTime) {
+            if (hasTime && !hasRawTime && protocol>=68) {
                 return "client_finish=false";
             }
 
