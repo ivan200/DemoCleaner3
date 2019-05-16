@@ -19,13 +19,17 @@ namespace DemoCleaner3.DemoParser.parser
         public static string keyRecordTime = "time";
         public static string keyRecordDate = "date";
         public static string keyRaw = "raw";
+        public static string keyConsole = "console";
 
         public Dictionary<short, string> rawConfig;
-        public List<string> performedTimes;
-        public List<string> onlineTimes;
-        public List<string> oldOfflineTimes;
-        public List<string> oldOfflineTimes2;
-        public List<string> dateStamps;
+
+        public List<string> performedTimes = new List<string>();
+        public List<string> onlineTimes = new List<string>();
+        public List<string> oldOfflineTimes = new List<string>();
+        public List<string> oldOfflineTimes2 = new List<string>();
+        public List<string> dateStamps = new List<string>();
+        public List<string> console = new List<string>();
+
         public string demoPath;
 
         Dictionary<string, Dictionary<string, string>> friendlyInfo;
@@ -33,20 +37,43 @@ namespace DemoCleaner3.DemoParser.parser
         public RawInfo(
             string demoName,
             Dictionary<short, string> rawConfig,
-            List<string> dateStamps,
-            List<string> performedTimes,
-            List<string> onlineTimes,
-            List<string> oldOfflineTimes,
-            List<string> oldOfflineTimes2
-            )
-        {
+            List<string> console) {
             this.demoPath = demoName;
             this.rawConfig = rawConfig;
-            this.performedTimes = performedTimes;
-            this.dateStamps = dateStamps;
-            this.onlineTimes = onlineTimes;
-            this.oldOfflineTimes = oldOfflineTimes;
-            this.oldOfflineTimes2 = oldOfflineTimes2;
+            this.console = console;
+
+            getTimes(console);
+        }
+
+        private void getTimes(List<string> consoleCommands) {
+            foreach (var value in consoleCommands) {
+
+                if (value.StartsWith("print")) {
+
+                    //print "Date: 10-25-14 02:43\n"
+                    if (value.StartsWith("print \"Date:")) {
+                        dateStamps.Add(value);
+                    }
+
+                    //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
+                    if (value.StartsWith("print \"Time performed by")) {
+                        performedTimes.Add(value);
+                    }
+
+                    //"print \"^3Time Performed: 25:912 (defrag 1.5)\n^7\""
+                    if (value.StartsWith("print \"^3Time Performed:")) {
+                        oldOfflineTimes2.Add(value);
+                    }
+
+                    //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
+                    if (value.Contains("reached the finish line in")) {
+                        onlineTimes.Add(value);
+                    }
+                } else if (value.StartsWith("NewTime")) {
+                    //"NewTime -971299442 7:200 \"defrag 1.80\" \"Viper\" route ya->->rg"
+                    oldOfflineTimes.Add(value);
+                }
+            }
         }
 
         public Dictionary<string, Dictionary<string, string>> getFriendlyInfo()
@@ -113,6 +140,23 @@ namespace DemoCleaner3.DemoParser.parser
             }
             friendlyInfo.Add(keyRaw, raw);
 
+            if (console.Count > 0) {
+                Dictionary<string, string> conTexts = new Dictionary<string, string>();
+                for (int i = 0; i < console.Count; i++) {
+                    string key = i.ToString();
+                    string value = "";
+
+                    int k = console[i].IndexOf(' ');
+                    if (k > 0) {
+                        key = i.ToString() + " " + console[i].Substring(0, k);
+                        value = console[i].Substring(k);
+                    } else {
+                        key = i.ToString() + console[i];
+                    }
+                    conTexts.Add(key, value);
+                }
+                friendlyInfo.Add(keyConsole, conTexts);
+            }
             return friendlyInfo;
         }
 

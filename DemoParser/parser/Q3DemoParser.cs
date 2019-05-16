@@ -23,12 +23,9 @@ namespace DemoCleaner3.DemoParser.parser
             var msgParser = new Q3DemoConfigParser();
             this.doParse(msgParser);
             RawInfo info = new RawInfo(
-                file_name,msgParser.getRawConfigs(), 
-                msgParser.dateStamp, 
-                msgParser.performedTimes, 
-                msgParser.onlineTimes,
-                msgParser.oldOfflineTimes,
-                msgParser.oldOfflineTimes2);
+                file_name,
+                msgParser.getRawConfigs(), 
+                msgParser.console);
             return info;
         }
 
