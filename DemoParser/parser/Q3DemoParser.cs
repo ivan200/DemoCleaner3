@@ -26,7 +26,9 @@ namespace DemoCleaner3.DemoParser.parser
                 file_name,msgParser.getRawConfigs(), 
                 msgParser.dateStamp, 
                 msgParser.performedTimes, 
-                msgParser.onlineTimes.Keys.ToList());
+                msgParser.onlineTimes,
+                msgParser.oldOfflineTimes,
+                msgParser.oldOfflineTimes2);
             return info;
         }
 

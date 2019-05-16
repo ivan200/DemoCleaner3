@@ -145,7 +145,7 @@ namespace DemoCleaner3
                 demo.timeString = sub[2];
                 var times = demo.timeString.Split('-', '.');
                 try {
-                    demo.time = getTimeSpan(demo.timeString);
+                    demo.time = RawInfo.getTimeSpan(demo.timeString);
                 } catch (Exception) {
                     demo.hasError = true;
                 }
@@ -194,7 +194,9 @@ namespace DemoCleaner3
                 return demo;
             }
 
-            string countryName = getNameAndCountry(file);
+            var filename = getNormalizedFileName(file);
+            var countryName = getNameAndCountry(filename);
+            var demonameTime = tryGetTimeFromFileName(filename);
 
             //Имя
             string dfName = null;                                       //имя в игре в названиях демок
@@ -206,8 +208,8 @@ namespace DemoCleaner3
 
                 dfName = Ext.GetOrNull(kPlayer, "dfn");
                 uName = Ext.GetOrNull(kPlayer, "n");
-                uName = removeColors(uName);
-                uName = normalizeName(uName);
+                uName = RawInfo.removeColors(uName);
+                uName = RawInfo.normalizeName(uName);
             }
 
             demo.playerName = chooseName(dfName, uName, demoUserName);
@@ -216,42 +218,66 @@ namespace DemoCleaner3
             }
 
             //оффлайн тайм
-            if (raw.performedTimes.Count == 1) {
-                demo.time = getTimeSpanForDemo(raw.performedTimes[0]);
-                if (raw.dateStamps.Count > 0) {
-                    demo.recordTime = getDateForDemo(raw.dateStamps[0]);
-                }
-            } else if (raw.performedTimes.Count > 1) {
+            if (raw.performedTimes.Count > 0) {
                 double maxMillis = double.MaxValue;
                 for (int i = 0; i < raw.performedTimes.Count; i++) {
-                    var time = getTimeSpanForDemo(raw.performedTimes[i]);
+                    var time = RawInfo.getTimeSpanForDemo(raw.performedTimes[i]);
                     if (time.TotalMilliseconds < maxMillis) {
                         //просто берём быстрейший тайм
                         maxMillis = time.TotalMilliseconds;
                         demo.time = time;
                         if (i < raw.dateStamps.Count) {
-                            demo.recordTime = getDateForDemo(raw.dateStamps[i]);
+                            demo.recordTime = RawInfo.getDateForDemo(raw.dateStamps[i]);
                         }
                     }
                 }
             }
 
-            var demonameTime = tryGetTimeFromFileName(file);
+            //старый оффлайн тайм
+            if (raw.oldOfflineTimes.Count > 0) {
+                double maxMillis = double.MaxValue;
+                for (int i = 0; i < raw.oldOfflineTimes.Count; i++) {
+                    var time = RawInfo.getTimeForOldText(raw.oldOfflineTimes[i]);
+                    if (time.TotalMilliseconds < maxMillis) {
+                        //просто берём быстрейший тайм
+                        maxMillis = time.TotalMilliseconds;
+                        demo.time = time;
+                        if (i < raw.dateStamps.Count) {
+                            demo.recordTime = RawInfo.getDateForDemo(raw.dateStamps[i]);
+                        }
+                        var oName = RawInfo.getOldOfflineName(raw.oldOfflineTimes[i]);
+                        if (oName.Length > 0) {
+                            demo.playerName = oName;
+                        }
+                    }
+                }
+            }
+
+            //старый оффлайн тайм
+            if (raw.oldOfflineTimes2.Count > 0) {
+                double maxMillis = double.MaxValue;
+                for (int i = 0; i < raw.oldOfflineTimes2.Count; i++) {
+                    var time = RawInfo.getTimeSpanForDemo(raw.oldOfflineTimes2[i]);
+                    if (time.TotalMilliseconds < maxMillis) {
+                        //просто берём быстрейший тайм
+                        maxMillis = time.TotalMilliseconds;
+                        demo.time = time;
+                        if (i < raw.dateStamps.Count) {
+                            demo.recordTime = RawInfo.getDateForDemo(raw.dateStamps[i]);
+                        }
+                    }
+                }
+            }
 
             //онлайн тайм
-            if (raw.onlineTimes.Count == 1) {
-                var onlineName = getOnlineName(raw.onlineTimes[0]);
-                if (onlineName.Length > 0) {
-                    demo.playerName = onlineName;
-                }
-                demo.time = getOnlineTimeSpan(raw.onlineTimes[0]);
-            } else if (raw.onlineTimes.Count > 1) {
+            if (raw.onlineTimes.Count > 0) {
                 foreach (var timeString in raw.onlineTimes) {
-                    var onlineName = getOnlineName(timeString); //онлайн имена, отображаемые в игре в консоли
-                    var time = getOnlineTimeSpan(timeString);
-
-                    //Если одно из имён тех кто прошёл карту соответствует имени в параметрах демки
-                    if (onlineName == dfName || onlineName == uName || onlineName == demoUserName
+                    var onlineName = RawInfo.getOnlineName(timeString); //онлайн имена, отображаемые в игре в консоли
+                    var time = RawInfo.getOnlineTimeSpan(timeString);
+                    //Если запись только одна
+                    if (raw.onlineTimes.Count == 1 ||
+                        //Или если одно из имён тех кто прошёл карту соответствует имени в параметрах демки
+                        onlineName == dfName || onlineName == uName || onlineName == demoUserName
                         //или если в названии демки написан тайм и он соответствует тайму того кто финишировал
                         || (demonameTime.HasValue && demonameTime.Value.TotalMilliseconds == time.TotalMilliseconds)) {
                         if(demo.time.TotalMilliseconds == 0 || demo.time.TotalMilliseconds > time.TotalMilliseconds) {
@@ -263,6 +289,7 @@ namespace DemoCleaner3
                     } 
                 }
             }
+
             //хоть какой то тайм (из имени демки)
             if (demo.time.TotalMilliseconds > 0) {
                 demo.rawTime = true;
@@ -299,22 +326,6 @@ namespace DemoCleaner3
                 }
             }
 
-
-            int protocol = 0;
-            var protocolString = Ext.GetOrNull(frConfig[RawInfo.keyClient], "protocol");
-            if (!string.IsNullOrEmpty(protocolString)) {
-                int.TryParse(protocolString, out protocol);
-            }
-
-            if (gType == 0) {
-                var vers = Ext.GetOrNull(frConfig[RawInfo.keyClient], "gamename");
-                if (vers == "defrag" || protocol >= 66) {
-                    demo.dfType = "df";
-                } else {
-                    demo.dfType = "dm";
-                }
-            }
-
             //промод
             var promode = Ext.GetOrNull(frConfig[RawInfo.keyClient], "df_promode");
             if (!string.IsNullOrEmpty(promode)) {
@@ -322,9 +333,19 @@ namespace DemoCleaner3
                 demo.physic = phMode == 1 ? "cpm" : "vq3";                  //vq3, cpm
             }
 
-            //в старых протоколах может не быть инфы о промоде, тогда там вку3
-            if (string.IsNullOrEmpty(demo.physic) && (protocol == 66 || protocol == 67)) {
-                demo.physic = "vq3";
+            if (gType == 0) {
+                var gName = Ext.GetOrNull(frConfig[RawInfo.keyClient], "gamename");
+                var fsGName = frConfig.ContainsKey(RawInfo.keyGame) ? Ext.GetOrNull(frConfig[RawInfo.keyGame], "fs_game") : "";
+                if (gName?.ToLowerInvariant() == "defrag" || fsGName?.ToLowerInvariant() == "defrag") {
+                    demo.dfType = "df";
+
+                    //в старых протоколах может не быть инфы о промоде, тогда там вку3
+                    if (string.IsNullOrEmpty(demo.physic)) {
+                        demo.physic = "vq3";
+                    }
+                } else {
+                    demo.dfType = "dm";
+                }
             }
 
             //мод для fastcaps и freestyle
@@ -339,6 +360,12 @@ namespace DemoCleaner3
                 demo.modphysic = string.Format("{0}.{1}{2}", demo.dfType, demo.physic, demo.modNum);
             } else {
                 demo.modphysic = demo.dfType;
+            }
+
+            int protocol = 0;
+            var protocolString = Ext.GetOrNull(frConfig[RawInfo.keyClient], "protocol");
+            if (!string.IsNullOrEmpty(protocolString)) {
+                int.TryParse(protocolString, out protocol);
             }
 
             //если есть читы, то пишем в демку
@@ -359,25 +386,17 @@ namespace DemoCleaner3
             return names[names.Length - 1];
         }
 
-        static string removeColors(string name)
-        {
-            return string.IsNullOrEmpty(name)
-                ? name
-                : Regex.Replace(name, "\\^.", "");
-        }
-
-        static string normalizeName(string name)
-        {
-            return string.IsNullOrEmpty(name)
-                ? name
-                : Regex.Replace(name, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
-        }
-
         //Пытаемся получить имя и страну из демки (первое вхождение двух круглых скобочек)
-        static string getNameAndCountry(FileInfo file) {
-            var brackets = Regex.Match(file.Name, "\\([^)]*\\)");
-            if (brackets.Success && brackets.Groups.Count > 0) {
-                return brackets.Groups[0].Value.Replace("(", "").Replace(")", "");
+        static string getNameAndCountry(string filename) {
+            var brackets = Regex.Matches(filename, "\\([^)]*\\)");
+            if (brackets.Count > 0) {
+                for (int i = 0;i< brackets.Count;i++) {
+                    var value = brackets[i].Value;
+                    if (value.Contains('.')){
+                        return value.Replace("(", "").Replace(")", "");
+                    }
+                }
+                return brackets[0].Value.Replace("(", "").Replace(")", "");
             }
             return "";
         }
@@ -398,7 +417,7 @@ namespace DemoCleaner3
             int i = partname.LastIndexOf('.');
             if (i > 0 && i +1 < partname.Length) {
                 var country = partname.Substring(i+1, partname.Length - i - 1);
-                if (country.Where(c => char.IsNumber(c)).Count() == 0) {
+                if (country.Where(c => char.IsNumber(c)).Count() == 0 && country.Length >1) {
                     return country;
                 }
             }
@@ -406,9 +425,9 @@ namespace DemoCleaner3
         }
 
         //Пытаемся получить время из названия демки
-        static TimeSpan? tryGetTimeFromFileName(FileInfo file)
+        static TimeSpan? tryGetTimeFromFileName(string filename)
         {
-            var sub = file.Name.Split("[]()_".ToArray());
+            var sub = filename.Split("[]()_".ToArray());
             foreach (string part in sub) {
                 var time = tryGetTimeFromBrackets(part);
                 if (time != null) {
@@ -438,63 +457,48 @@ namespace DemoCleaner3
                     }
                 }
             }
-            return getTimeSpan(partname);
+            return RawInfo.getTimeSpan(partname);
         }
 
-
-        //получение времени из онлайн надписи
-        static string getOnlineName(string demoTimeCmd)
-        {
-            //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
-            string name = demoTimeCmd.Substring(6, demoTimeCmd.LastIndexOf(" reached") - 6); //Rom
-            return normalizeName(name);
+        static string getNormalizedFileName(FileInfo file) {
+            string filename = file.Name;
+            //rm_n2%5Bmdf.vq3%5D00.33.984%28h%40des.CountryHere%29.dm_68
+            if (filename.Contains("%")) {
+                filename = Uri.UnescapeDataString(filename);
+            }
+            //r7-falkydf.cpm00.09.960xas.China.dm_68
+            if (!filename.Contains("[") && !filename.Contains("]") && !filename.Contains("(") && !filename.Contains("]")) {
+                int index = Math.Max(filename.IndexOf(".cpm"), filename.IndexOf(".vq3"));
+                if (index > 0) {
+                    try {
+                        int i1 = filename[index - 3] == 'm' ? index - 3 : index - 2;
+                        int i2 = filename[index + 4] == '.' ? index + 6 : index + 4;
+                        int i3 = i2 + 9;
+                        int i4 = file.Name.Length - file.Extension.Length;
+                        int i5 = file.Name.Length;
+                        string mapname = filename.Substring(0, i1);
+                        string physic = filename.Substring(i1, i2 - i1);
+                        string time = filename.Substring(i2, i3 - i2);
+                        string name = filename.Substring(i3, i4 - i3);
+                        string ext = filename.Substring(i4, i5 - i4);
+                        if (isDigits(time[0], time[1], time[3], time[4], time[7], time[8])) {
+                            filename = string.Format("{0}[{1}]{2}({3}){4}", mapname, physic, time, name, ext);
+                        }
+                    } catch (Exception ex) {
+                    }
+                }
+            }
+            return filename;
         }
 
-        static TimeSpan getOnlineTimeSpan(string demoTimeCmd) {
-            //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
-            string demoTime = demoTimeCmd.Substring(demoTimeCmd.LastIndexOf("in") + 3);      //3:38:208
-            return getTimeSpan(demoTime);
+        static bool isDigits(params char[] keys) {
+            foreach (char c in keys) {
+                if (!char.IsDigit(c)) {
+                    return false;
+                }
+            }
+            return true;
         }
-
-        //получение времени из оффлайн надписи
-        static TimeSpan getTimeSpanForDemo(string demoTimeCmd)
-        {
-            //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
-
-            //TODO проверить, что будет если в df_name будет со спецсимволами, например двоеточие, вопрос, кавычки
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");     //print Time performed  by uN-DeaD!Enter : 31:432 (v1.91.23 beta)
-
-            demoTimeCmd = demoTimeCmd.Substring(demoTimeCmd.IndexOf(':') + 2);      //31:432 (v1.91.23 beta)
-            demoTimeCmd = demoTimeCmd.Substring(0, demoTimeCmd.IndexOf(' ')).Trim();    //31:432
-
-            return getTimeSpan(demoTimeCmd);
-        }
-
-        //получение времени из строки
-        static TimeSpan getTimeSpan(string timeString)
-        {
-            var times = timeString.Split('-', '.', ':').Reverse().ToList();
-            //так как мы реверснули таймы, милисекунды будут в начале
-            return TimeSpan.Zero
-                .Add(TimeSpan.FromMilliseconds  (times.Count > 0 ? int.Parse(times[0]) : 0))
-                .Add(TimeSpan.FromSeconds       (times.Count > 1 ? int.Parse(times[1]) : 0))
-                .Add(TimeSpan.FromMinutes       (times.Count > 2 ? int.Parse(times[2]) : 0));
-            //делаем через таймспаны чтобы если минут больше 60, они корректно добавлялись
-        }
-
-        //получение даты записи демки если она есть
-        static DateTime? getDateForDemo(string s)
-        {
-            //print "Date: 10-25-14 02:43\n"
-            string dateString = s.Substring(13).Replace("\n", "").Replace("\"", "").Trim();
-            try {
-                return DateTime.ParseExact(dateString, "MM-dd-yy HH:mm", CultureInfo.InvariantCulture);
-            } catch (Exception ex) {}
-            return null;
-        }
-
 
         //проверка демки на валидность
         static string checkValidity(Dictionary<string, Dictionary<string, string>> frConfig, bool hasTime, bool hasRawTime, int protocol) {
@@ -528,6 +532,7 @@ namespace DemoCleaner3
             res = checkKey(kGame, "g_knockback", 1000);             if (res.Length > 0) return res;
 
             if (hasTime && !hasRawTime && protocol>=68) {
+                //в старых протоколах ещё не было вывода текста о финише в консоль, потому доверимся названию демки
                 return "client_finish=false";
             }
 

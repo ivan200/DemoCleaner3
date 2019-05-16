@@ -6,8 +6,10 @@ namespace DemoCleaner3.DemoParser.parser
 {
     class Q3DemoConfigParser : AbstractDemoMessageParser
     {
-        public Dictionary<string, object> onlineTimes = new Dictionary<string, object>();
+        public List<string> onlineTimes = new List<string>();
         public List<string> performedTimes = new List<string>();
+        public List<string> oldOfflineTimes = new List<string>();
+        public List<string> oldOfflineTimes2 = new List<string>();
         public List<string> dateStamp = new List<string>();
 
         private Dictionary<short, string> configs = null;
@@ -55,20 +57,30 @@ namespace DemoCleaner3.DemoParser.parser
             var key = reader.readLong();
             var value = reader.readString();
             console.Add(value);
-            if (value.StartsWith("print"))
-            {
-                if (value.StartsWith("print \"Date:"))
-                {
+            if (value.StartsWith("print")) {
+
+                //print "Date: 10-25-14 02:43\n"
+                if (value.StartsWith("print \"Date:")) {
                     dateStamp.Add(value);
                 }
-                if (value.StartsWith("print \"Time performed by"))
-                {
+
+                //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
+                if (value.StartsWith("print \"Time performed by")) {
                     performedTimes.Add(value);
                 }
-                if (value.Contains("reached the finish line in"))
-                {
-                    onlineTimes[value] = null;
+
+                //"print \"^3Time Performed: 25:912 (defrag 1.5)\n^7\""
+                if (value.StartsWith("print \"^3Time Performed:")) {
+                    oldOfflineTimes2.Add(value);
                 }
+
+                //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
+                if (value.Contains("reached the finish line in")) {
+                    onlineTimes.Add(value);
+                }
+            } else if (value.StartsWith("NewTime")) {
+                //"NewTime -971299442 7:200 \"defrag 1.80\" \"Viper\" route ya->->rg"
+                oldOfflineTimes.Add(value);
             }
         }
 
