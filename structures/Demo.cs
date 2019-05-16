@@ -417,7 +417,7 @@ namespace DemoCleaner3
             int i = partname.LastIndexOf('.');
             if (i > 0 && i +1 < partname.Length) {
                 var country = partname.Substring(i+1, partname.Length - i - 1);
-                if (country.Where(c => char.IsNumber(c)).Count() == 0 && country.Length >1) {
+                if (country.Where(c => char.IsNumber(c)).Count() == 0) {
                     return country;
                 }
             }
