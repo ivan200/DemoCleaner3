@@ -197,32 +197,22 @@ namespace DemoCleaner3
             string countryName = getNameAndCountry(file);
 
             //Имя
-            string demoUserName = tryGetNameFromBrackets(countryName);
-            string dfName = null;
-            string uName = null;
+            string dfName = null;                                       //имя в игре в названиях демок
+            string uName = null;                                        //имя в игре
+            string demoUserName = tryGetNameFromBrackets(countryName);  //имя из названия демки
 
             if (frConfig.ContainsKey(RawInfo.keyPlayer)) {
                 var kPlayer = frConfig[RawInfo.keyPlayer];
 
                 dfName = Ext.GetOrNull(kPlayer, "dfn");
                 uName = Ext.GetOrNull(kPlayer, "n");
+                uName = removeColors(uName);
+                uName = normalizeName(uName);
+            }
 
-                if (!string.IsNullOrEmpty(uName)) {
-                    uName = Regex.Replace(uName, "\\^.", "");
-                    uName = Regex.Replace(uName, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
-                }
-
-                if (string.IsNullOrEmpty(dfName) || dfName == "UnnamedPlayer") {
-                    if (!string.IsNullOrEmpty(uName)) {
-                        demo.playerName = uName;
-                    } else {
-                        demo.playerName = dfName;
-                    }
-                } else {
-                    demo.playerName = dfName;
-                }
-            } else {
-                demo.playerName = demoUserName;
+            demo.playerName = chooseName(dfName, uName, demoUserName);
+            if (demo.playerName == "UnnamedPlayer") {
+                demo.playerName = chooseName(uName, dfName, demoUserName);
             }
 
             //оффлайн тайм
@@ -236,6 +226,8 @@ namespace DemoCleaner3
                 for (int i = 0; i < raw.performedTimes.Count; i++) {
                     var time = getTimeSpanForDemo(raw.performedTimes[i]);
                     if (time.TotalMilliseconds < maxMillis) {
+                        //просто берём быстрейший тайм
+                        maxMillis = time.TotalMilliseconds;
                         demo.time = time;
                         if (i < raw.dateStamps.Count) {
                             demo.recordTime = getDateForDemo(raw.dateStamps[i]);
@@ -254,18 +246,21 @@ namespace DemoCleaner3
                 }
                 demo.time = getOnlineTimeSpan(raw.onlineTimes[0]);
             } else if (raw.onlineTimes.Count > 1) {
-                double maxMillis = double.MaxValue;
                 foreach (var timeString in raw.onlineTimes) {
-                    var onlineName = getOnlineName(timeString);
+                    var onlineName = getOnlineName(timeString); //онлайн имена, отображаемые в игре в консоли
                     var time = getOnlineTimeSpan(timeString);
-                    if (onlineName == dfName || onlineName == uName || onlineName == demoUserName) {
-                        if (time.TotalMilliseconds < maxMillis) {
+
+                    //Если одно из имён тех кто прошёл карту соответствует имени в параметрах демки
+                    if (onlineName == dfName || onlineName == uName || onlineName == demoUserName
+                        //или если в названии демки написан тайм и он соответствует тайму того кто финишировал
+                        || (demonameTime.HasValue && demonameTime.Value.TotalMilliseconds == time.TotalMilliseconds)) {
+                        if(demo.time.TotalMilliseconds == 0 || demo.time.TotalMilliseconds > time.TotalMilliseconds) {
                             demo.time = time;
+                            if (onlineName.Length > 0) {
+                                demo.playerName = onlineName;
+                            }
                         }
-                    } else if (demonameTime.HasValue && demonameTime.Value.TotalMilliseconds == time.TotalMilliseconds) {
-                        demo.time = time;
-                        demo.playerName = onlineName;
-                    }
+                    } 
                 }
             }
             //хоть какой то тайм (из имени демки)
@@ -353,6 +348,31 @@ namespace DemoCleaner3
             return demo;
         }
 
+        //выбор первой непустой строки из параметров
+        private static string chooseName(params string[] names)
+        {
+            for (int i = 0; i < names.Length - 1; i++) {
+                if (!string.IsNullOrEmpty(names[i])) {
+                    return names[i];
+                }
+            }
+            return names[names.Length - 1];
+        }
+
+        static string removeColors(string name)
+        {
+            return string.IsNullOrEmpty(name)
+                ? name
+                : Regex.Replace(name, "\\^.", "");
+        }
+
+        static string normalizeName(string name)
+        {
+            return string.IsNullOrEmpty(name)
+                ? name
+                : Regex.Replace(name, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
+        }
+
         //Пытаемся получить имя и страну из демки (первое вхождение двух круглых скобочек)
         static string getNameAndCountry(FileInfo file) {
             var brackets = Regex.Match(file.Name, "\\([^)]*\\)");
@@ -362,6 +382,7 @@ namespace DemoCleaner3
             return "";
         }
 
+        //Пытаемся получить имя из имени и страны
         static string tryGetNameFromBrackets(string partname)
         {
             int i = partname.LastIndexOf('.');
@@ -384,7 +405,7 @@ namespace DemoCleaner3
             return "";
         }
 
-        //Пытаемся получить время из демки
+        //Пытаемся получить время из названия демки
         static TimeSpan? tryGetTimeFromFileName(FileInfo file)
         {
             var sub = file.Name.Split("[]()_".ToArray());
@@ -427,8 +448,7 @@ namespace DemoCleaner3
             //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
             string name = demoTimeCmd.Substring(6, demoTimeCmd.LastIndexOf(" reached") - 6); //Rom
-            name = Regex.Replace(name, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
-            return name;
+            return normalizeName(name);
         }
 
         static TimeSpan getOnlineTimeSpan(string demoTimeCmd) {

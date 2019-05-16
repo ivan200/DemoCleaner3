@@ -8,10 +8,12 @@ namespace DemoCleaner3.ExtClasses
 {
     class FileHelper
     {
+        Action<int> _onProgressPercentChanged;
         Action<int> _onProgressChanged;
 
-        public FileHelper(Action<int> onProgressChanged = null) {
+        public FileHelper(Action<int> onProgressChanged = null, Action<int> onProgressPercentChanged = null) {
             _onProgressChanged = onProgressChanged;
+            _onProgressPercentChanged = onProgressPercentChanged;
         }
 
         public decimal _countMoveFiles = 0;
@@ -27,12 +29,15 @@ namespace DemoCleaner3.ExtClasses
             get { return _countProgressDemos; }
             set {
                 _countProgressDemos = value;
-                float number = ((float)_countProgressDemos / (float)_countDemosAmount) * 100;
-                int dnumber = (int)number;
+                float percent = ((float)_countProgressDemos / (float)_countDemosAmount) * 100;
+                int dPercent = (int)percent;
 
-                if (dnumber < 0) dnumber = 0;
+                if (dPercent < 0) dPercent = 0;
                 if (_onProgressChanged != null) {
-                    _onProgressChanged.Invoke(dnumber);
+                    _onProgressChanged.Invoke((int)_countProgressDemos);
+                }
+                if (_onProgressPercentChanged != null) {
+                    _onProgressPercentChanged.Invoke(dPercent);
                 }
             }
         }
@@ -106,36 +111,18 @@ namespace DemoCleaner3.ExtClasses
         {
             _countDeleteFiles++;
             _CountProgressDemos++;
-            try {
+            tryOperateFile(file, f => {
                 file.Delete();
-            } catch (Exception ex) {
-                if (ex is UnauthorizedAccessException) {
-                    try {
-                        tryGetAccess(file);
-                        file.Delete();
-                    } catch (Exception ex2) {
-                        Console.WriteLine(ex2.Message);
-                    }
-                }
-            }
+            });
         }
 
         public void moveCheckRules(FileInfo file, string path)
         {
             _countMoveFiles++;
             _CountProgressDemos++;
-            try {
+            tryOperateFile(file, f => {
                 file.MoveTo(path);
-            } catch (Exception ex) {
-                if (ex is UnauthorizedAccessException) {
-                    try {
-                        tryGetAccess(file);
-                        file.MoveTo(path);
-                    } catch (Exception ex2) {
-                        Console.WriteLine(ex2.Message);
-                    }
-                }
-            }
+            });
         }
 
         private void tryGetAccess(FileInfo file)

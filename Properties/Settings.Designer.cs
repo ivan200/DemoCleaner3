@@ -286,5 +286,17 @@ namespace DemoCleaner3.Properties {
                 this["slowDemoFolder"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool stopOnExceptopn {
+            get {
+                return ((bool)(this["stopOnExceptopn"]));
+            }
+            set {
+                this["stopOnExceptopn"] = value;
+            }
+        }
     }
 }

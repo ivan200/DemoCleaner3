@@ -21,7 +21,7 @@ namespace DemoCleaner3
         //Используется в случае, если на данной ос нельзя использовать прогрессбар в таскбаре
         bool _useTaskBarProgress = true;
 
-        private void setProgress(int num)
+        private void setProgressPercent(int num)
         {
             if (_useTaskBarProgress) {
                 try {
@@ -31,6 +31,16 @@ namespace DemoCleaner3
                 }
             }
             toolStripProgressBar1.Value = num;
+        }
+
+        private void setProgressFileNumber(int num)
+        {
+            var amount = fileHelper._countDemosAmount;
+            if (num == 0 || num == amount) {
+                toolStripStatusNumbers.Text = "";
+            } else {
+                toolStripStatusNumbers.Text = num + " / " + amount;
+            }
         }
 
         FolderBrowser2 folderBrowserDialog;
@@ -52,9 +62,11 @@ namespace DemoCleaner3
                 _useTaskBarProgress = false;
             }
 
-            fileHelper = new FileHelper((dnumber) => {
-                if (toolStripProgressBar1.Value != dnumber) {
-                    this.Invoke(new SetItemInt(setProgress), dnumber);
+            fileHelper = new FileHelper((fileNumber) => {
+                    this.Invoke(new SetItemInt(setProgressFileNumber), fileNumber);
+            }, (percent) => {
+                if (toolStripProgressBar1.Value != percent) {
+                    this.Invoke(new SetItemInt(setProgressPercent), percent);
                 }
             });
 
@@ -103,6 +115,10 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(radioButtonMoveBad, "Некорректно именованые демки - переместить в каталог:");
                 toolTip1.SetToolTip(checkBoxDeleteEmptyDirs, "Удалить пустые папки если такие останутся после обработки.");
                 toolTip1.SetToolTip(checkBoxDeleteIdentical, "Удалять демку, если при перемещении демка с таким именем уже существует в папке назначения");
+                toolTip1.SetToolTip(checkBoxStopOnException, 
+                    "Если файл невозможно переместить или переименовать, или при других ошибках," +
+                    "\nостановить текущий процесс процесс и показать сообщение" +
+                    "\n(Если пункт не выбран, сообщение будет показано только после обработки всех файлов).");
 
                 //Info
                 toolTip1.SetToolTip(linkLabelInfoCleaner, "В данном разделе можно произвести очистку папки с демками.\nЕсли у вас их большое количество, и они вам мешают, то можно оставить только самые лучшие из них,\nа остальные удалить или переместить в определённую папку.");
@@ -148,6 +164,11 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(radioButtonMoveBad, "Incorrectly named demos - move to the directory:");
                 toolTip1.SetToolTip(checkBoxDeleteEmptyDirs, "Delete empty folders if they remain after processing.");
                 toolTip1.SetToolTip(checkBoxDeleteIdentical, "Delete a demo if a demo with the same name already exists\nin the destination folder when you move it");
+                toolTip1.SetToolTip(checkBoxStopOnException, 
+                    "If the file cannot be moved or renamed, or other errors occur, " +
+                    "\nstop the current process and show a message " +
+                    "\n(If not selected, the message will only be displayed" +
+                    "\nafter all files have been processed).");
 
                 //Info
                 toolTip1.SetToolTip(linkLabelInfoCleaner, "In this tab, you can clean up the folder with demos.\nIf you have a large number of them, and they interfere with you,\nyou can leave only the best of them, and remove the rest or move to a specific folder.");
@@ -227,6 +248,7 @@ namespace DemoCleaner3
                 textBoxBadDemos.Enabled = radioButtonMoveBad.Checked;
                 buttonBadDemosBrowse.Enabled = radioButtonMoveBad.Checked;
                 checkBoxDeleteIdentical.Checked = prop.deleteIdentical;
+                checkBoxStopOnException.Checked = prop.stopOnExceptopn;
             } catch (Exception) {
 
             }
@@ -281,7 +303,7 @@ namespace DemoCleaner3
             prop.badDemosOption = getIntFromParameters(radioButtonDeleteBad, radioButtonSkipBad, radioButtonMoveBad);
             prop.deleteEmptyDirs = checkBoxDeleteEmptyDirs.Checked;
             prop.deleteIdentical = checkBoxDeleteIdentical.Checked;
-            
+            prop.stopOnExceptopn = checkBoxStopOnException.Checked;
             prop.Save();
         }
 
@@ -486,11 +508,11 @@ namespace DemoCleaner3
                         fileHelper.deleteEmpty(demosFolder);
                     }
 
-                    this.Invoke(new SetItemInt(setProgress), 0);
+                    this.Invoke(new SetItemInt(setProgressPercent), 0);
                     this.Invoke(new SetItem(SetButtonCallBack), true);
                     this.Invoke(new SetItemInt(showEndMessage), job);
                 } catch (Exception ex) {
-                    this.Invoke(new SetItemInt(setProgress), 0);
+                    this.Invoke(new SetItemInt(setProgressPercent), 0);
                     this.Invoke(new SetItem(SetButtonCallBack), true);
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
@@ -628,6 +650,9 @@ namespace DemoCleaner3
                     x.mapName + Demo.mdfToDf(x.modphysic, checkBoxProcessMdf.Checked)).ToLower());
             }
 
+            Exception exception = null;
+            string filepath = "";
+
             foreach (var group in groups) {
                 //var bestTime = group.Min(y => y.time);
 
@@ -636,14 +661,25 @@ namespace DemoCleaner3
                 var slow = ordered.Skip((int)numericUpDownCountOfBest.Value);
 
                 foreach (var demo in slow) {
-                    if (radioButtonDeleteSlow.Checked) {
-                        fileHelper.deleteCheckRules(demo.file);
-                    } else {
-                        if (radioButtonMoveSlow.Checked) {
-                            fileHelper.moveFile(demo.file, _currentSlowDemosPath, checkBoxDeleteIdentical.Checked);
+                    try {
+                        if (radioButtonDeleteSlow.Checked) {
+                            fileHelper.deleteCheckRules(demo.file);
+                        } else {
+                            if (radioButtonMoveSlow.Checked) {
+                                fileHelper.moveFile(demo.file, _currentSlowDemosPath, checkBoxDeleteIdentical.Checked);
+                            }
+                        }
+                    } catch (Exception ex) {
+                        exception = ex;
+                        filepath = demo.file.FullName;
+                        if (prop.stopOnExceptopn) {
+                            throw new Exception(exception.Message + "\nFile:\n" + filepath);
                         }
                     }
                 }
+            }
+            if (exception != null) {
+                throw new Exception(exception.Message + "\nFile:\n" + filepath);
             }
         }
 
@@ -690,7 +726,7 @@ namespace DemoCleaner3
 
 
         //Перемещаем демки
-        private bool moveDemos(DirectoryInfo filedemos, DirectoryInfo dirdemos)
+        private void moveDemos(DirectoryInfo filedemos, DirectoryInfo dirdemos)
         {
             //из всех файлов выбираем только демки
             var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
@@ -731,6 +767,9 @@ namespace DemoCleaner3
 
             var ListFolders = Ext.MakeListFromGroups(groupedFolders);
 
+            Exception exception = null;
+            string filepath = "";
+
             //Проходим по всем файлам и перемещаем их в каталоги
             for (int i = 0; i < groupedFiles.Count(); i++) {
                 var group = groupedFiles.ElementAt(i);
@@ -745,11 +784,21 @@ namespace DemoCleaner3
                     if (!checkBoxSplitFolders.Checked) {
                         newPath = dirdemos.FullName;
                     }
+                    try {
+                        fileHelper.moveFile(demo.file, new DirectoryInfo(newPath), checkBoxDeleteIdentical.Checked);
+                    } catch (Exception ex) {
+                        exception = ex;
+                        filepath = demo.file.FullName;
 
-                    fileHelper.moveFile(demo.file, new DirectoryInfo(newPath), checkBoxDeleteIdentical.Checked);
+                        if (prop.stopOnExceptopn) {
+                            throw new Exception(exception.Message + "\nFile:\n" + filepath);
+                        }
+                    }
                 }
             }
-            return true;
+            if (exception != null) {
+                throw new Exception(exception.Message + "\nFile:\n" + filepath);
+            }
         }
 
 
@@ -846,6 +895,10 @@ namespace DemoCleaner3
                 } catch (Exception ex) {
                     exception = ex;
                     filepath = file.FullName;
+
+                    if (prop.stopOnExceptopn) {
+                        throw new Exception(exception.Message + "\nFile:\n" + filepath);
+                    }
                 }
             }
 

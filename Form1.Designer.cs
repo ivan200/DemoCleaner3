@@ -86,10 +86,12 @@
             this.checkBoxDeleteIdentical = new System.Windows.Forms.CheckBox();
             this.checkBoxDeleteEmptyDirs = new System.Windows.Forms.CheckBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+            this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.checkBoxStopOnException = new System.Windows.Forms.CheckBox();
+            this.toolStripStatusNumbers = new System.Windows.Forms.ToolStripStatusLabel();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -740,6 +742,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.checkBoxStopOnException);
             this.tabPage2.Controls.Add(this.linkLabelInfoAdditional);
             this.tabPage2.Controls.Add(this.checkBoxDeleteIdentical);
             this.tabPage2.Controls.Add(this.groupBoxBadDemos);
@@ -792,24 +795,25 @@
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripProgressBar1,
-            this.toolStripStatusLabel1});
+            this.toolStripStatusLabel1,
+            this.toolStripStatusNumbers});
             this.statusStrip1.Location = new System.Drawing.Point(0, 278);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(369, 22);
             this.statusStrip1.TabIndex = 21;
             this.statusStrip1.Text = "statusStrip1";
             // 
-            // toolStripStatusLabel1
-            // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(39, 17);
-            this.toolStripStatusLabel1.Text = "Ready";
-            // 
             // toolStripProgressBar1
             // 
             this.toolStripProgressBar1.Name = "toolStripProgressBar1";
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             this.toolStripProgressBar1.Visible = false;
+            // 
+            // toolStripStatusLabel1
+            // 
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(39, 17);
+            this.toolStripStatusLabel1.Text = "Ready";
             // 
             // openFileDialog1
             // 
@@ -822,6 +826,21 @@
             this.toolTip1.InitialDelay = 300;
             this.toolTip1.IsBalloon = true;
             this.toolTip1.ReshowDelay = 100;
+            // 
+            // checkBoxStopOnException
+            // 
+            this.checkBoxStopOnException.AutoSize = true;
+            this.checkBoxStopOnException.Location = new System.Drawing.Point(6, 124);
+            this.checkBoxStopOnException.Name = "checkBoxStopOnException";
+            this.checkBoxStopOnException.Size = new System.Drawing.Size(112, 17);
+            this.checkBoxStopOnException.TabIndex = 25;
+            this.checkBoxStopOnException.Text = "Stop on exception";
+            this.checkBoxStopOnException.UseVisualStyleBackColor = true;
+            // 
+            // toolStripStatusNumbers
+            // 
+            this.toolStripStatusNumbers.Name = "toolStripStatusNumbers";
+            this.toolStripStatusNumbers.Size = new System.Drawing.Size(0, 17);
             // 
             // Form1
             // 
@@ -934,5 +953,7 @@
         private System.Windows.Forms.LinkLabel linkLabelInfoCleaner;
         private System.Windows.Forms.LinkLabel linkLabelInfoMover;
         private System.Windows.Forms.LinkLabel linkLabelInfoRenamer;
+        private System.Windows.Forms.CheckBox checkBoxStopOnException;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusNumbers;
     }
 }
