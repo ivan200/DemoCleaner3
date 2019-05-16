@@ -196,7 +196,7 @@ namespace DemoCleaner3
 
             var filename = getNormalizedFileName(file);
             var countryName = getNameAndCountry(filename);
-            var demonameTime = tryGetTimeFromFileName(filename);
+            var demoNameTime = tryGetTimeFromFileName(filename);
 
             //Имя
             string dfName = null;                                       //имя в игре в названиях демок
@@ -253,7 +253,7 @@ namespace DemoCleaner3
                 }
             }
 
-            //старый оффлайн тайм
+            //старый оффлайн тайм 2
             if (raw.oldOfflineTimes2.Count > 0) {
                 double maxMillis = double.MaxValue;
                 for (int i = 0; i < raw.oldOfflineTimes2.Count; i++) {
@@ -279,7 +279,7 @@ namespace DemoCleaner3
                         //Или если одно из имён тех кто прошёл карту соответствует имени в параметрах демки
                         onlineName == dfName || onlineName == uName || onlineName == demoUserName
                         //или если в названии демки написан тайм и он соответствует тайму того кто финишировал
-                        || (demonameTime.HasValue && demonameTime.Value.TotalMilliseconds == time.TotalMilliseconds)) {
+                        || (demoNameTime.HasValue && demoNameTime.Value.TotalMilliseconds == time.TotalMilliseconds)) {
                         if(demo.time.TotalMilliseconds == 0 || demo.time.TotalMilliseconds > time.TotalMilliseconds) {
                             demo.time = time;
                             if (onlineName.Length > 0) {
@@ -294,8 +294,8 @@ namespace DemoCleaner3
             if (demo.time.TotalMilliseconds > 0) {
                 demo.rawTime = true;
             } else {
-                if (demonameTime != null) {
-                    demo.time = demonameTime.Value;
+                if (demoNameTime != null) {
+                    demo.time = demoNameTime.Value;
                 }
             }
 

@@ -6,7 +6,7 @@ namespace DemoCleaner3.DemoParser.parser
 {
     class Q3DemoConfigParser : AbstractDemoMessageParser
     {
-        public List<string> console = new List<string>();
+        public Dictionary<long, string> console = new Dictionary<long, string>();
 
         private Dictionary<short, string> configs = null;
 
@@ -50,7 +50,7 @@ namespace DemoCleaner3.DemoParser.parser
         private void parseServerCommand(Q3HuffmanReader reader) {
             var key = reader.readLong();
             var value = reader.readString();
-            console.Add(value);
+            console.Add(key, value);
         }
 
         private void parseGameState(Q3HuffmanReader reader)

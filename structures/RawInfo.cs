@@ -28,7 +28,7 @@ namespace DemoCleaner3.DemoParser.parser
         public List<string> oldOfflineTimes = new List<string>();
         public List<string> oldOfflineTimes2 = new List<string>();
         public List<string> dateStamps = new List<string>();
-        public List<string> console = new List<string>();
+        public Dictionary<long, string> console = new Dictionary<long, string>();
 
         public string demoPath;
 
@@ -37,7 +37,7 @@ namespace DemoCleaner3.DemoParser.parser
         public RawInfo(
             string demoName,
             Dictionary<short, string> rawConfig,
-            List<string> console) {
+            Dictionary<long, string> console) {
             this.demoPath = demoName;
             this.rawConfig = rawConfig;
             this.console = console;
@@ -45,9 +45,9 @@ namespace DemoCleaner3.DemoParser.parser
             getTimes(console);
         }
 
-        private void getTimes(List<string> consoleCommands) {
-            foreach (var value in consoleCommands) {
-
+        private void getTimes(Dictionary<long, string> consoleCommands) {
+            foreach (var kv in consoleCommands) {
+                var value = kv.Value;
                 if (value.StartsWith("print")) {
 
                     //print "Date: 10-25-14 02:43\n"
@@ -142,18 +142,8 @@ namespace DemoCleaner3.DemoParser.parser
 
             if (console.Count > 0) {
                 Dictionary<string, string> conTexts = new Dictionary<string, string>();
-                for (int i = 0; i < console.Count; i++) {
-                    string key = i.ToString();
-                    string value = "";
-
-                    int k = console[i].IndexOf(' ');
-                    if (k > 0) {
-                        key = i.ToString() + " " + console[i].Substring(0, k);
-                        value = console[i].Substring(k);
-                    } else {
-                        key = i.ToString() + console[i];
-                    }
-                    conTexts.Add(key, value);
+                foreach(var kv in console) {
+                    conTexts.Add(kv.Key.ToString(), removeColors(kv.Value.ToString()));
                 }
                 friendlyInfo.Add(keyConsole, conTexts);
             }
