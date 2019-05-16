@@ -183,6 +183,7 @@ namespace DemoCleaner3.ExtClasses
             if (date.HasValue) {
                 tryOperateFile(file, f => {
                     f.CreationTime = date.Value;
+                    f.LastWriteTime = date.Value;
                 });
             } else {
                 var now = DateTime.Now;
