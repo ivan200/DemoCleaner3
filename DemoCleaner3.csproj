@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExtClasses\FileHelper.cs" />
+    <Compile Include="ExtClasses\ListMap.cs" />
     <Compile Include="structures\Demo.cs" />
     <Compile Include="DemoInfoForm.cs">
       <SubType>Form</SubType>

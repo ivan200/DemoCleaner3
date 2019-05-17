@@ -217,76 +217,49 @@ namespace DemoCleaner3
                 demo.playerName = chooseName(uName, dfName, demoUserName);
             }
 
-            //оффлайн тайм
-            if (raw.performedTimes.Count > 0) {
-                double maxMillis = double.MaxValue;
-                for (int i = 0; i < raw.performedTimes.Count; i++) {
-                    var time = RawInfo.getTimeSpanForDemo(raw.performedTimes[i]);
-                    if (time.TotalMilliseconds < maxMillis) {
-                        //просто берём быстрейший тайм
-                        maxMillis = time.TotalMilliseconds;
-                        demo.time = time;
-                        if (i < raw.dateStamps.Count) {
-                            demo.recordTime = RawInfo.getDateForDemo(raw.dateStamps[i]);
-                        }
-                    }
-                }
-            }
+            if (raw.allTimes.Count > 0) {
+                for (int i = 0; i < raw.allTimes.Count; i++) {
+                    var demoTimeCmd = raw.allTimes[i];
+                    TimeSpan time = new TimeSpan();
+                    string oName = "";  //онлайн или оффлайн имя, полученое из строки в консоли
 
-            //старый оффлайн тайм
-            if (raw.oldOfflineTimes.Count > 0) {
-                double maxMillis = double.MaxValue;
-                for (int i = 0; i < raw.oldOfflineTimes.Count; i++) {
-                    var time = RawInfo.getTimeForOldText(raw.oldOfflineTimes[i]);
-                    if (time.TotalMilliseconds < maxMillis) {
-                        //просто берём быстрейший тайм
-                        maxMillis = time.TotalMilliseconds;
-                        demo.time = time;
-                        if (i < raw.dateStamps.Count) {
-                            demo.recordTime = RawInfo.getDateForDemo(raw.dateStamps[i]);
-                        }
-                        var oName = RawInfo.getOldOfflineName(raw.oldOfflineTimes[i]);
-                        if (oName.Length > 0) {
-                            demo.playerName = oName;
-                        }
+                    switch (demoTimeCmd.Key) {
+                        case RawInfo.TimeType.OFFLINE_NORMAL:
+                            time = RawInfo.getTimeOfflineNormal(demoTimeCmd.Value);
+                            oName = RawInfo.getNameOffline(demoTimeCmd.Value);
+                            break;
+                        case RawInfo.TimeType.ONLINE_NORMAL:
+                            time = RawInfo.getTimeOnline(demoTimeCmd.Value);
+                            oName = RawInfo.getNameOnline(demoTimeCmd.Value);
+                            break;
+                        case RawInfo.TimeType.OFFLINE_OLD1:
+                            time = RawInfo.getTimeOld1(demoTimeCmd.Value);
+                            oName = RawInfo.getNameOfflineOld1(demoTimeCmd.Value);
+                            break;
+                        case RawInfo.TimeType.OFFLINE_OLD2:
+                            time = RawInfo.getTimeOfflineNormal(demoTimeCmd.Value);
+                            break;
+                        case RawInfo.TimeType.OFFLINE_OLD3:
+                            time = RawInfo.getTimeOld3(demoTimeCmd.Value);
+                            break;
                     }
-                }
-            }
 
-            //старый оффлайн тайм 2
-            if (raw.oldOfflineTimes2.Count > 0) {
-                double maxMillis = double.MaxValue;
-                for (int i = 0; i < raw.oldOfflineTimes2.Count; i++) {
-                    var time = RawInfo.getTimeSpanForDemo(raw.oldOfflineTimes2[i]);
-                    if (time.TotalMilliseconds < maxMillis) {
-                        //просто берём быстрейший тайм
-                        maxMillis = time.TotalMilliseconds;
-                        demo.time = time;
-                        if (i < raw.dateStamps.Count) {
-                            demo.recordTime = RawInfo.getDateForDemo(raw.dateStamps[i]);
-                        }
-                    }
-                }
-            }
-
-            //онлайн тайм
-            if (raw.onlineTimes.Count > 0) {
-                foreach (var timeString in raw.onlineTimes) {
-                    var onlineName = RawInfo.getOnlineName(timeString); //онлайн имена, отображаемые в игре в консоли
-                    var time = RawInfo.getOnlineTimeSpan(timeString);
                     //Если запись только одна
-                    if (raw.onlineTimes.Count == 1 ||
+                    if (raw.allTimes.Count == 1 ||
                         //Или если одно из имён тех кто прошёл карту соответствует имени в параметрах демки
-                        onlineName == dfName || onlineName == uName || onlineName == demoUserName
+                        (!string.IsNullOrEmpty(oName) && (oName == dfName || oName == uName || oName == demoUserName))
                         //или если в названии демки написан тайм и он соответствует тайму того кто финишировал
                         || (demoNameTime.HasValue && demoNameTime.Value.TotalMilliseconds == time.TotalMilliseconds)) {
-                        if(demo.time.TotalMilliseconds == 0 || demo.time.TotalMilliseconds > time.TotalMilliseconds) {
+                        if (demo.time.TotalMilliseconds == 0 || demo.time.TotalMilliseconds > time.TotalMilliseconds) {
                             demo.time = time;
-                            if (onlineName.Length > 0) {
-                                demo.playerName = onlineName;
+                            if (i < raw.dateStamps.Count) {
+                                demo.recordTime = RawInfo.getDateForDemo(raw.dateStamps[i]);
+                            }
+                            if (oName.Length > 0) {
+                                demo.playerName = oName;
                             }
                         }
-                    } 
+                    }
                 }
             }
 
@@ -531,8 +504,8 @@ namespace DemoCleaner3
             res = checkKey(kGame, "g_gravity", 800);                if (res.Length > 0) return res;
             res = checkKey(kGame, "g_knockback", 1000);             if (res.Length > 0) return res;
 
-            if (hasTime && !hasRawTime && protocol>=68) {
-                //в старых протоколах ещё не было вывода текста о финише в консоль, потому доверимся названию демки
+            if (hasTime && !hasRawTime) {
+                //Если в демке не было найдено сообщения о финише карты
                 return "client_finish=false";
             }
 
