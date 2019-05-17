@@ -82,16 +82,16 @@
             this.buttonRename = new System.Windows.Forms.Button();
             this.buttonSingleFileInfo = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.checkBoxStopOnException = new System.Windows.Forms.CheckBox();
             this.linkLabelInfoAdditional = new System.Windows.Forms.LinkLabel();
             this.checkBoxDeleteIdentical = new System.Windows.Forms.CheckBox();
             this.checkBoxDeleteEmptyDirs = new System.Windows.Forms.CheckBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusNumbers = new System.Windows.Forms.ToolStripStatusLabel();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.checkBoxStopOnException = new System.Windows.Forms.CheckBox();
-            this.toolStripStatusNumbers = new System.Windows.Forms.ToolStripStatusLabel();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -731,7 +731,7 @@
             // 
             // buttonSingleFileInfo
             // 
-            this.buttonSingleFileInfo.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.buttonSingleFileInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonSingleFileInfo.Location = new System.Drawing.Point(217, 78);
             this.buttonSingleFileInfo.Name = "buttonSingleFileInfo";
             this.buttonSingleFileInfo.Size = new System.Drawing.Size(114, 40);
@@ -754,6 +754,16 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Additional options";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxStopOnException
+            // 
+            this.checkBoxStopOnException.AutoSize = true;
+            this.checkBoxStopOnException.Location = new System.Drawing.Point(6, 124);
+            this.checkBoxStopOnException.Name = "checkBoxStopOnException";
+            this.checkBoxStopOnException.Size = new System.Drawing.Size(112, 17);
+            this.checkBoxStopOnException.TabIndex = 25;
+            this.checkBoxStopOnException.Text = "Stop on exception";
+            this.checkBoxStopOnException.UseVisualStyleBackColor = true;
             // 
             // linkLabelInfoAdditional
             // 
@@ -815,6 +825,11 @@
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(39, 17);
             this.toolStripStatusLabel1.Text = "Ready";
             // 
+            // toolStripStatusNumbers
+            // 
+            this.toolStripStatusNumbers.Name = "toolStripStatusNumbers";
+            this.toolStripStatusNumbers.Size = new System.Drawing.Size(0, 17);
+            // 
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
@@ -827,21 +842,6 @@
             this.toolTip1.IsBalloon = true;
             this.toolTip1.ReshowDelay = 100;
             // 
-            // checkBoxStopOnException
-            // 
-            this.checkBoxStopOnException.AutoSize = true;
-            this.checkBoxStopOnException.Location = new System.Drawing.Point(6, 124);
-            this.checkBoxStopOnException.Name = "checkBoxStopOnException";
-            this.checkBoxStopOnException.Size = new System.Drawing.Size(112, 17);
-            this.checkBoxStopOnException.TabIndex = 25;
-            this.checkBoxStopOnException.Text = "Stop on exception";
-            this.checkBoxStopOnException.UseVisualStyleBackColor = true;
-            // 
-            // toolStripStatusNumbers
-            // 
-            this.toolStripStatusNumbers.Name = "toolStripStatusNumbers";
-            this.toolStripStatusNumbers.Size = new System.Drawing.Size(0, 17);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -851,7 +851,7 @@
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.groupBox1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(385, 327);
+            this.MinimumSize = new System.Drawing.Size(385, 339);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "DemoCleaner3";
