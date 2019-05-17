@@ -122,17 +122,20 @@ namespace DemoCleaner3.DemoParser.parser
                 return friendlyInfo;
             }
 
-            if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER)) {
-                friendlyInfo.Add(keyPlayer, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_PLAYER]));
-            } else {
-                for (int i = 1; i < 5; i++) {
-                    var key = (short)(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER + i);
-                    if (rawConfig.ContainsKey(key)) {
-                        friendlyInfo.Add(keyPlayer, Q3Utils.split_config(rawConfig[key]));
-                        break;
-                    }
+            var keyP = (short)(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER);
+            var keycount = 0;
+            short keynum = 0;
+            for (short i = 0; i < 32; i++) {
+                var k1 = (short)(keyP + i);
+                if (rawConfig.ContainsKey(k1)) {
+                    keycount++;
+                    keynum = k1;
                 }
             }
+            if (keycount == 1) {
+                friendlyInfo.Add(keyPlayer, Q3Utils.split_config(rawConfig[keynum]));
+            }
+
 
             if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT)) {
                 friendlyInfo.Add(keyClient, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]));
