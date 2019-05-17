@@ -290,9 +290,8 @@ namespace DemoCleaner3
             prop.yourName = textBoxYourName.Text;
 
             prop.moveDemoFolder = _currentMovePath?.FullName ?? "";
-            //prop.moveDemoFolder = _currentMovePath != null ? _currentMovePath.FullName : "";
-            prop.badDemoFolder = _currentBadDemosPath != null ? _currentBadDemosPath.FullName : "";
-            prop.slowDemoFolder = _currentSlowDemosPath != null ? _currentSlowDemosPath.FullName : "";
+            prop.badDemoFolder = _currentBadDemosPath?.FullName ?? "";
+            prop.slowDemoFolder = _currentSlowDemosPath?.FullName ?? "";
 
             //rename
             prop.renameOption = getIntFromParameters(radioRenameBad, radioRenameAll);
@@ -837,15 +836,15 @@ namespace DemoCleaner3
                 "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        DemoInfoForm demoInfoForm;
-
         private void buttonSingleFileInfo_Click(object sender, EventArgs e)
         {
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK && openFileDialog1.FileName.Length > 0) {
                 SaveSettings();
 
-                demoInfoForm = new DemoInfoForm();
+                DemoInfoForm demoInfoForm = new DemoInfoForm();
                 demoInfoForm.demoFile = new FileInfo(openFileDialog1.FileName);
+                demoInfoForm.formLink = this;
+                demoInfoForm.Icon = this.Icon;
                 demoInfoForm.Show();
             }
         }

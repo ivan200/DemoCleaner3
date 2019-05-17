@@ -1,13 +1,6 @@
-﻿using DemoCleaner3.DemoParser.huffman;
-using DemoCleaner3.DemoParser.parser;
-using DemoCleaner3.ExtClasses;
+﻿using DemoCleaner3.ExtClasses;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Text;
 using System.Windows.Forms;
 
 namespace DemoCleaner3
@@ -15,6 +8,7 @@ namespace DemoCleaner3
     public partial class DemoInfoForm : Form
     {
         public FileInfo demoFile = null;
+        public Form1 formLink = null;
 
         Demo demo = null;
 
@@ -77,6 +71,11 @@ namespace DemoCleaner3
             } catch (Exception ex) {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void DemoInfoForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            formLink?.BringToFront();
         }
     }
 }
