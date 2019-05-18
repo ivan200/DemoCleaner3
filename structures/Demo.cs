@@ -206,8 +206,8 @@ namespace DemoCleaner3
             if (frConfig.ContainsKey(RawInfo.keyPlayer)) {
                 var kPlayer = frConfig[RawInfo.keyPlayer];
 
-                dfName = Ext.GetOrNull(kPlayer, "dfn");
-                uName = Ext.GetOrNull(kPlayer, "n");
+                dfName = Ext.GetOrNull(kPlayer, "df_name");
+                uName = Ext.GetOrNull(kPlayer, "name");
                 uName = RawInfo.removeColors(uName);
                 uName = RawInfo.normalizeName(uName);
             }

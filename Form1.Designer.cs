@@ -193,7 +193,7 @@
             this.groupBox1.Size = new System.Drawing.Size(343, 50);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Demos is here:";
+            this.groupBox1.Text = "Demos path:";
             // 
             // buttonBrowseDemos
             // 

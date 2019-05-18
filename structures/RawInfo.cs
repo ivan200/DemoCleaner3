@@ -34,10 +34,6 @@ namespace DemoCleaner3.DemoParser.parser
 
         public ListMap<TimeType, string> allTimes = new ListMap<TimeType, string>();
 
-        //public List<string> performedTimes = new List<string>();
-        //public List<string> onlineTimes = new List<string>();
-        //public List<string> oldOfflineTimes = new List<string>();
-        //public List<string> oldOfflineTimes2 = new List<string>();
         public List<string> dateStamps = new List<string>();
         public Dictionary<long, string> console = new Dictionary<long, string>();
 
@@ -123,19 +119,20 @@ namespace DemoCleaner3.DemoParser.parser
             }
 
             var keyP = (short)(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER);
-            var keycount = 0;
-            short keynum = 0;
+            var playersConfigs = new List<string>();
             for (short i = 0; i < 32; i++) {
                 var k1 = (short)(keyP + i);
                 if (rawConfig.ContainsKey(k1)) {
-                    keycount++;
-                    keynum = k1;
+                    playersConfigs.Add(rawConfig[k1]);
                 }
             }
-            if (keycount == 1) {
-                friendlyInfo.Add(keyPlayer, Q3Utils.split_config(rawConfig[keynum]));
+            if (playersConfigs.Count == 1) {
+                friendlyInfo.Add(keyPlayer, split_config_player(playersConfigs[0]));
+            } else {
+                for (int i = 0; i < playersConfigs.Count; i++) {
+                    friendlyInfo.Add(keyPlayer + " " + (i+1).ToString(), split_config_player(playersConfigs[i]));
+                }
             }
-
 
             if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT)) {
                 friendlyInfo.Add(keyClient, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]));
@@ -158,6 +155,31 @@ namespace DemoCleaner3.DemoParser.parser
                 friendlyInfo.Add(keyConsole, conTexts);
             }
             return friendlyInfo;
+        }
+
+        public static Dictionary<string, string> split_config_player(string src) {
+            var split = Q3Utils.split_config(src);
+            Dictionary<string, string> replaces = new Dictionary<string, string>();
+            replaces.Add("n", "name");
+            replaces.Add("dfn", "df_name");
+            replaces.Add("t", "team");
+            replaces.Add("c1", "color1");
+            replaces.Add("c2", "color2");
+            replaces.Add("hc", "maxHealth");
+            replaces.Add("w", "wins");
+            replaces.Add("l", "losses");
+            replaces.Add("tt", "teamTask");
+            replaces.Add("tl", "teamLeader");
+
+            Dictionary<string, string> res = new Dictionary<string, string>();
+            foreach (var str in split) {
+                if (replaces.ContainsKey(str.Key)) {
+                    res[replaces[str.Key]] = str.Value;
+                } else {
+                    res[str.Key] = str.Value;
+                }
+            }
+            return res;
         }
 
 
