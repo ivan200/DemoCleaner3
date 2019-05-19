@@ -172,15 +172,14 @@ namespace DemoCleaner3.DemoParser
 
         public bool readDeltaEntity(EntityState state, int number)
         {
-            if (this.stream.readBits(1) == 1) {
+            if (readNumBits(1) == 1) {
                 state.number = Q3Const.MAX_GENTITIES - 1;
                 // clear state and return
                 return true;
             }
 
             // check for no delta
-            if (this.stream.readBits(1) == 0) {
-                //
+            if (readNumBits(1) == 0) {
                 state.number = number;
                 return true;
             }
@@ -193,12 +192,12 @@ namespace DemoCleaner3.DemoParser
 
             state.number = number;
             for (int i = 0; i < lc; i++) {
-                if (this.stream.readBits(1) == 0) {
+                if (readNumBits(1) == 0) {
                     //no change
                     continue;
                 }
 
-                bool reset = this.stream.readBits(1) == 0;
+                bool reset = readNumBits(1) == 0;
                 MapperFactory.updateEntityState(state, i, this, reset);
             }
 

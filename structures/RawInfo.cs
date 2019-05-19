@@ -179,9 +179,18 @@ namespace DemoCleaner3.DemoParser.parser
                     res[str.Key] = str.Value;
                 }
             }
+            if (res.ContainsKey("team")) {
+                int.TryParse(res["team"], out int teamvalue);
+                if (teamvalue >= 0 && teamvalue < teamsFrendlyInfo.Length) {
+                    res["team"] = teamsFrendlyInfo[teamvalue];
+                }
+            }
             return res;
         }
 
+        static string[] teamsFrendlyInfo = new string[4] {
+            "free","red","blue","spectators"
+        };
 
         public static string getNameOnline(string demoTimeCmd)
         {
