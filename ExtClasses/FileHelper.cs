@@ -42,7 +42,7 @@ namespace DemoCleaner3.ExtClasses
             }
         }
 
-        //Обнуляем счётчик
+        //Reset the counter
         public void resetValues(int demosAmount, bool clearCounter = true)
         {
             if (clearCounter) {
@@ -56,7 +56,7 @@ namespace DemoCleaner3.ExtClasses
             _countDemosAmount = demosAmount;
         }
 
-        //Метод перемещения файла
+        //File transfer function
         public void moveFile(FileInfo file, DirectoryInfo dir, bool deleteIdentical)
         {
             if (!dir.Exists) {
@@ -83,7 +83,7 @@ namespace DemoCleaner3.ExtClasses
             }
         }
 
-        //Метод переименования файла
+        //File rename function
         public string renameFile(FileInfo file, string newName, bool deleteIdentical)
         {
             string newPath = Path.Combine(file.Directory.FullName, newName);
@@ -144,14 +144,14 @@ namespace DemoCleaner3.ExtClasses
         }
 
 
-        //Удаление пустых папок
+        //Deleting empty folders
         public void deleteEmpty(DirectoryInfo dir)
         {
             var allDirs = dir.GetDirectories("*", SearchOption.AllDirectories);
-            //сортируем по количеству вложенных подкаталогов
+            //sort by the number of subdirectories
             var orderedDirs = allDirs.OrderByDescending(x => x.FullName.Split(Path.DirectorySeparatorChar).Count());
 
-            //и удалляем в цикле
+            //and delete in the loop
             foreach (var item in orderedDirs) {
                 if (item.Exists) {
                     var files = item.GetFiles();

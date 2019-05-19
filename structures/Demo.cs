@@ -10,6 +10,7 @@ using DemoCleaner3.DemoParser;
 
 namespace DemoCleaner3
 {
+    //Class to maintain all information about demo file
     public class Demo
     {
         public string mapName;
@@ -35,6 +36,7 @@ namespace DemoCleaner3
 
         private string _demoNewName = "";
 
+        //generating new demo name by all information
         public string demoNewName {
             get {
                 if (!string.IsNullOrEmpty(_demoNewName)) {
@@ -49,25 +51,25 @@ namespace DemoCleaner3
                 string playerCountry = country.Length > 0 ? playerName + "." + country : playerName;
 
                 if (time.TotalMilliseconds > 0) {
-                    //если есть тайм, то пишем нормальный name для демки
+                    //if we have time, write a normal name for the demo
                     demoname = string.Format("{0}[{1}]{2:D2}.{3:D2}.{4:D3}({5})",
                     mapName, modphysic, (int) time.TotalMinutes, time.Seconds, time.Milliseconds, playerCountry);
                     hasCorrectName = true;
                 } else {
                     hasCorrectName = false;
-                    //если нет тайма, то мучаемся с генерацией текста
+                    //if there is no time, then tormented with the generation of text
                     string oldName = file.Name;
-                    oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //убираем расширение
-                    oldName = removeSubstr(oldName, mapName);                               //убираем имя карты
-                    oldName = removeSubstr(oldName, playerName, false);                     //убираем имя игрока
-                    oldName = removeSubstr(oldName, country, false);                        //убираем страну
-                    oldName = removeSubstr(oldName, modphysic);                             //убираем мод с физикой
-                    oldName = removeSubstr(oldName, physic);                                //убираем физику
-                    oldName = removeSubstr(oldName, validity);                              //убираем строки валидации
-                    oldName = removeDouble(oldName);                                        //убираем двойные символы (кроме  скобочек)
-                    oldName = oldName.Replace("[]", "").Replace("()", "");                  //убираем пустые скобки
+                    oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //remove the extension
+                    oldName = removeSubstr(oldName, mapName);                               //remove the card name
+                    oldName = removeSubstr(oldName, playerName, false);                     //remove the player name
+                    oldName = removeSubstr(oldName, country, false);                        //remove the country
+                    oldName = removeSubstr(oldName, modphysic);                             //remove the mod with physics
+                    oldName = removeSubstr(oldName, physic);                                //remove physics
+                    oldName = removeSubstr(oldName, validity);                              //remove validation lines
+                    oldName = removeDouble(oldName);                                        //remove double characters (except brackets)
+                    oldName = oldName.Replace("[]", "").Replace("()", "");                  //remove the empty brackets
                     //oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9]+|[^[a-zA-Z0-9]+$)", "");
-                    oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //убираем хрень в начале и в конце
+                    oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //we remove crap at the beginning and at the end of name
                     oldName = oldName.Replace(" ", "_");                                    //убираем пробелы
                     
                     demoname = string.Format("{0}[{1}]{2}({3})", mapName, modphysic, oldName, playerCountry);
@@ -76,7 +78,7 @@ namespace DemoCleaner3
                 }
 
                 if (useValidation && validity.Length > 0) {
-                    demoname = demoname + "{" + validity + "}"; //добавляем инфу о валидации
+                    demoname = demoname + "{" + validity + "}"; //add information about validation
                 }
 
                 _demoNewName = demoname + file.Extension;
@@ -84,8 +86,8 @@ namespace DemoCleaner3
             }
         }
 
-        //убирание двойных небуквенных символов и замена на первый
-        //например: test__abc-_.xy -> test_abc-xy
+        //the removing of the double non-alphanumeric characters and replace at first
+        //for example: test__abc-_.xy -> test_abc-xy
         string removeDouble(string input)
         {
             var dup = Regex.Match(input, "[^[a-zA-Z0-9\\(\\)\\]\\[]{2,}");
@@ -97,8 +99,9 @@ namespace DemoCleaner3
             }
         }
 
-        //убирание подстроки с граничащими символами например: test_abc.xy -> test.xy
-        //берётся последний символ если их 2, и первый если только слева: test_abcxy -> test_xy
+        //removing substring with adjacent characters for example: test_abc.xy -> test.xy
+        //the last character is taken if there are symbols to left and to right 
+        //and the first if only from left: test_abcxy -> test_xy
         string removeSubstr(string input, string include, bool fromstart = true)
         {
             if (include == null || include.Length == 0 || !input.Contains(include)) {
@@ -123,7 +126,7 @@ namespace DemoCleaner3
             return input.Substring(0, pos - cropstart) + symbol + input.Substring(pos + include.Length + cropend);
         }
 
-        //Получаем из имени файла детали демки
+        //Get the details of the demo from the file name
         public static Demo GetDemoFromFile(FileInfo file)
         {
             Demo demo = new Demo();
@@ -132,16 +135,16 @@ namespace DemoCleaner3
 
             var sub = file.Name.Split("[]()".ToArray());
             if (sub.Length >= 4) {
-                //Карта
+                //Map
                 demo.mapName = sub[0];
 
-                //Физика
+                //Physic
                 demo.modphysic = sub[1];
                 if (demo.modphysic.Length < 3) {
                     demo.hasError = true;
                 }
 
-                //Время
+                //Time
                 demo.timeString = sub[2];
                 var times = demo.timeString.Split('-', '.');
                 try {
@@ -150,7 +153,7 @@ namespace DemoCleaner3
                     demo.hasError = true;
                 }
 
-                //Имя + страна
+                //Name + country
                 var countryName = sub[3];
                 demo.country = tryGetCountryFromBrackets(countryName);
                 demo.playerName = tryGetNameFromBrackets(countryName);
@@ -160,7 +163,7 @@ namespace DemoCleaner3
             return demo;
         }
 
-        //обработка группировки, если нажата галка с обработкой мдф как дф
+        //processing grouping files, if selected with processing mdf as df
         public static string mdfToDf(string mod, bool processIt)
         {
             if (processIt && mod.Length > 0 && mod[0] == 'm') {
@@ -169,6 +172,7 @@ namespace DemoCleaner3
             return mod;
         }
 
+
         public static Demo GetDemoFromFileRaw(FileInfo file)
         {
             Q3HuffmanMapper.init();
@@ -176,7 +180,7 @@ namespace DemoCleaner3
             return Demo.GetDemoFromRawInfo(raw);
         }
 
-        //Получаем заполненную демку из детальной инфы выдернутой из демки
+        //We get the filled demo from the full raw information pulled from the demo
         public static Demo GetDemoFromRawInfo(RawInfo raw)
         {
             var file = new FileInfo(raw.demoPath);
@@ -187,7 +191,7 @@ namespace DemoCleaner3
 
             demo.rawInfo = raw;
 
-            //файл
+            //file
             demo.file = file;
             if (frConfig.Count == 0 || !frConfig.ContainsKey(RawInfo.keyClient)) {
                 demo.hasError = true;
@@ -198,10 +202,10 @@ namespace DemoCleaner3
             var countryName = getNameAndCountry(filename);
             var demoNameTime = tryGetTimeFromFileName(filename);
 
-            //Имя
-            string dfName = null;                                       //имя в игре в названиях демок
-            string uName = null;                                        //имя в игре
-            string demoUserName = tryGetNameFromBrackets(countryName);  //имя из названия демки
+            //names
+            string dfName = null;                                       //name in the game in the demo names
+            string uName = null;                                        //name in the game
+            string demoUserName = tryGetNameFromBrackets(countryName);  //name from the filename
 
             if (frConfig.ContainsKey(RawInfo.keyPlayer)) {
                 var kPlayer = frConfig[RawInfo.keyPlayer];
@@ -217,11 +221,12 @@ namespace DemoCleaner3
                 demo.playerName = chooseName(uName, dfName, demoUserName);
             }
 
+            //times
             if (raw.allTimes.Count > 0) {
                 for (int i = 0; i < raw.allTimes.Count; i++) {
                     var demoTimeCmd = raw.allTimes[i];
                     TimeSpan time = new TimeSpan();
-                    string oName = "";  //онлайн или оффлайн имя, полученое из строки в консоли
+                    string oName = "";  //online or offline name derived from a line in the console
 
                     switch (demoTimeCmd.Key) {
                         case RawInfo.TimeType.OFFLINE_NORMAL:
@@ -244,11 +249,11 @@ namespace DemoCleaner3
                             break;
                     }
 
-                    //Если запись только одна
+                    //If there is only one entry
                     if (raw.allTimes.Count == 1 ||
-                        //Или если одно из имён тех кто прошёл карту соответствует имени в параметрах демки
+                        //Or if one of the names of those who passed the card matches the name in the parameters of the demo
                         (!string.IsNullOrEmpty(oName) && (oName == dfName || oName == uName || oName == demoUserName))
-                        //или если в названии демки написан тайм и он соответствует тайму того кто финишировал
+                        //or if the demo filename has time and it corresponds finisher time
                         || (demoNameTime.HasValue && demoNameTime.Value.TotalMilliseconds == time.TotalMilliseconds)) {
                         if (demo.time.TotalMilliseconds == 0 || demo.time.TotalMilliseconds > time.TotalMilliseconds) {
                             demo.time = time;
@@ -263,7 +268,7 @@ namespace DemoCleaner3
                 }
             }
 
-            //хоть какой то тайм (из имени демки)
+            //at least some time (from the name of the demo)
             if (demo.time.TotalMilliseconds > 0) {
                 demo.rawTime = true;
             } else {
@@ -272,18 +277,18 @@ namespace DemoCleaner3
                 }
             }
 
-            //Карта
+            //Map
             var mapInfo = raw.rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_MAP) ? raw.rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_MAP] : "";
             var mapName = Ext.GetOrNull(frConfig[RawInfo.keyClient], "mapname");
 
-            //Если в mapInfo написано название этой же мапы, но с заглавными, то название берём оттуда
+            //If in mapInfo the name of the same map is written, then we take the name from there
             if (mapName.ToLowerInvariant().Equals(mapInfo.ToLowerInvariant())) {
                 demo.mapName = mapInfo;
             } else {
                 demo.mapName = mapName.ToLowerInvariant();
             }
 
-            //геймтайп
+            //Gametype
             var gameType = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_gametype");
             int gType = 0;
             if (!string.IsNullOrEmpty(gameType)) {
@@ -299,7 +304,7 @@ namespace DemoCleaner3
                 }
             }
 
-            //промод
+            //Promode
             var promode = Ext.GetOrNull(frConfig[RawInfo.keyClient], "df_promode");
             if (!string.IsNullOrEmpty(promode)) {
                 int.TryParse(promode, out int phMode);
@@ -321,14 +326,14 @@ namespace DemoCleaner3
                 }
             }
 
-            //мод для fastcaps и freestyle
+            //Mode for fastcaps and freestyle
             var dfMode = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_mode");
             if (!string.IsNullOrEmpty(dfMode)) {
                 int.TryParse(dfMode, out int defragMode);                                                 //>=0 = mode
                 demo.modNum = (gType != 1 && gType != 5) ? string.Format(".{0}", defragMode) : null;      //.0 - .7
             }
 
-            //комбинируем
+            //Joining
             if (demo.physic != null) {
                 demo.modphysic = string.Format("{0}.{1}{2}", demo.dfType, demo.physic, demo.modNum);
             } else {
@@ -341,14 +346,15 @@ namespace DemoCleaner3
                 int.TryParse(protocolString, out protocol);
             }
 
-            //если есть читы, то пишем в демку
+            //If demo has cheats, write it
             demo.validity = checkValidity(frConfig, demo.time.TotalMilliseconds > 0, demo.rawTime, protocol);
 
+            //demo has not info about country, so take it from filename
             demo.country = tryGetCountryFromBrackets(countryName);
             return demo;
         }
 
-        //выбор первой непустой строки из параметров
+        //selection of the first non-empty string from parameters
         private static string chooseName(params string[] names)
         {
             for (int i = 0; i < names.Length - 1; i++) {
@@ -359,7 +365,7 @@ namespace DemoCleaner3
             return names[names.Length - 1];
         }
 
-        //Пытаемся получить имя и страну из демки (первое вхождение двух круглых скобочек)
+        //We are trying to get the name and country from the demo (the first occurrence of two round brackets)
         static string getNameAndCountry(string filename) {
             var brackets = Regex.Matches(filename, "\\([^)]*\\)");
             if (brackets.Count > 0) {
@@ -374,7 +380,7 @@ namespace DemoCleaner3
             return "";
         }
 
-        //Пытаемся получить имя из имени и страны
+        //We are trying to get a name from the name and country
         static string tryGetNameFromBrackets(string partname)
         {
             int i = partname.LastIndexOf('.');
@@ -384,7 +390,7 @@ namespace DemoCleaner3
             return partname;
         }
 
-        //Пытаемся получить страну, и только её, из имени и страны
+        //We are trying to get the country, and only it, from the name and country
         static string tryGetCountryFromBrackets(string partname)
         {
             int i = partname.LastIndexOf('.');
@@ -397,7 +403,7 @@ namespace DemoCleaner3
             return "";
         }
 
-        //Пытаемся получить время из названия демки
+        //Trying to get time from the demo filename
         static TimeSpan? tryGetTimeFromFileName(string filename)
         {
             var sub = filename.Split("[]()_".ToArray());
@@ -410,7 +416,7 @@ namespace DemoCleaner3
             return null;
         }
 
-        //Пытаемся получить время из куска имени демки
+        //Trying to get time from part of demo filename.
         static TimeSpan? tryGetTimeFromBrackets(string partname)
         {
             var parts = partname.Split("-".ToArray());
@@ -433,6 +439,7 @@ namespace DemoCleaner3
             return RawInfo.getTimeSpan(partname);
         }
 
+        //Normalization of demo filenames in case they broken by discord or net
         static string getNormalizedFileName(FileInfo file) {
             string filename = file.Name;
             //rm_n2%5Bmdf.vq3%5D00.33.984%28h%40des.CountryHere%29.dm_68
@@ -473,7 +480,7 @@ namespace DemoCleaner3
             return true;
         }
 
-        //проверка демки на валидность
+        //check demo for validity
         static string checkValidity(Dictionary<string, Dictionary<string, string>> frConfig, bool hasTime, bool hasRawTime, int protocol) {
             if (!frConfig.ContainsKey(RawInfo.keyGame)) {
                 return "";
@@ -505,7 +512,7 @@ namespace DemoCleaner3
             res = checkKey(kGame, "g_knockback", 1000);             if (res.Length > 0) return res;
 
             if (hasTime && !hasRawTime) {
-                //Если в демке не было найдено сообщения о финише карты
+                //If the demo was not found messages about the finish map
                 return "client_finish=false";
             }
 
@@ -517,7 +524,7 @@ namespace DemoCleaner3
             return "";
         }
 
-        //проверка ключа на валидность
+        //checking the key for validity
         static string checkKey(Dictionary<string, string> keysGame, string key, int val, string errorString = "") {
             if (keysGame.ContainsKey(key) && keysGame[key].Length > 0) {
                 var keyValue = keysGame[key];
@@ -527,7 +534,7 @@ namespace DemoCleaner3
                 } catch (Exception ex) {
                 }
                 if (value < 0 || value != (float) val) {
-                    if (keyValue.StartsWith(".")) {     //правим отображение таймскейла как .3 -> 0.3
+                    if (keyValue.StartsWith(".")) {     //edit the timescale display as .3 -> 0.3
                         keyValue = "0" + keyValue;
                     }
                     return (errorString.Length > 0 ? errorString : key) + "=" + keyValue;

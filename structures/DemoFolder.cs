@@ -15,7 +15,7 @@ namespace DemoCleaner3
             this._folderName = folderName;
         }
 
-        //Получение имён первых папок
+        //Return the name of the first folder
         static string getFirstDir(string Key)
         {
             var c = Key[0];
@@ -27,7 +27,7 @@ namespace DemoCleaner3
             } else return "._";
         }
 
-        //по уровню вложенности и ключу группировки нарезаем полный путь к каталогу
+        //by nesting level and grouping key cut the full path to the directory
         public static string GetFullNameFromIndex(string key, int index)
         {
             if (key.Length == 1) {
@@ -46,7 +46,7 @@ namespace DemoCleaner3
             return Path.Combine(minString, key);
         }
 
-        //получение ключа группировки по уровню вложенности и названию папки
+        //a key group nesting level and the name of the folder
         public static string GetKeyFromIndex(string key, int index)
         {
             if (index == 0) {

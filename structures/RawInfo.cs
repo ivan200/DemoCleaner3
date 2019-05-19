@@ -183,7 +183,6 @@ namespace DemoCleaner3.DemoParser.parser
         }
 
 
-        //получение имени из онлайн надписи
         public static string getNameOnline(string demoTimeCmd)
         {
             //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
@@ -200,7 +199,6 @@ namespace DemoCleaner3.DemoParser.parser
             return getTimeSpan(demoTime);
         }
 
-        //получение времени из оффлайн надписи
         public static TimeSpan getTimeOfflineNormal(string demoTimeCmd)
         {
             //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
@@ -214,7 +212,6 @@ namespace DemoCleaner3.DemoParser.parser
             return getTimeSpan(demoTimeCmd);
         }
 
-        //получение имени из онлайн надписи
         public static string getNameOffline(string demoTimeCmd)
         {
             //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
@@ -224,7 +221,6 @@ namespace DemoCleaner3.DemoParser.parser
             return normalizeName(demoTimeCmd);
         }
 
-        //получение имени из старой записи
         public static string getNameOfflineOld1(string demoTimeCmd) {
             //NewTime -971299442 7:200 \"defrag 1.80\" \"Viper\" route ya->->rg
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");  //NewTime -971299442 7:200 defrag 1.80 Viper route ya->->rg
@@ -233,7 +229,6 @@ namespace DemoCleaner3.DemoParser.parser
             return normalizeName(name);
         }
 
-        //получение времени из старой оффлайн надписи
         public static TimeSpan getTimeOld1(string demoTimeCmd)
         {
             //NewTime -971299442 7:200 \"defrag 1.80\" \"Viper\" route ya->->rg
@@ -243,7 +238,6 @@ namespace DemoCleaner3.DemoParser.parser
             return getTimeSpan(demoTimeCmd);
         }
 
-        //получение времени из старой оффлайн надписи 3
         public static TimeSpan getTimeOld3(string demoTimeCmd)
         {
             //newTime 47080
@@ -255,19 +249,19 @@ namespace DemoCleaner3.DemoParser.parser
             return TimeSpan.FromMilliseconds(millis);
         }
 
-        //получение времени из строки
+        //getting time from a string
         public static TimeSpan getTimeSpan(string timeString)
         {
             var times = timeString.Split('-', '.', ':').Reverse().ToList();
-            //так как мы реверснули таймы, милисекунды будут в начале
+            //since we reversed the times, milliseconds will be in the beginning
             return TimeSpan.Zero
                 .Add(TimeSpan.FromMilliseconds(times.Count > 0 ? int.Parse(times[0]) : 0))
                 .Add(TimeSpan.FromSeconds(times.Count > 1 ? int.Parse(times[1]) : 0))
                 .Add(TimeSpan.FromMinutes(times.Count > 2 ? int.Parse(times[2]) : 0));
-            //делаем через таймспаны чтобы если минут больше 60, они корректно добавлялись
+            //do through timespan to if minutes greater than 60, they are correctly added
         }
 
-        //получение даты записи демки если она есть
+        //getting the date of recording of the demo if it exists
         public static DateTime? getDateForDemo(string s)
         {
             //print "Date: 10-25-14 02:43\n"
@@ -282,7 +276,7 @@ namespace DemoCleaner3.DemoParser.parser
             return null;
         }
 
-        //убираем цвета из раскрашеного ника
+        //remove the color from the painted nick
         public static string removeColors(string name)
         {
             return string.IsNullOrEmpty(name)
@@ -290,7 +284,7 @@ namespace DemoCleaner3.DemoParser.parser
                 : Regex.Replace(name, "\\^.", "");
         }
 
-        //имя которое можно использовать в названии файла
+        //name that can be used in the file name
         public static string normalizeName(string name)
         {
             return string.IsNullOrEmpty(name)

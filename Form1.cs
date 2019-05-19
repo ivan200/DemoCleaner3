@@ -18,7 +18,7 @@ namespace DemoCleaner3
         FileHelper fileHelper;
         Properties.Settings prop;
 
-        //Используется в случае, если на данной ос нельзя использовать прогрессбар в таскбаре
+        //It is used if progress bar in taskbar cannot be used on this OS
         bool _useTaskBarProgress = true;
 
         private void setProgressPercent(int num)
@@ -180,7 +180,7 @@ namespace DemoCleaner3
             }
         }
 
-        //Загрузка настроек форм
+        //Loading form settings
         private void loadSettings()
         {
             try {
@@ -254,7 +254,7 @@ namespace DemoCleaner3
             }
         }
 
-        //включаем одну радио кнопку из переданного списка
+        //turn on one radio button from the transmitted list
         private void setRadioFromInt(int check, params RadioButton[] radio)
         {
             for (int i = 0; i < radio.Length; i++) {
@@ -262,13 +262,13 @@ namespace DemoCleaner3
             }
         }
 
-        //Получаем интовое значение из массива булевых
+        //Get the int value from the Boolean array
         private int getIntFromParameters(params RadioButton[] t)
         {
             return t.TakeWhile(x => !x.Checked).Count();
         }
 
-        //Сохранение настроек
+        //Save the settings
         private void SaveSettings()
         {
             //main
@@ -306,7 +306,7 @@ namespace DemoCleaner3
             prop.Save();
         }
 
-        //Получение корректной директории из текста
+        //Getting the correct directory from the text
         private DirectoryInfo checkGetFolder(TextBox textBox, string previousText)
         {
             DirectoryInfo folder = null;
@@ -346,7 +346,7 @@ namespace DemoCleaner3
         }
 
 
-        //Показываем диалог выбора папки назначения и возвращаем путь
+        //Show the dialog box to select the destination folder and return the path
         private void ShowFolderBrowserDialog(string Title, ref DirectoryInfo path, Action action)
         {
             if (!path.Exists)
@@ -363,7 +363,7 @@ namespace DemoCleaner3
             }
         }
 
-        //По изменении основной папки с демками, меняем все остальные пути
+        //If you change the main folder with demos, change all other paths
         private void textBoxDemosFolder_TextChanged(object sender, EventArgs e)
         {
             var folder = checkGetFolder(sender as TextBox, prop.demosFolder);
@@ -387,7 +387,7 @@ namespace DemoCleaner3
             }
         }
 
-        //записываем путь медленных демок
+        //save the path of slow demos
         private void textBoxSlowDemos_TextChanged(object sender, EventArgs e)
         {
             var folder = checkGetFolder(sender as TextBox, prop.slowDemoFolder);
@@ -396,7 +396,7 @@ namespace DemoCleaner3
             }
         }
 
-        //записываем путь перемещения демок
+        //save the path of demos to move dir
         private void textBoxMoveDemosFolder_TextChanged(object sender, EventArgs e)
         {
             var folder = checkGetFolder(sender as TextBox, prop.moveDemoFolder);
@@ -405,7 +405,7 @@ namespace DemoCleaner3
             }
         }
 
-        //записываем путь плохих демок
+        //save the path of bad demos
         private void textBoxBadDemos_TextChanged(object sender, EventArgs e)
         {
             var folder = checkGetFolder(sender as TextBox, prop.badDemoFolder);
@@ -414,7 +414,7 @@ namespace DemoCleaner3
             }
         }
 
-        //Диалог выбора основной папки с демками
+        //Selecting dialog of main folder with demos
         private void buttonBrowseDemos_Click(object sender, EventArgs e)
         {
             ShowFolderBrowserDialog("Choose demos directory", ref _currentDemoPath, () => {
@@ -422,7 +422,6 @@ namespace DemoCleaner3
             });
         }
 
-        //Диалог выбора папки с перемещаемыми демками
         private void buttonBrowseWhereMove_Click(object sender, EventArgs e)
         {
             ShowFolderBrowserDialog("Choose demos directory", ref _currentMovePath, () => {
@@ -430,7 +429,6 @@ namespace DemoCleaner3
             });
         }
 
-        //Диалог выбора папки с плохими демками
         private void buttonBadDemosBrowse_Click(object sender, EventArgs e)
         {
             ShowFolderBrowserDialog("Choose bad demos directory", ref _currentBadDemosPath, () => {
@@ -438,7 +436,6 @@ namespace DemoCleaner3
             });
         }
 
-        //Диалог выбора папки с медленными демками
         private void buttonSlowDemosBrowse_Click(object sender, EventArgs e)
         {
             ShowFolderBrowserDialog("Choose slow demos directory", ref _currentSlowDemosPath, () => {
@@ -447,9 +444,9 @@ namespace DemoCleaner3
         }
 
         delegate void SetItemInt(int num);
-
         delegate void SetItem(bool num);
-        //выключаем доступ к элементам в процессе работы потока (а потом вкючаем)
+
+        //turn off access to the elements in the demo processing (and then turn on)
         private void SetButtonCallBack(bool enabled)
         {
             tabControl1.Enabled = enabled;
@@ -494,7 +491,7 @@ namespace DemoCleaner3
                 textBoxMoveDemosFolder.Text = Path.Combine(_currentDemoPath.FullName, _moveDemosdirName);
             }
 
-            //Запускаем поток, в котором всё будем обрабатывать
+            //We start a thread in which we will process everything
             backgroundThread = new Thread(delegate () {
                 try {
                     switch (job) {
@@ -519,14 +516,14 @@ namespace DemoCleaner3
             backgroundThread.Start();
         }
 
-        //Обработка нажатия кнопки чистки демок
+        //Handling button cleaning demos
         private void buttonClean_Click(object sender, EventArgs e)
         {
             job = JobType.CLEAN;
             runBackgroundThread();
         }
 
-        //форматирование текста месседжбокеса
+        //formatting messagebox text
         private string getMessageText(decimal counter, string text)
         {
             if (counter > 0) {
@@ -537,7 +534,7 @@ namespace DemoCleaner3
             return string.Empty;
         }
 
-        //вывод сообщения об окончании работы
+        //output message about the end of the work
         private void showEndMessage(int jobType)
         {
             string text = "";
@@ -565,7 +562,7 @@ namespace DemoCleaner3
             MessageBox.Show(this, text, "Done", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        //Конвертация цифры в число с учётом количества знаков
+        //Converting a number into a number based on the number of characters
         string numberToString(int number, int length)
         {
             var str = number.ToString();
@@ -575,7 +572,7 @@ namespace DemoCleaner3
             return str;
         }
 
-        //Обрабатываем плохие демки
+        //Process bad demos
         private void operateBadDemos(IEnumerable<Demo> badDemos)
         {
             if (radioButtonSkipBad.Checked) {
@@ -588,13 +585,13 @@ namespace DemoCleaner3
 
             if (count > 0) {
                 if (radioButtonDeleteBad.Checked) {
-                    //Или всё удаляем
+                    //Or delete everything
                     foreach (var item in badDemos) {
                         fileHelper.deleteCheckRules(item.file);
                     }
                 }
                 if (radioButtonMoveBad.Checked) {
-                    //или перемещавем по подкатегориям (0-10)
+                    //or move to subdirectories (0-10)
                     if (!_currentBadDemosPath.Exists)
                         _currentBadDemosPath.Create();
 
@@ -616,7 +613,7 @@ namespace DemoCleaner3
             }
         }
 
-        //Чистим демки!
+        //Clean the demos!
         private void clean(DirectoryInfo filedemos)
         {
             var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
@@ -682,28 +679,28 @@ namespace DemoCleaner3
             }
         }
 
-        //Включаем и выключаем поля ввода, при выборе радио кнопки
+        //Turning on and off the input fields, when checking a radio button
         private void radioButtonMoveSlow_CheckedChanged(object sender, EventArgs e)
         {
             textBoxSlowDemos.Enabled = radioButtonMoveSlow.Checked;
             buttonSlowDemosBrowse.Enabled = radioButtonMoveSlow.Checked;
         }
 
-        //Включаем и выключаем поля ввода, при выборе радио кнопки
+        //Turning on and off the input fields, when checking a radio button
         private void radioButtonMoveBad_CheckedChanged(object sender, EventArgs e)
         {
             textBoxBadDemos.Enabled = radioButtonMoveBad.Checked;
             buttonBadDemosBrowse.Enabled = radioButtonMoveBad.Checked;
         }
 
-        //Обработка нажатия кнопки перемещения демок
+        //Handling the move button demos
         private void buttonMove_Click(object sender, EventArgs e)
         {
             job = JobType.MOVE;
             runBackgroundThread();
         }
 
-        //Группируем файлы
+        //Group files
         private IEnumerable<IGrouping<string, Demo>> GroupFiles(IEnumerable<Demo> files, int indexInside)
         {
             var groups = files.GroupBy(x => x.file.Name.Substring(0, indexInside + 1).ToLower()).ToList();
@@ -724,10 +721,10 @@ namespace DemoCleaner3
         }
 
 
-        //Перемещаем демки
+        //Move demos
         private void moveDemos(DirectoryInfo filedemos, DirectoryInfo dirdemos)
         {
-            //из всех файлов выбираем только демки
+            //from all files we select only demos
             var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
                 SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
 
@@ -735,18 +732,18 @@ namespace DemoCleaner3
 
             var demos = files.Select(x => Demo.GetDemoFromFile(x));
 
-            //Отбираем бракованые файлы
+            //We select bad files
             var badDemos = demos.Where(x => x.hasError == true);
             operateBadDemos(badDemos);
 
             var goodFiles = demos.Where(x => x.hasError == false);
 
-            //ищем файлы c именем игрока, если имя вписано
+            //look for files with player's name if the name is entered
             if (checkBoxMoveOnlyYour.Checked && textBoxYourName.Text.Length > 0) {
                 goodFiles = goodFiles.Where(x => x.playerName.ToLower().Contains(textBoxYourName.Text.ToLower()));
             }
 
-            //Создаём основную папку
+            //Create the main folder
             if (goodFiles.Count() > 0) {
                 if (!dirdemos.Exists) {
                     dirdemos.Create();
@@ -755,13 +752,14 @@ namespace DemoCleaner3
             }
 
             var indexInside = 0;
-            //группируем все файлы, key = название папки
+            //group all files, key = folder name
             var groupedFiles = GroupFiles(goodFiles, indexInside);
 
             var onlyDirNames = groupedFiles.Select(x => new DemoFolder(x.Key));
 
             indexInside = 0;
-            //Группируем все названия папок и там же получаем полные пути к ним
+
+            //We group all the folder names and in the same place we get the full paths to them.
             var groupedFolders = groupFolders(onlyDirNames, indexInside);
 
             var ListFolders = Ext.MakeListFromGroups(groupedFolders);
@@ -769,7 +767,7 @@ namespace DemoCleaner3
             Exception exception = null;
             string filepath = "";
 
-            //Проходим по всем файлам и перемещаем их в каталоги
+            //We pass through all the files and move them to directories.
             for (int i = 0; i < groupedFiles.Count(); i++) {
                 var group = groupedFiles.ElementAt(i);
 
@@ -801,7 +799,7 @@ namespace DemoCleaner3
         }
 
 
-        //группировка папок
+        //folder grouping
         private IEnumerable<IGrouping<string, DemoFolder>> groupFolders(IEnumerable<DemoFolder> folders, int indexInside)
         {
             var groups = folders.GroupBy(x => DemoFolder.GetKeyFromIndex(x._folderName, indexInside)).ToList();
@@ -809,7 +807,7 @@ namespace DemoCleaner3
             for (int i = 0; i < groups.Count; i++) {
                 var group = groups.ElementAt(i);
                 if (group.Count() > numericUpDownMaxFolders.Value) {
-                    //Рекурсивный вызов этого же метода группировки
+                    //Recursive call of the same grouping method
                     var subGroupFolders = groupFolders(group, indexInside + 1);
 
                     groups.RemoveAt(i);
@@ -849,7 +847,7 @@ namespace DemoCleaner3
             }
         }
 
-        //Обработка нажатия кнопки переименования демок
+        //Handling the button rename demo
         private void buttonRename_Click(object sender, EventArgs e)
         {
             job = JobType.RENAME;
@@ -857,7 +855,7 @@ namespace DemoCleaner3
         }
 
 
-        //Фиксим демки!
+        //Fix the demos!
         private void runRename(DirectoryInfo filedemos)
         {
             var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
