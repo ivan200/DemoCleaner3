@@ -71,6 +71,30 @@ namespace DemoCleaner3
             });
 
             InitializeComponent();
+
+            this.AllowDrop = true;
+            this.DragEnter += new DragEventHandler(Form1_DragEnter);
+            this.DragDrop += new DragEventHandler(Form1_DragDrop);
+        }
+
+        void Form1_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
+        }
+
+        void Form1_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files.Length > 1) {
+                MessageBox.Show("Psease, drop only one file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            } else {
+                FileInfo file = new FileInfo(files[0]);
+                if (file.Extension.StartsWith(".dm_")) {
+                    showDemoInfoFormForFile(files[0]);
+                } else {
+                    MessageBox.Show("Psease, drop demo file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -837,14 +861,18 @@ namespace DemoCleaner3
         private void buttonSingleFileInfo_Click(object sender, EventArgs e)
         {
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK && openFileDialog1.FileName.Length > 0) {
-                SaveSettings();
-
-                DemoInfoForm demoInfoForm = new DemoInfoForm();
-                demoInfoForm.demoFile = new FileInfo(openFileDialog1.FileName);
-                demoInfoForm.formLink = this;
-                demoInfoForm.Icon = this.Icon;
-                demoInfoForm.Show();
+                showDemoInfoFormForFile(openFileDialog1.FileName);
             }
+        }
+
+        private void showDemoInfoFormForFile(string fileName) {
+            SaveSettings();
+
+            DemoInfoForm demoInfoForm = new DemoInfoForm();
+            demoInfoForm.demoFile = new FileInfo(fileName);
+            demoInfoForm.formLink = this;
+            demoInfoForm.Icon = this.Icon;
+            demoInfoForm.Show();
         }
 
         //Handling the button rename demo
