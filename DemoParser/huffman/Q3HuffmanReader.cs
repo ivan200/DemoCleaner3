@@ -1,4 +1,5 @@
 ﻿using DemoCleaner3.DemoParser.huffman;
+using DemoCleaner3.DemoParser.structures;
 using DemoCleaner3.DemoParser.utils;
 using System;
 using System.Collections;
@@ -96,12 +97,27 @@ namespace DemoCleaner3.DemoParser
 
         public float readFloat()
         {
-            return (float) Q3Utils.rawBitsToFloat(this.readNumBits(32));
+            long ival = this.readNumBits(32);
+            if (isEOD())
+                return -1;
+            return (float) Q3Utils.rawBitsToFloat(ival);
         }
 
         public float readAngle16()
         {
             return (float) Q3Utils.SHORT2ANGLE(this.readNumBits(16));
+        }
+
+        public float readFloatIntegral()
+        {
+            if (readNumBits(1) == 0) {
+                long trunc = readNumBits(Q3Const.FLOAT_INT_BITS);
+                trunc -= Q3Const.FLOAT_INT_BIAS;
+                byte[] bytes = BitConverter.GetBytes(trunc);
+                return BitConverter.ToSingle(bytes, 0);
+            } else {
+                return readFloat();
+            }
         }
 
 
@@ -152,6 +168,41 @@ namespace DemoCleaner3.DemoParser
             rez.Add("sequence", this.readLong().ToString());
             rez.Add("command", this.readString());
             return rez;
+        }
+
+        public bool readDeltaEntity(EntityState state, int number)
+        {
+            if (this.stream.readBits(1) == 1) {
+                state.number = Q3Const.MAX_GENTITIES - 1;
+                // clear state and return
+                return true;
+            }
+
+            // check for no delta
+            if (this.stream.readBits(1) == 0) {
+                //
+                state.number = number;
+                return true;
+            }
+
+            int lc = readByte();
+            if (lc < 0 || lc > MapperFactory.EntityStateFieldNum) {
+                Console.WriteLine("invalid entityState field count: {" + lc + "}");
+                return false;
+            }
+
+            state.number = number;
+            for (int i = 0; i < lc; i++) {
+                if (this.stream.readBits(1) == 0) {
+                    //no change
+                    continue;
+                }
+
+                bool reset = this.stream.readBits(1) == 0;
+                MapperFactory.updateEntityState(state, i, this, reset);
+            }
+
+            return true;
         }
     }
 }

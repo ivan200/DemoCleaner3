@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DemoCleaner3.DemoParser.structures;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,6 +9,11 @@ namespace DemoCleaner3.DemoParser.parser
     {
         public Dictionary<long, string> console = new Dictionary<long, string>();
         public Dictionary<short, string> configs = new Dictionary<short, string>();
+
+        public EntityState [] entityBaselines = new EntityState[Q3Const.MAX_GENTITIES];
+
+        long clientNum = 0;
+        long checksumFeed = 0;
 
         public bool parse(Q3DemoMessage message)
         {
@@ -70,8 +76,23 @@ namespace DemoCleaner3.DemoParser.parser
                         break;
 
                     case Q3_SVC.BASELINE:
-                        // assume Baseline command has to follow after config-strings
-                        return;
+                        long newnum = reader.readNumBits(Q3Const.GENTITYNUM_BITS);
+                        if (newnum < 0 || newnum >= Q3Const.MAX_GENTITIES) {
+                            Console.WriteLine("Baseline number out of range: {}", newnum);
+                            return;
+                        }
+
+                        EntityState es = entityBaselines[newnum];
+                        if (es == null) {
+                            es = new EntityState();
+                            entityBaselines[newnum] = es;
+                        }
+
+                        if (!reader.readDeltaEntity(es, (int)newnum)) {
+                            Console.WriteLine("unable to parse delta-entity state");
+                            return;
+                        }
+                        break;
 
                     default:
                         //  bad command
@@ -80,10 +101,10 @@ namespace DemoCleaner3.DemoParser.parser
             }
 
             //clc.clientNum
-            reader.readLong();
+            clientNum = reader.readLong();
 
             //clc.checksumFeed
-            reader.readLong();
+            checksumFeed = reader.readLong();
         }
     }
 }

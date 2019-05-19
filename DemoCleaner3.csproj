@@ -64,6 +64,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DemoParser\structures\EntityState.cs" />
+    <Compile Include="DemoParser\structures\PlayerState.cs" />
+    <Compile Include="DemoParser\structures\MapperFactory.cs" />
+    <Compile Include="DemoParser\structures\Trajectory.cs" />
+    <Compile Include="DemoParser\structures\TrType.cs" />
     <Compile Include="ExtClasses\FileHelper.cs" />
     <Compile Include="ExtClasses\ListMap.cs" />
     <Compile Include="structures\Demo.cs" />
