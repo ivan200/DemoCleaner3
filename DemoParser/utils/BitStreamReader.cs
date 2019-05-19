@@ -80,59 +80,11 @@ namespace DemoCleaner3.DemoParser.utils
          */
         public int readBits(int bits)
         {
-            if (bits < 0 || bits > 32 || this.bitIdx + bits > this.bit_length)
-                return -1;
-
-            int value = 0;
-            // bit mask to set for target value
-            int setBit = 1;
-
-            // cache read position, local variables access is much faster
-            int intIdx = this.bitIdx;
-            // cache curr bits
-            int intBits = this.currentBits;
-
-
-            // amount of bits we can read from current cached value
-            int currAmount = 32 - (intIdx & 31);
-            int tread = bits > currAmount ? currAmount : bits;
-
-            bits -= tread;
-            intIdx += tread;
-
-            while (tread > 0)
-            {
-                if ((intBits & 1) >= 1)
-                    value |= setBit;
-
-                setBit <<= 1;
-                intBits >>= 1;
-                --tread;
+            int val = 0;
+            for (int i = 0; i < bits; i++) {
+                val |= nextBit() << i;
             }
-
-            if (bits > 0)
-            {
-                // we have to switch to next int from data-buffer
-                intBits = this.data[++byteIdx];
-                intIdx += bits;
-
-                while (bits > 0)
-                {
-                    if ((intBits & 1) >= 1)
-                        value |= setBit;
-
-                    setBit <<= 1;
-                    intBits >>= 1;
-                    --bits;
-                }
-            }
-
-            // write local values back
-            this.currentBits = intBits;
-            this.bitIdx = intIdx;
-            //        echo ", in end read-pos= {intIdx} \n";
-
-            return (int)value;
+            return (int)val;
         }
 
         /**

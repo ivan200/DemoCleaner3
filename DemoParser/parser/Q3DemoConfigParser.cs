@@ -7,13 +7,7 @@ namespace DemoCleaner3.DemoParser.parser
 {
     class Q3DemoConfigParser : AbstractDemoMessageParser
     {
-        public Dictionary<long, string> console = new Dictionary<long, string>();
-        public Dictionary<short, string> configs = new Dictionary<short, string>();
-
-        public EntityState [] entityBaselines = new EntityState[Q3Const.MAX_GENTITIES];
-
-        long clientNum = 0;
-        long checksumFeed = 0;
+        public ClientConnection clc = new ClientConnection();
 
         public bool parse(Q3DemoMessage message)
         {
@@ -51,7 +45,7 @@ namespace DemoCleaner3.DemoParser.parser
             var key = reader.readLong();
             var value = reader.readString();
 
-            console[key] = value;
+            clc.console[key] = value;
         }
 
         private void parseGameState(Q3HuffmanReader reader)
@@ -72,7 +66,7 @@ namespace DemoCleaner3.DemoParser.parser
                         {
                             return;
                         }
-                        this.configs[key] = reader.readBigString();
+                        clc.configs[key] = reader.readBigString();
                         break;
 
                     case Q3_SVC.BASELINE:
@@ -82,10 +76,10 @@ namespace DemoCleaner3.DemoParser.parser
                             return;
                         }
 
-                        EntityState es = entityBaselines[newnum];
+                        EntityState es = clc.entityBaselines[newnum];
                         if (es == null) {
                             es = new EntityState();
-                            entityBaselines[newnum] = es;
+                            clc.entityBaselines[newnum] = es;
                         }
 
                         if (!reader.readDeltaEntity(es, (int)newnum)) {
@@ -101,10 +95,10 @@ namespace DemoCleaner3.DemoParser.parser
             }
 
             //clc.clientNum
-            clientNum = reader.readLong();
+            clc.clientNum = reader.readLong();
 
             //clc.checksumFeed
-            checksumFeed = reader.readLong();
+            clc.checksumFeed = reader.readLong();
         }
     }
 }

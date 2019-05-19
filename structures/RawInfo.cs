@@ -1,4 +1,5 @@
-﻿using DemoCleaner3.DemoParser.utils;
+﻿using DemoCleaner3.DemoParser.structures;
+using DemoCleaner3.DemoParser.utils;
 using DemoCleaner3.ExtClasses;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace DemoCleaner3.DemoParser.parser
     {
         public static string keyDemoName = "demoname";
         public static string keyPlayer = "player";
+        public static string keyPlayerNum = "playerNum";
         public static string keyClient = "client";
         public static string keyGame = "game";
         public static string keyRecord = "record";
@@ -35,21 +37,20 @@ namespace DemoCleaner3.DemoParser.parser
         public ListMap<TimeType, string> allTimes = new ListMap<TimeType, string>();
 
         public List<string> dateStamps = new List<string>();
-        public Dictionary<long, string> console = new Dictionary<long, string>();
-
+        
         public string demoPath;
+        ClientConnection clc;
+        Dictionary<string, string> playerConfig = new Dictionary<string, string>();
 
         Dictionary<string, Dictionary<string, string>> friendlyInfo;
 
         public RawInfo(
-            string demoName,
-            Dictionary<short, string> rawConfig,
-            Dictionary<long, string> console) {
+            string demoName, ClientConnection clientConnection) {
             this.demoPath = demoName;
-            this.rawConfig = rawConfig;
-            this.console = console;
+            this.clc = clientConnection;
+            this.rawConfig = clientConnection.configs;
 
-            getTimes(console);
+            getTimes(clientConnection.console);
         }
 
         private void getTimes(Dictionary<long, string> consoleCommands) {
@@ -118,19 +119,23 @@ namespace DemoCleaner3.DemoParser.parser
                 return friendlyInfo;
             }
 
-            var keyP = (short)(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER);
-            var playersConfigs = new List<string>();
+            var keyP = Q3Const.Q3_DEMO_CFG_FIELD_PLAYER;
+            var allPlayersConfigs = new List<string>();
             for (short i = 0; i < 32; i++) {
                 var k1 = (short)(keyP + i);
                 if (rawConfig.ContainsKey(k1)) {
-                    playersConfigs.Add(rawConfig[k1]);
+                    allPlayersConfigs.Add(rawConfig[k1]);
                 }
             }
-            if (playersConfigs.Count == 1) {
-                friendlyInfo.Add(keyPlayer, split_config_player(playersConfigs[0]));
+
+            var keyMainPlayer = (short)(keyP + clc.clientNum);
+            if (rawConfig.ContainsKey(keyMainPlayer) || allPlayersConfigs.Count == 1) {
+                var splitPlayer = split_config_player(rawConfig[keyMainPlayer]);
+                splitPlayer[keyPlayerNum] = clc.clientNum.ToString();
+                friendlyInfo.Add(keyPlayer, splitPlayer);
             } else {
-                for (int i = 0; i < playersConfigs.Count; i++) {
-                    friendlyInfo.Add(keyPlayer + " " + (i+1).ToString(), split_config_player(playersConfigs[i]));
+                for (int i = 0; i < allPlayersConfigs.Count; i++) {
+                    friendlyInfo.Add(keyPlayer + " " + (i + 1).ToString(), split_config_player(allPlayersConfigs[i]));
                 }
             }
 
@@ -147,9 +152,9 @@ namespace DemoCleaner3.DemoParser.parser
             }
             friendlyInfo.Add(keyRaw, raw);
 
-            if (console.Count > 0) {
+            if (clc.console.Count > 0) {
                 Dictionary<string, string> conTexts = new Dictionary<string, string>();
-                foreach(var kv in console) {
+                foreach(var kv in clc.console) {
                     conTexts.Add(kv.Key.ToString(), removeColors(kv.Value.ToString()));
                 }
                 friendlyInfo.Add(keyConsole, conTexts);
