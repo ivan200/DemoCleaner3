@@ -12,12 +12,22 @@ namespace DemoCleaner3.DemoParser
     {
         private BitStreamReader stream = null;
 
+        static int[] BIT_POS = new int[32];
+        static int[] BIT_POS_REV = new int[32];
+
         /**
          * HFReader constructor.
          */
         public Q3HuffmanReader(byte[] buffer)
         {
             this.stream = new BitStreamReader(buffer);
+
+            int mask = 0x01;
+            for (int i = 0; i < 32; i++) {
+                BIT_POS[i] = mask;
+                BIT_POS_REV[31 - i] = mask;
+                mask <<= 1;
+            }
         }
 
         public bool isEOD()
@@ -120,7 +130,12 @@ namespace DemoCleaner3.DemoParser
                 return readFloat();
             }
         }
-
+        public void readData(byte[] data, int len)
+        {
+            for (int i = 0; i < Math.Min(len, data.Length); i++) {
+                data[i] = (byte)readByte();
+            }
+        }
 
         public string readStringBase(int limit, bool stopAtNewLine)
         {
@@ -142,7 +157,6 @@ namespace DemoCleaner3.DemoParser
                     byte1 = Constants.Q3_DOT_CHAR_BYTE;
 
                 arr.Add((char)byte1);
-                //arr[] = byte1;
             }
 
             return new string(arr.ToArray());
@@ -203,6 +217,71 @@ namespace DemoCleaner3.DemoParser
             }
 
             return true;
+        }
+
+        public bool readDeltaPlayerState(PlayerState state)
+        {
+            int lc = readByte();
+
+            if (lc < 0 || lc > MapperFactory.PlayerStateFieldNum) {
+                Console.WriteLine("invalid playerState field count: {" + lc + "}");
+                return false;
+            }
+
+            for (int i = 0; i < lc; i++) {
+                if (stream.readBits(1) == 0) {
+                    // no change;
+                    continue;
+                }
+
+                MapperFactory.updatePlayerState(state, i, this, false);
+            }
+
+            // read arrays
+            if (stream.readBits(1) != 0) {
+
+                //parse stats
+                if (stream.readBits(1) != 0) {
+                    pstArrayRead(state.stats, Q3Const.MAX_STATS);
+                }
+
+                // parse persistant stats
+                if (stream.readBits(1) != 0) {
+                    pstArrayRead(state.persistant, Q3Const.MAX_PERSISTANT);
+                }
+
+                // parse ammo
+                if (stream.readBits(1) != 0) {
+                    pstArrayRead(state.ammo, Q3Const.MAX_WEAPONS);
+                }
+
+                // parse powerups
+                if (stream.readBits(1) != 0) {
+                    pstLongArrayRead(state.powerups, Q3Const.MAX_POWERUPS);
+                }
+            }
+
+            return true;
+        }
+
+        private void pstArrayRead(int[] arr, int maxbits)
+        {
+            int _bits = stream.readBits(maxbits);
+            for (int i = 0; i < maxbits; i++) {
+                if ((_bits & BIT_POS[i]) != 0) {
+                    arr[i] = readShort();
+                }
+            }
+        }
+
+        private void pstLongArrayRead(long[] arr, int maxbits)
+        {
+            int _bits = stream.readBits(maxbits);
+            for (int i = 0; i < maxbits; i++) {
+                if ((_bits & BIT_POS[i]) != 0) {
+                    arr[i] = readLong();
+                }
+            }
         }
     }
 }

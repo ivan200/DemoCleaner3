@@ -60,7 +60,7 @@ namespace DemoCleaner3.DemoParser.structures
 
         public int[] stats = new int[Q3Const.MAX_STATS];
         public int[] persistant = new int[Q3Const.MAX_PERSISTANT];  // stats that aren't cleared on death
-        public int[] powerups = new int[Q3Const.MAX_POWERUPS];      // level.time that the powerup runs out
+        public long[] powerups = new long[Q3Const.MAX_POWERUPS];      // level.time that the powerup runs out
         public int[] ammo = new int[Q3Const.MAX_WEAPONS];
 
         public int generic1;

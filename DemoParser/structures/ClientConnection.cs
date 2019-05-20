@@ -31,7 +31,7 @@ namespace DemoCleaner3.DemoParser.structures
         public Dictionary<long, string> console = new Dictionary<long, string>();
         public Dictionary<short, string> configs = new Dictionary<short, string>();
 
-        public EntityState[] entityBaselines = new EntityState[Q3Const.MAX_GENTITIES];
+        public Dictionary<long, EntityState> entityBaselines = new Dictionary<long, EntityState>();
 
         public bool demowaiting;    // don't record until a non-delta message is received
     }

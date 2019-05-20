@@ -28,4 +28,15 @@ namespace DemoCleaner3
             return default(TValue);
         }
     }
+
+    public static class Ext2<TKey, TValue> where TValue : new()
+    {
+        public static TValue GetOrCreate(Dictionary<TKey, TValue> dictionary, TKey key)
+        {
+            if (!dictionary.ContainsKey(key)) {
+                dictionary[key] = new TValue();
+            } 
+            return dictionary[key];
+        }
+    }
 }
