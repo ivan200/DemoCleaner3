@@ -26,17 +26,7 @@ namespace DemoCleaner3.DemoParser.parser
             return info;
         }
 
-        /**
-        *
-        * @throws Exception
-        * @return int messages count in this demo-file
-        */
-        public int countMessages()
-        {
-            return ((Q3EmptyParser)this.doParse(new Q3EmptyParser())).count;
-        }
-
-        private AbstractDemoMessageParser doParse(AbstractDemoMessageParser msgParser)
+        private Q3DemoConfigParser doParse(Q3DemoConfigParser msgParser)
         {
             Q3MessageStream messageStream = new Q3MessageStream(this.file_name);
             try
@@ -61,12 +51,6 @@ namespace DemoCleaner3.DemoParser.parser
         {
             Q3DemoParser p = new Q3DemoParser(file_name);
             return p.parseConfig();
-        }
-
-        public static int countDemoMessages(string file_name)
-        {
-            Q3DemoParser p = new Q3DemoParser(file_name);
-            return p.countMessages();
         }
     }
 }

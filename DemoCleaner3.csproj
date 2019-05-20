@@ -87,11 +87,9 @@
     <Compile Include="DemoParser\huffman\Q3HuffmanMapper.cs" />
     <Compile Include="DemoParser\huffman\Q3HuffmanNode.cs" />
     <Compile Include="DemoParser\huffman\Q3HuffmanReader.cs" />
-    <Compile Include="DemoParser\parser\AbstractDemoMessageParser.cs" />
     <Compile Include="DemoParser\parser\Q3DemoConfigParser.cs" />
     <Compile Include="DemoParser\parser\Q3DemoMessage.cs" />
     <Compile Include="DemoParser\parser\Q3DemoParser.cs" />
-    <Compile Include="DemoParser\parser\Q3EmptyParser.cs" />
     <Compile Include="DemoParser\parser\Q3MessageStream.cs" />
     <Compile Include="structures\RawInfo.cs" />
     <Compile Include="DemoParser\utils\BitStreamReader.cs" />

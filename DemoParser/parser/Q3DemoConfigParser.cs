@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DemoCleaner3.DemoParser.parser
 {
-    class Q3DemoConfigParser : AbstractDemoMessageParser
+    class Q3DemoConfigParser
     {
         public ClientConnection clc = new ClientConnection();
         private ClientState client = new ClientState();
@@ -33,6 +33,7 @@ namespace DemoCleaner3.DemoParser.parser
                         this.parseGameState(reader);
                         break;
                     case Q3_SVC.SNAPSHOT:
+                        //return true;
                         this.parseSnapshot(reader);
                         // snapshots couldn't be mixed with game-state command in a single message
                         break;
