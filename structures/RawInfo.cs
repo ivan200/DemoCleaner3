@@ -130,7 +130,8 @@ namespace DemoCleaner3.DemoParser.parser
 
             var keyMainPlayer = (short)(keyP + clc.clientNum);
             if (rawConfig.ContainsKey(keyMainPlayer) || allPlayersConfigs.Count == 1) {
-                var splitPlayer = split_config_player(rawConfig[keyMainPlayer]);
+                string config = rawConfig.ContainsKey(keyMainPlayer) ? rawConfig[keyMainPlayer] : allPlayersConfigs.First();
+                var splitPlayer = split_config_player(config);
                 splitPlayer[keyPlayerNum] = clc.clientNum.ToString();
                 friendlyInfo.Add(keyPlayer, splitPlayer);
             } else {

@@ -187,14 +187,14 @@ namespace DemoCleaner3.DemoParser
 
         public bool readDeltaEntity(EntityState state, int number)
         {
-            if (stream.readBits(1) == 1) {
+            if (readNumBits(1) == 1) {
                 state.number = Q3Const.MAX_GENTITIES - 1;
                 // clear state and return
                 return true;
             }
 
             // check for no delta
-            if (stream.readBits(1) == 0) {
+            if (readNumBits(1) == 0) {
                 state.number = number;
                 return true;
             }
@@ -207,12 +207,12 @@ namespace DemoCleaner3.DemoParser
 
             state.number = number;
             for (int i = 0; i < lc; i++) {
-                if (stream.readBits(1) == 0) {
+                if (readNumBits(1) == 0) {
                     //no change
                     continue;
                 }
 
-                bool reset = stream.readBits(1) == 0;
+                bool reset = readNumBits(1) == 0;
                 MapperFactory.updateEntityState(state, i, this, reset);
             }
 
@@ -229,7 +229,7 @@ namespace DemoCleaner3.DemoParser
             }
 
             for (int i = 0; i < lc; i++) {
-                if (stream.readBits(1) == 0) {
+                if (readNumBits(1) == 0) {
                     // no change;
                     continue;
                 }
@@ -238,25 +238,25 @@ namespace DemoCleaner3.DemoParser
             }
 
             // read arrays
-            if (stream.readBits(1) != 0) {
+            if (readNumBits(1) != 0) {
 
                 //parse stats
-                if (stream.readBits(1) != 0) {
+                if (readNumBits(1) != 0) {
                     pstArrayRead(state.stats, Q3Const.MAX_STATS);
                 }
 
                 // parse persistant stats
-                if (stream.readBits(1) != 0) {
+                if (readNumBits(1) != 0) {
                     pstArrayRead(state.persistant, Q3Const.MAX_PERSISTANT);
                 }
 
                 // parse ammo
-                if (stream.readBits(1) != 0) {
+                if (readNumBits(1) != 0) {
                     pstArrayRead(state.ammo, Q3Const.MAX_WEAPONS);
                 }
 
                 // parse powerups
-                if (stream.readBits(1) != 0) {
+                if (readNumBits(1) != 0) {
                     pstLongArrayRead(state.powerups, Q3Const.MAX_POWERUPS);
                 }
             }
@@ -266,7 +266,7 @@ namespace DemoCleaner3.DemoParser
 
         private void pstArrayRead(int[] arr, int maxbits)
         {
-            int _bits = stream.readBits(maxbits);
+            int _bits = (int)readNumBits(maxbits);
             for (int i = 0; i < maxbits; i++) {
                 if ((_bits & BIT_POS[i]) != 0) {
                     arr[i] = readShort();
@@ -276,7 +276,7 @@ namespace DemoCleaner3.DemoParser
 
         private void pstLongArrayRead(long[] arr, int maxbits)
         {
-            int _bits = stream.readBits(maxbits);
+            int _bits = (int)readNumBits(maxbits);
             for (int i = 0; i < maxbits; i++) {
                 if ((_bits & BIT_POS[i]) != 0) {
                     arr[i] = readLong();

@@ -51,7 +51,7 @@ namespace DemoCleaner3.DemoParser.parser
                 }
             }
             catch (Exception r) {
-                String s = r.Message;
+                Console.WriteLine(r.Message);
             }
             messageStream.close();
             return msgParser;
