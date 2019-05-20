@@ -249,19 +249,25 @@ namespace DemoCleaner3
                             break;
                     }
 
-                    //If there is only one entry
+                    /*//If there is only one entry
                     if (raw.allTimes.Count == 1 ||
                         //Or if one of the names of those who passed the card matches the name in the parameters of the demo
                         (!string.IsNullOrEmpty(oName) && (oName == dfName || oName == uName || oName == demoUserName))
                         //or if the demo filename has time and it corresponds finisher time
                         || (demoNameTime.HasValue && demoNameTime.Value.TotalMilliseconds == time.TotalMilliseconds)) {
+                    }*/
+
+                        //If there is only one entry
+                        if (raw.allTimes.Count == 1 ||
+                        //Or if one of the names of those who passed the card matches the name in the parameters of the demo
+                        (!string.IsNullOrEmpty(oName) && (oName == dfName || oName == uName) )){
                         if (demo.time.TotalMilliseconds == 0 || demo.time.TotalMilliseconds > time.TotalMilliseconds) {
                             demo.time = time;
                             if (i < raw.dateStamps.Count) {
                                 demo.recordTime = RawInfo.getDateForDemo(raw.dateStamps[i]);
                             }
                             if (oName.Length > 0) {
-                                demo.playerName = oName;
+                                demo.playerName = dfName;
                             }
                         }
                     }
@@ -519,8 +525,8 @@ namespace DemoCleaner3
             res = checkKey(kGame, "pmove_msec", 8);                 if (res.Length > 0) return res;
             res = checkKey(kGame, "defrag_svfps", 125, "sv_fps");   if (res.Length > 0) return res;
 
-            res = checkKey(kGame, "g_synchronousclients", (online ? 0 : 1), "g_sync"); if (res.Length > 0) return res;
             res = checkKey(kGame, "pmove_fixed", (online ? 1 : 0)); if (res.Length > 0) return res;
+            res = checkKey(kGame, "g_synchronousclients", (online ? 0 : 1), "g_sync"); if (res.Length > 0) return res;
             return "";
         }
 

@@ -178,10 +178,12 @@ namespace DemoCleaner3.DemoParser.parser
 
             Dictionary<string, string> res = new Dictionary<string, string>();
             foreach (var str in split) {
-                if (replaces.ContainsKey(str.Key)) {
-                    res[replaces[str.Key]] = str.Value;
-                } else {
-                    res[str.Key] = str.Value;
+                if (!string.IsNullOrEmpty(str.Value)) {
+                    if (replaces.ContainsKey(str.Key)) {
+                        res[replaces[str.Key]] = str.Value;
+                    } else {
+                        res[str.Key] = str.Value;
+                    }
                 }
             }
             if (res.ContainsKey("team")) {
