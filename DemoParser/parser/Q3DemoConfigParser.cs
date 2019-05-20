@@ -1,4 +1,5 @@
 ﻿using DemoCleaner3.DemoParser.structures;
+using DemoCleaner3.DemoParser.utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,7 +12,7 @@ namespace DemoCleaner3.DemoParser.parser
         private ClientState client = new ClientState();
 
         private int snapshots = 0;
-
+        
         public bool parse(Q3DemoMessage message)
         {
             clc.serverMessageSequence = message.sequence;
@@ -33,6 +34,12 @@ namespace DemoCleaner3.DemoParser.parser
                         this.parseGameState(reader);
                         break;
                     case Q3_SVC.SNAPSHOT:
+                        if (client.clientConfig == null) {
+                            client.clientConfig = new Dictionary<string, string>();
+                            if (clc.configs.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT)) {
+                                client.clientConfig = Q3Utils.split_config(clc.configs[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]);
+                            }
+                        }
                         //return true;
                         this.parseSnapshot(reader);
                         // snapshots couldn't be mixed with game-state command in a single message
@@ -172,6 +179,7 @@ namespace DemoCleaner3.DemoParser.parser
 
             // copy to the current good spot
             client.snap = newSnap;
+
             // skip ping calculations
             client.snap.ping = 0;
 
@@ -179,6 +187,16 @@ namespace DemoCleaner3.DemoParser.parser
             client.snapshots[client.snap.messageNum & Q3Const.PACKET_MASK] = client.snap;
 
             client.newSnapshots = true;
+
+
+            int.TryParse(client.clientConfig["defrag_vers"], out int dfvers);
+
+            var time = getTime(newSnap.ps, (int) newSnap.serverTime,
+                dfvers, client.clientConfig["mapname"]);
+
+            client.times1.Add(time);
+            client.times2.Add(TimeSpan.FromMilliseconds(time));
+
         }
 
         private void parsePacketEntities(Q3HuffmanReader decoder, CLSnapshot oldframe, CLSnapshot newframe)
@@ -293,62 +311,77 @@ namespace DemoCleaner3.DemoParser.parser
         }
 
 
-
-
-        private int shr32(int x, int n) {
-            return (int) ((x & 0xffffffff) >> n);
-        }
-        private int shl32(int x, int n)
+        private int getMapNameChecksum(string mapName)
         {
-            return (int) ((x << n) & 0xffffffff);
+            mapName = mapName.ToLowerInvariant();
+            int sum = 0;
+            foreach (byte c in Encoding.ASCII.GetBytes(mapName)) {
+                sum += c;
+            }
+            return sum & 0xff;
         }
-        private long getTime(PlayerState ps, int snap_serverTime, int df_ver, int map_type) { 
-            int time = shl32(ps.stats[7], 0x10) | (ps.stats[8] & 0xffff);
+
+        // code was adapted from breadsticks
+        private long getTime(PlayerState ps, int snap_serverTime, int df_ver, string mapname)
+        {
+            int time = (ps.stats[7] << 0x10) | (ps.stats[8] & 0xffff);
             if (time == 0) {
                 return 0;
             }
-            time ^= Math.Abs((int)(Math.Floor(ps.origin[0]))) & 0xffff;
-            time ^= shl32(Math.Abs((int)Math.Floor(ps.velocity[0])), 0x10);
-            time ^= ps.stats[0] > 0 ? ps.stats[0] & 0xff : 150;
-            time ^= shl32(ps.movementDir & 0xf, 0x1c);
+            try {
+                if (client.times1.Count == 507) { //debug
+                    String s = "";
+                }
 
-            //if time was byte array(least significant at time[0]):
-            //time[3] ^= time[2]
-            //time[2] ^= time[1]
-            //time[1] ^= time[0]
-            //time[0] unchanged
+                time ^= Math.Abs((int)Math.Floor(ps.origin[0])) & 0xffff;
+                time ^= Math.Abs((int)Math.Floor(ps.velocity[0])) << 0x10;
+                time ^= ps.stats[0] > 0 ? ps.stats[0] & 0xff : 150;
+                time ^= ps.movementDir & 0xf << 0x1c;
 
-            for (int i = 0x18; i < 0; i -= 8) {
-                var temp = (shr32(time, i) ^ shr32(time, i - 8)) & 0xff;
-                time = (time & ~shl32(0xff, i)) | shl32(temp, i);
+                //if time was byte array(least significant at time[0]):
+                //time[3] ^= time[2]
+                //time[2] ^= time[1]
+                //time[1] ^= time[0]
+                //time[0] unchanged
+
+                for (int i = 0x18; i < 0; i -= 8) {
+                    var temp = ((time >> i) ^ (time >> (i - 8))) & 0xff;
+                    time = (time & ~(0xff << i)) | (temp << i);
+                }
+
+                var local1c = (snap_serverTime << 2);
+                //df_ver = 19124;
+                //map_type = 24; // global_11cdc8, not sure why i called this map_type
+                int map_type = getMapNameChecksum(mapname);
+
+                local1c += (df_ver + map_type) << 8;
+                local1c ^= snap_serverTime << 0x18;
+                time ^= local1c;
+                local1c = time >> 0x1c; // time[28:32]
+                local1c |= (~local1c << 4) & 0xff;
+                local1c |= local1c << 8;
+                local1c |= local1c << 0x10;
+                time ^= local1c;
+                local1c = (time >> 0x16) & 0x3f; // time[22:28]
+                time &= 0x3fffff;
+
+                // local20 = time[0:6] + time[6:12] + time[12:18] ...
+                var local20 = 0;
+                for (int l = 0; l < 3; l++) {
+                    local20 += (time >> (6 * l)) & 0x3f;
+                }
+
+                // ... + time[18:22]
+                local20 += (time >> 0x12) & 0xf;
+
+                if (local1c != (local20 & 0x3f)) {
+                    Console.WriteLine("bad checksum");
+                    return 0;
+                }
+            } catch (Exception ex) {
+                Console.WriteLine(ex.Message);
             }
-
-            var local1c = shl32(snap_serverTime, 2);
-            //df_ver = 19124;
-            //map_type = 24; // global_11cdc8, not sure why i called this map_type
-            local1c += shl32(df_ver + map_type, 8);
-            local1c ^= shl32(snap_serverTime, 0x18);
-            time ^= local1c;
-            local1c = shr32(time, 0x1c); // time[28:32]
-            local1c |= shl32(~local1c, 4) & 0xff;
-            local1c |= shl32(local1c, 8);
-            local1c |= shl32(local1c, 0x10);
-            time ^= local1c;
-            local1c = shr32(time, 0x16) & 0x3f; // time[22:28]
-            time &= 0x3fffff;
-
-            // local20 = time[0:6] + time[6:12] + time[12:18] ...
-            var local20 = 0;
-            for (int l = 0; l < 3; l++) {
-                local20 += shr32(time, 6 * l) & 0x3f;
-            }
-
-            // ... + time[18:22]
-            local20 += shr32(time, 0x12) & 0xf;
-
-            if (local1c != (local20 & 0x3f)) {
-                Console.WriteLine("bad checksum");
-            }
+            
             return time;
         }
 

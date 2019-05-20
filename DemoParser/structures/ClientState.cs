@@ -19,5 +19,10 @@ namespace DemoCleaner3.DemoParser.structures
         public Dictionary<int, CLSnapshot> snapshots = new Dictionary<int, CLSnapshot>();
         public Dictionary<int, EntityState> entityBaselines = new Dictionary<int, EntityState>(); // for delta compression when not in previous frame
         public Dictionary<int, EntityState> parseEntities = new Dictionary<int, EntityState>();
+
+
+        public List<long> times1 = new List<long>();
+        public List<TimeSpan> times2 = new List<TimeSpan>();
+        public Dictionary<string, string> clientConfig = null;
     }
 }
