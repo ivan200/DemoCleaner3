@@ -14,6 +14,7 @@ namespace DemoCleaner3.DemoParser.parser
 
         public bool parse(Q3DemoMessage message)
         {
+            clc.serverMessageSequence = message.sequence;
             Q3HuffmanReader reader = new Q3HuffmanReader(message.data);
             reader.readLong();
 
@@ -164,7 +165,8 @@ namespace DemoCleaner3.DemoParser.parser
                 oldMessageNum = newSnap.messageNum - (Q3Const.PACKET_BACKUP - 1);
             }
             for (; oldMessageNum < newSnap.messageNum; oldMessageNum++) {
-                client.snapshots[oldMessageNum & Q3Const.PACKET_MASK].valid = false;
+                if (client.snapshots.TryGetValue(oldMessageNum & Q3Const.PACKET_MASK, out CLSnapshot s))
+                    s.valid = false;
             }
 
             // copy to the current good spot
