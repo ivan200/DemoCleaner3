@@ -209,30 +209,30 @@ namespace DemoCleaner3.DemoParser.parser
                 return;
             }
             var prevEvent = events[events.Count - 1];
-            if (prevEvent.userStat != snapshot.ps.stats[12]) {
-                if ((prevEvent.userStat ^ 6) == snapshot.ps.stats[12]) {
-                    events.Add(new ClientEvent(ClientEvent.EventType.Start, time, snapshot));
-                    return;
-                }
-                if ((prevEvent.userStat ^ 4) == snapshot.ps.stats[12]) {
-                    events.Add(new ClientEvent(ClientEvent.EventType.TimeReset, time, snapshot));
-                    return;
-                }
-                if ((prevEvent.userStat ^ 10) == snapshot.ps.stats[12]) {
-                    events.Add(new ClientEvent(ClientEvent.EventType.Finish, time, snapshot));
-                    return;
-                }
-                events.Add(new ClientEvent(ClientEvent.EventType.Something, time, snapshot));
-                return;
-            }
-            if (prevEvent.playerNum != snapshot.ps.clientNum) {
+            if (prevEvent.playerNum != snapshot.ps.clientNum)
+            {
                 events.Add(new ClientEvent(ClientEvent.EventType.ChangeUser, time, snapshot));
-                return;
             }
-
-            if (prevEvent.playerMode != snapshot.ps.pm_type) {
+            else if (prevEvent.playerMode != snapshot.ps.pm_type)
+            {
                 events.Add(new ClientEvent(ClientEvent.EventType.ChangePmType, time, snapshot));
-                return;
+            }
+            else if (prevEvent.userStat != snapshot.ps.stats[12])
+            {
+                if ((prevEvent.userStat & 4) != (snapshot.ps.stats[12] & 4))
+                {
+                    if ((prevEvent.userStat & 2) == 0)
+                        events.Add(new ClientEvent(ClientEvent.EventType.Start, time, snapshot)); 
+                    else
+                        events.Add(new ClientEvent(ClientEvent.EventType.TimeReset, time, snapshot));
+                }
+                else if ((prevEvent.userStat & 8) == 0 && (snapshot.ps.stats[12] & 8) != 0)
+                {
+                    // should this be if?
+                    events.Add(new ClientEvent(ClientEvent.EventType.Finish, time, snapshot));
+                }
+                else // prolly cp?
+                    events.Add(new ClientEvent(ClientEvent.EventType.Something, time, snapshot));
             }
         }
 
