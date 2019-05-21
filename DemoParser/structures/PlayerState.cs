@@ -72,5 +72,54 @@ namespace DemoCleaner3.DemoParser.structures
         public int pmove_framecount;            // FIXME: don't transmit over the network
         public int jumppad_frame;
         public int entityEventSequence;
+
+        public void copy(PlayerState x)
+        {
+            this.commandTime = x.commandTime;
+            this.pm_type = x.pm_type;
+            this.bobCycle = x.bobCycle;
+            this.pm_flags = x.pm_flags;
+            this.pm_time = x.pm_time;
+            Array.Copy(x.origin, this.origin, 3);
+            Array.Copy(x.velocity, this.velocity, 3);
+            this.weaponTime = x.weaponTime;
+            this.gravity = x.gravity;
+            this.speed = x.speed;
+            Array.Copy(x.delta_angles, this.delta_angles, 3);
+            this.groundEntityNum = x.groundEntityNum;
+            this.legsTimer = x.legsTimer;
+            this.legsAnim = x.legsAnim;
+            this.torsoTimer = x.torsoTimer;
+            this.torsoAnim = x.torsoAnim;
+            this.movementDir = x.movementDir;
+            Array.Copy(x.grapplePoint, this.grapplePoint, 3);
+            this.eFlags = x.eFlags;
+            this.eventSequence = x.eventSequence;
+            Array.Copy(x.events, this.events, Q3Const.MAX_PS_EVENTS);
+            Array.Copy(x.eventParms, this.eventParms, Q3Const.MAX_PS_EVENTS);
+            this.externalEvent = x.externalEvent;
+            this.externalEventParm = x.externalEventParm;
+            this.externalEventTime = x.externalEventTime;
+            this.clientNum = x.clientNum;
+            this.weapon = x.weapon;
+            this.weaponstate = x.weaponstate;
+            Array.Copy(x.viewangles, this.viewangles, 3);
+            this.viewheight = x.viewheight;
+            this.damageEvent = x.damageEvent;
+            this.damageYaw = x.damageYaw;
+            this.damagePitch = x.damagePitch;
+            this.damageCount = x.damageCount;
+            Array.Copy(x.stats, this.stats, Q3Const.MAX_STATS);
+            Array.Copy(x.persistant, this.persistant, Q3Const.MAX_PERSISTANT);
+            Array.Copy(x.powerups, this.powerups, Q3Const.MAX_POWERUPS);
+            Array.Copy(x.ammo, this.ammo, Q3Const.MAX_WEAPONS);
+            this.generic1 = x.generic1;
+            this.loopSound = x.loopSound;
+            this.jumppad_ent = x.jumppad_ent;
+            this.ping = x.ping;
+            this.pmove_framecount = x.pmove_framecount;
+            this.jumppad_frame = x.jumppad_frame;
+            this.entityEventSequence = x.entityEventSequence;
+        }
     }
 }

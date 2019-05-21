@@ -124,8 +124,7 @@ namespace DemoCleaner3.DemoParser
             if (readNumBits(1) == 0) {
                 long trunc = readNumBits(Q3Const.FLOAT_INT_BITS);
                 trunc -= Q3Const.FLOAT_INT_BIAS;
-                byte[] bytes = BitConverter.GetBytes(trunc);
-                return BitConverter.ToSingle(bytes, 0);
+                return (float)trunc;
             } else {
                 return readFloat();
             }
