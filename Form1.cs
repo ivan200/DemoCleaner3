@@ -296,7 +296,7 @@ namespace DemoCleaner3
         private void SaveSettings()
         {
             //main
-            prop.demosFolder = _currentDemoPath.FullName;
+            prop.demosFolder = _currentDemoPath?.FullName ?? "";
             prop.tabSelectedIndex = tabControl1.SelectedIndex;
 
             //clean

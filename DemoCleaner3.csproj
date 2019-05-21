@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DemoParser\structures\ClientConnection.cs" />
+    <Compile Include="DemoParser\structures\ClientEvent.cs" />
     <Compile Include="DemoParser\structures\ClientState.cs" />
     <Compile Include="DemoParser\structures\CLSnapshot.cs" />
     <Compile Include="DemoParser\structures\EntityState.cs" />

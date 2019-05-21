@@ -6,6 +6,20 @@ namespace DemoCleaner3.DemoParser.structures
 {
     public class PlayerState
     {
+        public enum StatIndex
+        {
+            STAT_HEALTH,
+            STAT_ITEMS,
+            STAT_WEAPONS,                   // 16 bit fields
+            STAT_ARMOR,
+            STAT_DEAD_YAW,                  // look this direction when dead (FIXME: get rid of?)
+            STAT_CLIENTS_READY,             // bit mask of clients wishing to exit the intermission (FIXME: configstring?)
+            STAT_MAX_HEALTH,                // health / armor limit, changable by handicap
+            STAT_TIMER_UPPER,
+            STAT_TIMER_LOWER
+        }
+
+
         public long commandTime;                 // cmd->serverTime of last executed command
         public int pm_type;
         public int bobCycle;                    // for view bobbing and footstep generation

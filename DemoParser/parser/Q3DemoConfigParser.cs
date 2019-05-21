@@ -3,16 +3,15 @@ using DemoCleaner3.DemoParser.utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static DemoCleaner3.DemoParser.structures.PlayerState.StatIndex;
 
 namespace DemoCleaner3.DemoParser.parser
 {
     class Q3DemoConfigParser
     {
         public ClientConnection clc = new ClientConnection();
-        private ClientState client = new ClientState();
+        public ClientState client = new ClientState();
 
-        private int snapshots = 0;
-        
         public bool parse(Q3DemoMessage message)
         {
             clc.serverMessageSequence = message.sequence;
@@ -34,13 +33,6 @@ namespace DemoCleaner3.DemoParser.parser
                         this.parseGameState(reader);
                         break;
                     case Q3_SVC.SNAPSHOT:
-                        if (client.clientConfig == null) {
-                            client.clientConfig = new Dictionary<string, string>();
-                            if (clc.configs.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT)) {
-                                client.clientConfig = Q3Utils.split_config(clc.configs[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]);
-                            }
-                        }
-                        //return true;
                         this.parseSnapshot(reader);
                         // snapshots couldn't be mixed with game-state command in a single message
                         break;
@@ -109,7 +101,17 @@ namespace DemoCleaner3.DemoParser.parser
 
         private void parseSnapshot(Q3HuffmanReader decoder)
         {
-            snapshots++;
+            if (client.clientConfig == null) {
+                client.clientConfig = new Dictionary<string, string>();
+                if (clc.configs.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT)) {
+                    client.clientConfig = Q3Utils.split_config(clc.configs[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]);
+                    client.dfvers = Ext.GetOrZero(client.clientConfig, "defrag_vers");
+                    client.mapname = Ext.GetOrNull(client.clientConfig, "mapname");
+                    client.mapNameChecksum = getMapNameChecksum(client.mapname);
+                    client.isOnline = Ext.GetOrZero(client.clientConfig, "defrag_gametype") > 4;
+                }
+            }
+
             CLSnapshot newSnap = new CLSnapshot();
             CLSnapshot old = null;
 
@@ -192,15 +194,46 @@ namespace DemoCleaner3.DemoParser.parser
 
             client.newSnapshots = true;
 
+            updateClientEvents(newSnap);
+        }
 
-            int.TryParse(client.clientConfig["defrag_vers"], out int dfvers);
+        private void updateClientEvents(CLSnapshot snapshot) {
+            if (client.dfvers <= 0 || client.mapNameChecksum <= 0) {
+                return;
+            }
+            var time = getTime(snapshot.ps, (int)snapshot.serverTime, client.dfvers, client.mapNameChecksum);
+            var events = client.clientEvents;
 
-            var time = getTime(newSnap.ps, (int) newSnap.serverTime,
-                dfvers, client.clientConfig["mapname"]);
+            if (events.Count == 0) {
+                events.Add(new ClientEvent(ClientEvent.EventType.DemoStart, time, snapshot));
+                return;
+            }
+            var prevEvent = events[events.Count - 1];
+            if (prevEvent.userStat != snapshot.ps.stats[12]) {
+                if ((prevEvent.userStat ^ 6) == snapshot.ps.stats[12]) {
+                    events.Add(new ClientEvent(ClientEvent.EventType.Start, time, snapshot));
+                    return;
+                }
+                if ((prevEvent.userStat ^ 4) == snapshot.ps.stats[12]) {
+                    events.Add(new ClientEvent(ClientEvent.EventType.TimeReset, time, snapshot));
+                    return;
+                }
+                if ((prevEvent.userStat ^ 10) == snapshot.ps.stats[12]) {
+                    events.Add(new ClientEvent(ClientEvent.EventType.Finish, time, snapshot));
+                    return;
+                }
+                events.Add(new ClientEvent(ClientEvent.EventType.Something, time, snapshot));
+                return;
+            }
+            if (prevEvent.playerNum != snapshot.ps.clientNum) {
+                events.Add(new ClientEvent(ClientEvent.EventType.ChangeUser, time, snapshot));
+                return;
+            }
 
-            client.times1.Add(time);
-            client.times2.Add(TimeSpan.FromMilliseconds(time));
-
+            if (prevEvent.playerMode != snapshot.ps.pm_type) {
+                events.Add(new ClientEvent(ClientEvent.EventType.ChangePmType, time, snapshot));
+                return;
+            }
         }
 
         private void parsePacketEntities(Q3HuffmanReader decoder, CLSnapshot oldframe, CLSnapshot newframe)
@@ -317,6 +350,9 @@ namespace DemoCleaner3.DemoParser.parser
 
         private int getMapNameChecksum(string mapName)
         {
+            if (string.IsNullOrEmpty(mapName)) {
+                return 0;
+            }
             mapName = mapName.ToLowerInvariant();
             int sum = 0;
             foreach (byte c in Encoding.ASCII.GetBytes(mapName)) {
@@ -333,13 +369,17 @@ namespace DemoCleaner3.DemoParser.parser
         {
             return (int)(((uint)x << n) & 0xffffffff);
         }
-        private long getTime(PlayerState ps, int snap_serverTime, int df_ver, string mapname)
+        private long getTime(PlayerState ps, int snap_serverTime, int df_ver, int mapNameChecksum)
         {
             int time = shl32(ps.stats[7], 0x10) | (ps.stats[8] & 0xffff);
             if (time == 0)
             {
                 return 0;
             }
+            if (client.isOnline) {
+                return time;
+            }
+
             time ^= Math.Abs((int)(Math.Floor(ps.origin[0]))) & 0xffff;
             time ^= shl32(Math.Abs((int)Math.Floor(ps.velocity[0])), 0x10);
             time ^= ps.stats[0] > 0 ? ps.stats[0] & 0xff : 150;
@@ -360,7 +400,7 @@ namespace DemoCleaner3.DemoParser.parser
             var local1c = shl32(snap_serverTime, 2);
             //df_ver = 19124;
             //map_type = 24; // global_11cdc8, not sure why i called this map_type
-            local1c += shl32(df_ver + getMapNameChecksum(mapname), 8);
+            local1c += shl32(df_ver + mapNameChecksum, 8);
             local1c ^= shl32(snap_serverTime, 0x18);
             time ^= local1c;
             local1c = shr32(time, 0x1c); // time[28:32]

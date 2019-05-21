@@ -27,6 +27,19 @@ namespace DemoCleaner3
             }
             return default(TValue);
         }
+
+        public static int GetOrZero<T> (Dictionary<T, string> dictionary, T key)
+        {
+            if (dictionary.ContainsKey(key)) {
+                var res = dictionary[key];
+                int intRes = 0;
+                if (!string.IsNullOrEmpty(res)) {
+                    int.TryParse(res, out intRes);
+                }
+                return intRes;
+            }
+            return 0;
+        }
     }
 
     public static class Ext2<TKey, TValue> where TValue : new()

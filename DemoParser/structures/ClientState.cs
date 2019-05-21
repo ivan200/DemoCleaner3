@@ -21,8 +21,17 @@ namespace DemoCleaner3.DemoParser.structures
         public Dictionary<int, EntityState> parseEntities = new Dictionary<int, EntityState>();
 
 
-        public List<long> times1 = new List<long>();
-        public List<TimeSpan> times2 = new List<TimeSpan>();
+        //public List<long> times1 = new List<long>();
+        //public List<TimeSpan> times2 = new List<TimeSpan>();
+        //public List<long> serverTimes = new List<long>();
+
+        public List<ClientEvent> clientEvents = new List<ClientEvent>();
+
         public Dictionary<string, string> clientConfig = null;
+
+        public string mapname;
+        public int mapNameChecksum = 0;
+        public int dfvers = 0;
+        public bool isOnline = false;
     }
 }
