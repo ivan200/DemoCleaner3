@@ -4,20 +4,28 @@ using System.Text;
 
 namespace DemoCleaner3.DemoParser.structures
 {
-    class ClientEvent
+    public class ClientEvent
     {
-        public enum EventType {
-            None,
-            DemoStart,
-            Start,
-            TimeReset,
-            Finish,
-            Something,
-            ChangePmType, //normal, noclip, spectator, death
-            ChangeUser
+        public bool eventStartFile = false;
+        public bool eventStartTime = false;
+        public bool eventTimeReset = false;
+        public bool eventFinish = false;
+        public bool eventCheckPoint = false;
+        public bool eventChangePmType = false; //normal, noclip, spectator, death
+        public bool eventChangeUser = false;
+
+        public static string[] pmTypesStrings = new string[4] {
+            "normal","noclip","spectator","death"
+        };
+
+
+        public bool hasAnyEvent {
+            get {
+                return eventStartFile || eventStartTime || eventTimeReset || eventFinish
+                    || eventCheckPoint || eventChangePmType || eventChangeUser;
+            }
         }
 
-        public EventType ev;
         public long time;
         public long serverTime;
         public int playerNum;
@@ -33,8 +41,7 @@ namespace DemoCleaner3.DemoParser.structures
         //tr - xor 4
         //finish - xor 8
 
-        public ClientEvent(EventType ev, long time, CLSnapshot snapshot) {
-            this.ev = ev;
+        public ClientEvent(long time, CLSnapshot snapshot) {
             this.time = time;
             this.serverTime = snapshot.serverTime;
             this.playerNum = snapshot.ps.clientNum;

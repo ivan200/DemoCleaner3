@@ -313,7 +313,8 @@ namespace DemoCleaner3
             //Promode
             var promode = Ext.GetOrNull(frConfig[RawInfo.keyClient], "df_promode");
             if (!string.IsNullOrEmpty(promode)) {
-                int.TryParse(promode, out int phMode);
+                int phMode = 0;
+                int.TryParse(promode, out phMode);
                 demo.physic = phMode == 1 ? "cpm" : "vq3";                  //vq3, cpm
             }
 
@@ -335,7 +336,8 @@ namespace DemoCleaner3
             //Mode for fastcaps and freestyle
             var dfMode = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_mode");
             if (!string.IsNullOrEmpty(dfMode)) {
-                int.TryParse(dfMode, out int defragMode);                                                 //>=0 = mode
+                int defragMode = 0;
+                int.TryParse(dfMode, out defragMode);                                                     //>=0 = mode
                 demo.modNum = (gType != 1 && gType != 5) ? string.Format(".{0}", defragMode) : null;      //.0 - .7
             }
 

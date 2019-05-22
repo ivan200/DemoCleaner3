@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DemoCleaner3.DemoParser.structures
 {
-    class CLSnapshot
+    public class CLSnapshot
     {
         public bool valid;                  // cleared if delta parsing was invalid
         public int snapFlags;              // rate delayed and dropped commands

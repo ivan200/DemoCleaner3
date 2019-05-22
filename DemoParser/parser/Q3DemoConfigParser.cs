@@ -179,8 +179,12 @@ namespace DemoCleaner3.DemoParser.parser
                 oldMessageNum = newSnap.messageNum - (Q3Const.PACKET_BACKUP - 1);
             }
             for (; oldMessageNum < newSnap.messageNum; oldMessageNum++) {
-                if (client.snapshots.TryGetValue(oldMessageNum & Q3Const.PACKET_MASK, out CLSnapshot s))
-                    s.valid = false;
+                CLSnapshot s;
+                if (client.snapshots.TryGetValue(oldMessageNum & Q3Const.PACKET_MASK, out s)) {
+                    if (s != null) {
+                        s.valid = false;
+                    }
+                }
             }
 
             // copy to the current good spot
@@ -204,35 +208,34 @@ namespace DemoCleaner3.DemoParser.parser
             var time = getTime(snapshot.ps, (int)snapshot.serverTime, client.dfvers, client.mapNameChecksum);
             var events = client.clientEvents;
 
+            ClientEvent clientEvent = new ClientEvent(time, snapshot);
             if (events.Count == 0) {
-                events.Add(new ClientEvent(ClientEvent.EventType.DemoStart, time, snapshot));
-                return;
-            }
-            var prevEvent = events[events.Count - 1];
-            if (prevEvent.playerNum != snapshot.ps.clientNum)
-            {
-                events.Add(new ClientEvent(ClientEvent.EventType.ChangeUser, time, snapshot));
-            }
-            else if (prevEvent.playerMode != snapshot.ps.pm_type)
-            {
-                events.Add(new ClientEvent(ClientEvent.EventType.ChangePmType, time, snapshot));
-            }
-            else if (prevEvent.userStat != snapshot.ps.stats[12])
-            {
-                if ((prevEvent.userStat & 4) != (snapshot.ps.stats[12] & 4))
-                {
-                    if ((prevEvent.userStat & 2) == 0)
-                        events.Add(new ClientEvent(ClientEvent.EventType.Start, time, snapshot)); 
-                    else
-                        events.Add(new ClientEvent(ClientEvent.EventType.TimeReset, time, snapshot));
+                clientEvent.eventStartFile = true;
+            } else {
+                var prevEvent = events[events.Count - 1];
+                if (prevEvent.playerNum != snapshot.ps.clientNum) {
+                    clientEvent.eventChangeUser = true;
+                } else if (prevEvent.playerMode != snapshot.ps.pm_type) {
+                    clientEvent.eventChangePmType = true;
+                } else if (prevEvent.userStat != snapshot.ps.stats[12]) {
+                    if ((prevEvent.userStat & 4) != (snapshot.ps.stats[12] & 4)) {
+                        if ((prevEvent.userStat & 2) == 0) {
+                            clientEvent.eventStartTime = true;
+                        } else {
+                            clientEvent.eventTimeReset = true;
+                        }
+                    } else if ((prevEvent.userStat & 8) == 0 && (snapshot.ps.stats[12] & 8) != 0) {
+                        if (!clientEvent.eventChangeUser) {
+                            clientEvent.eventFinish = true;
+                        }
+                    } else {
+                        clientEvent.eventCheckPoint = true;
+                    }
                 }
-                else if ((prevEvent.userStat & 8) == 0 && (snapshot.ps.stats[12] & 8) != 0)
-                {
-                    // should this be if?
-                    events.Add(new ClientEvent(ClientEvent.EventType.Finish, time, snapshot));
-                }
-                else // prolly cp?
-                    events.Add(new ClientEvent(ClientEvent.EventType.Something, time, snapshot));
+            }
+
+            if (clientEvent.hasAnyEvent) {
+                events.Add(clientEvent);
             }
         }
 

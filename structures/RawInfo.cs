@@ -19,6 +19,7 @@ namespace DemoCleaner3.DemoParser.parser
         public static string keyClient = "client";
         public static string keyGame = "game";
         public static string keyRecord = "record";
+        public static string keyTriggers = "triggers";
         public static string keyRecordTime = "time";
         public static string keyRecordDate = "date";
         public static string keyRaw = "raw";
@@ -40,15 +41,17 @@ namespace DemoCleaner3.DemoParser.parser
         
         public string demoPath;
         ClientConnection clc;
-        Dictionary<string, string> playerConfig = new Dictionary<string, string>();
+        public List<ClientEvent> clientEvents = new List<ClientEvent>();
 
+        Dictionary<string, string> playerConfig = new Dictionary<string, string>();
         Dictionary<string, Dictionary<string, string>> friendlyInfo;
 
         public RawInfo(
-            string demoName, ClientConnection clientConnection) {
+            string demoName, ClientConnection clientConnection, List<ClientEvent> clientEvents) {
             this.demoPath = demoName;
             this.clc = clientConnection;
             this.rawConfig = clientConnection.configs;
+            this.clientEvents = clientEvents;
 
             getTimes(clientConnection.console);
         }
@@ -93,12 +96,11 @@ namespace DemoCleaner3.DemoParser.parser
             if (friendlyInfo != null) {
                 return friendlyInfo;
             }
-
             friendlyInfo = new Dictionary<string, Dictionary<string, string>>();
 
+            //console Times
             Dictionary<string, string> times = new Dictionary<string, string>();
             times.Add(keyDemoName, new FileInfo(demoPath).Name);
-
             if (dateStamps.Count > 0 || allTimes.Count > 0) {
                 for (int i = 0; i < dateStamps.Count; i++) {
                     string key = dateStamps.Count > 1 ? keyRecordDate + " " + (i + 1) : keyRecordDate;
@@ -114,11 +116,83 @@ namespace DemoCleaner3.DemoParser.parser
                 }
             }
             friendlyInfo.Add(keyRecord, times);
+            
+            //demo triggers
+            if (clientEvents != null && clientEvents.Count > 0) {
+                Dictionary<string, string> triggers = new Dictionary<string, string>();
+                try {
+                    int stCount = 0;
+                    int trCount = 0;
+                    int cpCount = 0;
+                    int ftCount = 0;
+                    int pmCount = 0;
+                    int cuCount = 0;
 
+                    foreach (ClientEvent ce in clientEvents) {
+                        if (ce.eventStartFile) {
+                            var user = getPlayerInfoByPlayerNum(clc.clientNum);
+                            if (user == null) {
+                                user = getPlayerInfoByPlayerNum(ce.playerNum);
+                            }
+                            string username = user == null ? null : Ext.GetOrNull(user, "name");
+                            if (string.IsNullOrEmpty(username)) {
+                                triggers.Add("StartFile", "");
+                            } else {
+                                triggers.Add("StartFile", "Client: " + username);
+                            }
+                        }
+                        if (ce.eventStartTime) {
+                            var user = getPlayerInfoByPlayerNum(ce.playerNum);
+                            string username = user == null ? null : Ext.GetOrNull(user, "name");
+                            if (string.IsNullOrEmpty(username)) {
+                                triggers.Add("StartTimer" + getNumKey(++stCount), "");
+                            } else {
+                                triggers.Add("StartTimer" + getNumKey(++stCount), "Player: " + username);
+                            }
+                        }
+                        if (ce.eventTimeReset) {
+                            var user = getPlayerInfoByPlayerNum(ce.playerNum);
+                            string username = user == null ? null : Ext.GetOrNull(user, "name");
+                            if (string.IsNullOrEmpty(username)) {
+                                triggers.Add("TimeReset" + getNumKey(++trCount), "");
+                            } else {
+                                triggers.Add("TimeReset" + getNumKey(++trCount), "Player: " + username);
+                            }
+                        }
+                        if (ce.eventFinish) {
+                            triggers.Add("FinishTimer" + getNumKey(++ftCount), getTimeByMillis(ce.time));
+                        }
+                        if (ce.eventCheckPoint) {
+                            triggers.Add("CheckPoint" + getNumKey(++cpCount), getTimeByMillis(ce.time));
+                        }
+                        if (ce.eventChangePmType) {
+                            if (ClientEvent.pmTypesStrings.Length > ce.playerMode) {
+                                triggers.Add("ChangePlayerMode" + getNumKey(++pmCount), ClientEvent.pmTypesStrings[ce.playerMode]);
+                            } else {
+                                triggers.Add("ChangePlayerMode" + getNumKey(++pmCount), ce.playerMode.ToString());
+                            }
+                        }
+                        if (ce.eventChangeUser) {
+                            var user = getPlayerInfoByPlayerNum(ce.playerNum);
+                            string username = user == null ? null : Ext.GetOrNull(user, "name");
+                            if (string.IsNullOrEmpty(username)) {
+                                triggers.Add("ChangeUser" + getNumKey(++cuCount), "");
+                            } else {
+                                triggers.Add("ChangeUser" + getNumKey(++cuCount), "Player: " + username);
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    Console.WriteLine(ex.Message);
+                }
+                friendlyInfo.Add(keyTriggers, triggers);
+            }
+            
             if (rawConfig == null) {
                 return friendlyInfo;
             }
 
+            //Player
             var keyP = Q3Const.Q3_DEMO_CFG_FIELD_PLAYER;
             var allPlayersConfigs = new List<string>();
             for (short i = 0; i < 32; i++) {
@@ -140,19 +214,23 @@ namespace DemoCleaner3.DemoParser.parser
                 }
             }
 
+            //Client
             if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT)) {
                 friendlyInfo.Add(keyClient, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]));
             }
+            //Game
             if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_GAME)) {
                 friendlyInfo.Add(keyGame, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_GAME]));
             }
 
+            //Raw configs
             Dictionary<string, string> raw = new Dictionary<string, string>();
             foreach (var r in rawConfig) {
                 raw.Add(r.Key.ToString(), r.Value);
             }
             friendlyInfo.Add(keyRaw, raw);
 
+            //Console commands
             if (clc.console.Count > 0) {
                 Dictionary<string, string> conTexts = new Dictionary<string, string>();
                 foreach(var kv in clc.console) {
@@ -162,6 +240,30 @@ namespace DemoCleaner3.DemoParser.parser
             }
             return friendlyInfo;
         }
+
+        static string getNumKey(int num) {
+            if (num <= 1) {
+                return "";
+            } else {
+                return " " + num.ToString();
+            }
+        }
+
+        public static string getTimeByMillis(long millis) {
+            var time = TimeSpan.FromMilliseconds(millis);
+            return string.Format("{0:D2}.{1:D2}.{2:D3}", (int)time.TotalMinutes, time.Seconds, time.Milliseconds);
+        }
+
+
+        public Dictionary<string, string> getPlayerInfoByPlayerNum(long clientNum) {
+            var keyMainPlayer = (short)(Q3Const.Q3_DEMO_CFG_FIELD_PLAYER + clientNum);
+            if (rawConfig.ContainsKey(keyMainPlayer)) {
+                string config = rawConfig[keyMainPlayer];
+                return split_config_player(config);
+            }
+            return null;
+        }
+
 
         public static Dictionary<string, string> split_config_player(string src) {
             var split = Q3Utils.split_config(src);
@@ -188,7 +290,8 @@ namespace DemoCleaner3.DemoParser.parser
                 }
             }
             if (res.ContainsKey("team")) {
-                int.TryParse(res["team"], out int teamvalue);
+                int teamvalue;
+                int.TryParse(res["team"], out teamvalue);
                 if (teamvalue >= 0 && teamvalue < teamsFrendlyInfo.Length) {
                     res["team"] = teamsFrendlyInfo[teamvalue];
                 }
