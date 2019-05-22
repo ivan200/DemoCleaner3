@@ -57,3 +57,6 @@ bin/Release/DemoCleaner3.exe.config
 bin/Release/WindowsFormsApplication1.vshost.exe
 bin/Release/WindowsFormsApplication1.vshost.exe.config
 bin/Release/WindowsFormsApplication1.vshost.exe.manifest
+bin/Release/DemoCleaner3.vshost.exe
+bin/Release/DemoCleaner3.vshost.exe.config
+bin/Release/DemoCleaner3.vshost.exe.manifest
