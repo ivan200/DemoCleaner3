@@ -30,10 +30,13 @@ namespace DemoCleaner3.DemoParser.structures
         public long serverTime;
         public int playerNum;
         public int playerMode;
-        //PM_NORMAL,        // can accelerate and turn
-        //PM_NOCLIP,        // noclip movement
-        //PM_SPECTATOR,    // still run into walls
-        //PM_DEAD,        // no acceleration or turning, but free falling
+
+        public enum PlayerMode {
+            PM_NORMAL,        // can accelerate and turn
+            PM_NOCLIP,        // noclip movement
+            PM_SPECTATOR,    // still run into walls
+            PM_DEAD        // no acceleration or turning, but free falling
+        }
 
         public int userStat;
         //stats[12]

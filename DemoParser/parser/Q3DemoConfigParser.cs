@@ -221,10 +221,12 @@ namespace DemoCleaner3.DemoParser.parser
                 }
                 if (prevEvent.userStat != snapshot.ps.stats[12]) {
                     if ((prevEvent.userStat & 4) != (snapshot.ps.stats[12] & 4)) {
-                        if ((prevEvent.userStat & 2) == 0) {
-                            clientEvent.eventStartTime = true;
-                        } else {
-                            clientEvent.eventTimeReset = true;
+                        if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
+                            if ((prevEvent.userStat & 2) == 0) {
+                                clientEvent.eventStartTime = true;
+                            } else {
+                                clientEvent.eventTimeReset = true;
+                            }
                         }
                     } else if ((prevEvent.userStat & 8) == 0 && (snapshot.ps.stats[12] & 8) != 0) {
                         if (!clientEvent.eventChangeUser) {

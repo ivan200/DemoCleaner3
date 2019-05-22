@@ -40,6 +40,20 @@ namespace DemoCleaner3
             }
             return 0;
         }
+         
+        public static T MinOf<T>(IEnumerable<T> collection, Func<T, long> minComparizon) {
+            long minResult = long.MaxValue;
+            T minObject = default(T);
+            foreach (var val in collection) {
+                var res = minComparizon(val);
+                if (minResult > res) {
+                    minResult = res;
+                    minObject = val;
+                }
+            }
+            return minObject;
+        }
+
     }
 
     public static class Ext2<TKey, TValue> where TValue : new()

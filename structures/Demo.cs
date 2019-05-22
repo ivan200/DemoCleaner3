@@ -7,6 +7,9 @@ using System.Text.RegularExpressions;
 using System.Globalization;
 using DemoCleaner3.DemoParser.huffman;
 using DemoCleaner3.DemoParser;
+using DemoCleaner3.DemoParser.structures;
+using DemoCleaner3.ExtClasses;
+using DemoCleaner3.structures;
 
 namespace DemoCleaner3
 {
@@ -199,85 +202,53 @@ namespace DemoCleaner3
             }
 
             var filename = getNormalizedFileName(file);
-            var countryName = getNameAndCountry(filename);
-            var demoNameTime = tryGetTimeFromFileName(filename);
-
-            //names
+            var countryAndName = getNameAndCountry(filename);
             string dfName = null;                                       //name in the game in the demo names
             string uName = null;                                        //name in the game
-            string demoUserName = tryGetNameFromBrackets(countryName);  //name from the filename
+            string demoUserName = tryGetNameFromBrackets(countryAndName);  //name from the filename
 
-            if (frConfig.ContainsKey(RawInfo.keyPlayer)) {
-                var kPlayer = frConfig[RawInfo.keyPlayer];
-
-                dfName = Ext.GetOrNull(kPlayer, "df_name");
-                uName = Ext.GetOrNull(kPlayer, "name");
-                uName = RawInfo.removeColors(uName);
-                uName = RawInfo.normalizeName(uName);
-            }
-
-            demo.playerName = chooseName(dfName, uName, demoUserName);
-            if (demo.playerName == "UnnamedPlayer") {
-                demo.playerName = chooseName(uName, dfName, demoUserName);
-            }
+            //names
+            var names = new DemoNames(Ext.GetOrNull(frConfig, RawInfo.keyPlayer), demoUserName);
 
             //times
-            if (raw.allTimes.Count > 0) {
-                for (int i = 0; i < raw.allTimes.Count; i++) {
-                    var demoTimeCmd = raw.allTimes[i];
-                    TimeSpan time = new TimeSpan();
-                    string oName = "";  //online or offline name derived from a line in the console
+            if (raw.fin.HasValue) {
+                demo.time = TimeSpan.FromMilliseconds(raw.fin.Value.Value.time);
+            }
 
-                    switch (demoTimeCmd.Key) {
-                        case RawInfo.TimeType.OFFLINE_NORMAL:
-                            time = RawInfo.getTimeOfflineNormal(demoTimeCmd.Value);
-                            oName = RawInfo.getNameOffline(demoTimeCmd.Value);
-                            break;
-                        case RawInfo.TimeType.ONLINE_NORMAL:
-                            time = RawInfo.getTimeOnline(demoTimeCmd.Value);
-                            oName = RawInfo.getNameOnline(demoTimeCmd.Value);
-                            break;
-                        case RawInfo.TimeType.OFFLINE_OLD1:
-                            time = RawInfo.getTimeOld1(demoTimeCmd.Value);
-                            oName = RawInfo.getNameOfflineOld1(demoTimeCmd.Value);
-                            break;
-                        case RawInfo.TimeType.OFFLINE_OLD2:
-                            time = RawInfo.getTimeOfflineNormal(demoTimeCmd.Value);
-                            break;
-                        case RawInfo.TimeType.OFFLINE_OLD3:
-                            time = RawInfo.getTimeOld3(demoTimeCmd.Value);
-                            break;
+            var timestrings = raw.timeStrings;
+            if (demo.time.TotalMilliseconds > 0) {
+                var date = timestrings.LastOrDefault(x => x.recordDate != null);
+                demo.recordTime = date?.recordDate;
+            } else {
+                TimeStringInfo fastestTimeString = null;
+                if (timestrings.Count == 1) {
+                    fastestTimeString = timestrings.First();
+                } else if (timestrings.Count >= 1) {
+                    var cuStrings = timestrings.Where(x => (!string.IsNullOrEmpty(x.oName) && (x.oName == dfName || x.oName == uName)));
+                    if (cuStrings.Count() > 0) {
+                        fastestTimeString = Ext.MinOf(cuStrings, x => (long) x.time.TotalMilliseconds);
                     }
-
-                    /*//If there is only one entry
-                    if (raw.allTimes.Count == 1 ||
-                        //Or if one of the names of those who passed the card matches the name in the parameters of the demo
-                        (!string.IsNullOrEmpty(oName) && (oName == dfName || oName == uName || oName == demoUserName))
-                        //or if the demo filename has time and it corresponds finisher time
-                        || (demoNameTime.HasValue && demoNameTime.Value.TotalMilliseconds == time.TotalMilliseconds)) {
-                    }*/
-
-                        //If there is only one entry
-                        if (raw.allTimes.Count == 1 ||
-                        //Or if one of the names of those who passed the card matches the name in the parameters of the demo
-                        (!string.IsNullOrEmpty(oName) && (oName == dfName || oName == uName) )){
-                        if (demo.time.TotalMilliseconds == 0 || demo.time.TotalMilliseconds > time.TotalMilliseconds) {
-                            demo.time = time;
-                            if (i < raw.dateStamps.Count) {
-                                demo.recordTime = RawInfo.getDateForDemo(raw.dateStamps[i]);
-                            }
-                            if (oName.Length > 0) {
-                                demo.playerName = dfName;
-                            }
+                }
+                if (fastestTimeString != null) {
+                    demo.time = fastestTimeString.time;
+                    demo.recordTime = fastestTimeString.recordDate;
+                    if (fastestTimeString.oName.Length > 0) {
+                        var user = raw.getPlayerInfoByPlayerName(fastestTimeString.oName);
+                        if (user != null) {
+                            names = new DemoNames(user, demoUserName);
+                        } else {
+                            names = new DemoNames(fastestTimeString.oName, demoUserName);
                         }
                     }
                 }
             }
+            demo.playerName = names.normalName;
 
             //at least some time (from the name of the demo)
             if (demo.time.TotalMilliseconds > 0) {
                 demo.rawTime = true;
             } else {
+                var demoNameTime = tryGetTimeFromFileName(filename);
                 if (demoNameTime != null) {
                     demo.time = demoNameTime.Value;
                 }
@@ -358,19 +329,8 @@ namespace DemoCleaner3
             demo.validity = checkValidity(frConfig, demo.time.TotalMilliseconds > 0, demo.rawTime, protocol);
 
             //demo has not info about country, so take it from filename
-            demo.country = tryGetCountryFromBrackets(countryName);
+            demo.country = tryGetCountryFromBrackets(countryAndName);
             return demo;
-        }
-
-        //selection of the first non-empty string from parameters
-        private static string chooseName(params string[] names)
-        {
-            for (int i = 0; i < names.Length - 1; i++) {
-                if (!string.IsNullOrEmpty(names[i])) {
-                    return names[i];
-                }
-            }
-            return names[names.Length - 1];
         }
 
         //We are trying to get the name and country from the demo (the first occurrence of two round brackets)

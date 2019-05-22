@@ -92,6 +92,7 @@
     <Compile Include="DemoParser\parser\Q3DemoMessage.cs" />
     <Compile Include="DemoParser\parser\Q3DemoParser.cs" />
     <Compile Include="DemoParser\parser\Q3MessageStream.cs" />
+    <Compile Include="structures\DemoNames.cs" />
     <Compile Include="structures\RawInfo.cs" />
     <Compile Include="DemoParser\utils\BitStreamReader.cs" />
     <Compile Include="DemoParser\utils\Q3Utils.cs" />
@@ -111,6 +112,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="structures\TimeStringInfo.cs" />
     <EmbeddedResource Include="DemoInfoForm.resx">
       <DependentUpon>DemoInfoForm.cs</DependentUpon>
     </EmbeddedResource>
