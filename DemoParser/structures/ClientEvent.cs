@@ -11,6 +11,7 @@ namespace DemoCleaner3.DemoParser.structures
         public bool eventTimeReset = false;
         public bool eventFinish = false;
         public bool eventCheckPoint = false;
+        public bool eventSomeTrigger = false;
         public bool eventChangePmType = false; //normal, noclip, spectator, death
         public bool eventChangeUser = false;
 
@@ -22,7 +23,7 @@ namespace DemoCleaner3.DemoParser.structures
         public bool hasAnyEvent {
             get {
                 return eventStartFile || eventStartTime || eventTimeReset || eventFinish
-                    || eventCheckPoint || eventChangePmType || eventChangeUser;
+                    || eventCheckPoint || eventChangePmType || eventChangeUser || eventSomeTrigger;
             }
         }
 

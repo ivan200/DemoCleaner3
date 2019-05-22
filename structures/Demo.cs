@@ -26,6 +26,7 @@ namespace DemoCleaner3
         public bool hasError;
         public bool hasCorrectName = false;
         public DateTime? recordTime;
+        public bool hasTr = false;
 
         string dfType;
         string physic;
@@ -55,15 +56,19 @@ namespace DemoCleaner3
 
                 if (time.TotalMilliseconds > 0) {
                     //if we have time, write a normal name for the demo
-                    demoname = string.Format("{0}[{1}]{2:D2}.{3:D2}.{4:D3}({5})",
-                    mapName, modphysic, (int) time.TotalMinutes, time.Seconds, time.Milliseconds, playerCountry);
+                    string trString = hasTr ? "_tr" : "";
+                    demoname = string.Format("{0}{1}[{2}]{3:D2}.{4:D2}.{5:D3}({6})",
+                    mapName, trString, modphysic, (int) time.TotalMinutes, time.Seconds, time.Milliseconds, playerCountry);
                     hasCorrectName = true;
                 } else {
                     hasCorrectName = false;
                     //if there is no time, then tormented with the generation of text
                     string oldName = file.Name;
                     oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //remove the extension
-                    oldName = removeSubstr(oldName, mapName);                               //remove the card name
+                    oldName = removeSubstr(oldName, mapName);                               //remove the map name
+                    if (country.Length > 0) {
+                        oldName = removeSubstr(oldName, playerCountry, false);
+                    }
                     oldName = removeSubstr(oldName, playerName, false);                     //remove the player name
                     oldName = removeSubstr(oldName, country, false);                        //remove the country
                     oldName = removeSubstr(oldName, modphysic);                             //remove the mod with physics
@@ -213,6 +218,7 @@ namespace DemoCleaner3
             //times
             if (raw.fin.HasValue) {
                 demo.time = TimeSpan.FromMilliseconds(raw.fin.Value.Value.time);
+                demo.hasTr = raw.fin.Value.Key > 1;
             }
 
             var timestrings = raw.timeStrings;
@@ -295,11 +301,13 @@ namespace DemoCleaner3
                 if (gName?.ToLowerInvariant() == "defrag" || fsGName?.ToLowerInvariant() == "defrag") {
                     demo.dfType = "df";
 
-                    //в старых протоколах может не быть инфы о промоде, тогда там вку3
+                    //in older protocols may not be information about physic, then there vq3
                     if (string.IsNullOrEmpty(demo.physic)) {
                         demo.physic = "vq3";
                     }
-                } else {
+                } else if (gName?.ToLowerInvariant() == "osp") {
+                    demo.dfType = "osp";
+                } else { 
                     demo.dfType = "dm";
                 }
             }

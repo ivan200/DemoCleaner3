@@ -40,7 +40,7 @@ namespace DemoCleaner3
             }
             return 0;
         }
-         
+
         public static T MinOf<T>(IEnumerable<T> collection, Func<T, long> minComparizon) {
             long minResult = long.MaxValue;
             T minObject = default(T);

@@ -211,6 +211,12 @@ namespace DemoCleaner3.DemoParser.parser
             ClientEvent clientEvent = new ClientEvent(time, snapshot);
             if (events.Count == 0) {
                 clientEvent.eventStartFile = true;
+                var prevStat = 0;
+                if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
+                    if ((prevStat & 4) != (snapshot.ps.stats[12] & 4) && (prevStat & 2) == 0) {
+                        clientEvent.eventStartTime = true;
+                    } 
+                }
             } else {
                 var prevEvent = events[events.Count - 1];
                 if (prevEvent.playerNum != snapshot.ps.clientNum) {
@@ -232,10 +238,12 @@ namespace DemoCleaner3.DemoParser.parser
                         if (!clientEvent.eventChangeUser) {
                             clientEvent.eventFinish = true;
                         }
-                    } else if((prevEvent.userStat & 16) != (snapshot.ps.stats[12] & 16)) {
+                    } else if ((prevEvent.userStat & 16) != (snapshot.ps.stats[12] & 16)) {
                         if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
                             clientEvent.eventCheckPoint = true;
                         }
+                    } else {
+                        clientEvent.eventSomeTrigger = true;
                     }
                 }
             }

@@ -85,6 +85,13 @@ namespace DemoCleaner3.DemoParser.parser
             if (fin.HasValue) {
                 kPlayer = getPlayerInfoByPlayerNum(fin.Value.Value.playerNum);
             }
+            if (kPlayer == null && clientEvents.Count > 0) {
+                //if spectator view player and there was no finish
+                var lastEvent = clientEvents.LastOrDefault();
+                if (lastEvent != null) {
+                    kPlayer = getPlayerInfoByPlayerNum(lastEvent.playerNum);
+                }
+            }
             if (kPlayer == null) {
                 kPlayer = getPlayerInfoByPlayerNum(clc.clientNum);
             }
@@ -102,7 +109,9 @@ namespace DemoCleaner3.DemoParser.parser
                 var strInfo = GetGoodTimeStringInfo();
                 if (strInfo != null) {
                     times.Add(keyRecordTime, strInfo.timeString);
-                    times.Add(keyRecordDate, strInfo.recordDateString);
+                    if (!string.IsNullOrEmpty(strInfo.recordDateString)) {
+                        times.Add(keyRecordDate, strInfo.recordDateString);
+                    }
                 } else {
                     for (int i = 0; i < timeStrings.Count; i++) {
                         var timeInfo = timeStrings[i];
@@ -135,8 +144,18 @@ namespace DemoCleaner3.DemoParser.parser
                     int ftCount = 0;
                     int pmCount = 0;
                     int cuCount = 0;
+                    int tCount = 0;
 
-                    foreach (ClientEvent ce in clientEvents) {
+                    for (int i = 0; i < clientEvents.Count; i++) {
+                        ClientEvent ce = clientEvents[i];
+                        string diff = "";
+                        if (i > 0) {
+                            var prev = clientEvents[i-1];
+                            long t = ce.time - prev.time;
+                            if (t > 0 && prev.time > 0) {
+                                diff = " (+" + getDiffByMillis(t) + ")";
+                            }
+                        }
                         if (ce.eventStartFile) {
                             var user = getPlayerInfoByPlayerNum(clc.clientNum);
                             if (user == null) {
@@ -168,10 +187,10 @@ namespace DemoCleaner3.DemoParser.parser
                             }
                         }
                         if (ce.eventFinish) {
-                            triggers.Add("FinishTimer" + getNumKey(++ftCount), getTimeByMillis(ce.time));
+                            triggers.Add("FinishTimer" + getNumKey(++ftCount), getTimeByMillis(ce.time) + diff);
                         }
                         if (ce.eventCheckPoint) {
-                            triggers.Add("CheckPoint" + getNumKey(++cpCount), getTimeByMillis(ce.time));
+                            triggers.Add("CheckPoint" + getNumKey(++cpCount), getTimeByMillis(ce.time) + diff);
                         }
                         if (ce.eventChangePmType) {
                             if (ClientEvent.pmTypesStrings.Length > ce.playerMode) {
@@ -179,6 +198,9 @@ namespace DemoCleaner3.DemoParser.parser
                             } else {
                                 triggers.Add("ChangePlayerMode" + getNumKey(++pmCount), ce.playerMode.ToString());
                             }
+                        }
+                        if (ce.eventSomeTrigger && ce.playerMode == (int)ClientEvent.PlayerMode.PM_NORMAL) {
+                            triggers.Add("EventTrigger" + getNumKey(++tCount), getTimeByMillis(ce.time) + diff);
                         }
                         if (ce.eventChangeUser) {
                             var user = getPlayerInfoByPlayerNum(ce.playerNum);
@@ -269,6 +291,17 @@ namespace DemoCleaner3.DemoParser.parser
         public static string getTimeByMillis(long millis) {
             var time = TimeSpan.FromMilliseconds(millis);
             return string.Format("{0:D2}.{1:D2}.{2:D3}", (int)time.TotalMinutes, time.Seconds, time.Milliseconds);
+        }
+
+        public static string getDiffByMillis(long diff) {
+            var time = TimeSpan.FromMilliseconds(diff);
+            if (time.Seconds < 1) {
+                return string.Format("0.{0:D3}", time.Milliseconds);
+            } else if ((int)time.TotalMinutes < 1) {
+                return string.Format("{0}.{1:D3}", time.Seconds, time.Milliseconds);
+            } else {
+                return string.Format("{0}.{1:D2}.{2:D3}", (int)time.TotalMinutes, time.Seconds, time.Milliseconds);
+            }
         }
 
 
@@ -438,7 +471,6 @@ namespace DemoCleaner3.DemoParser.parser
                 : Regex.Replace(name, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
         }
 
-
         private KeyValuePair<int, ClientEvent>? getCorrectFinishEvent() {
             var correctFinishes = new ListMap<int, ClientEvent>();
             for (int i = clientEvents.Count - 1; i >= 0; i--) {
@@ -447,7 +479,11 @@ namespace DemoCleaner3.DemoParser.parser
                     correctFinishes.Add(isCorrect, clientEvents[i]);
                 }
             }
-            return Ext.MinOf(correctFinishes, x => x.Value.time);
+            if (correctFinishes.Count > 0) {
+                return Ext.MinOf(correctFinishes, x => x.Value.time);
+            } else {
+                return null;
+            }
         }
 
         private static int isEventCorrect(List<ClientEvent> clientEvents, int index) {
@@ -457,7 +493,7 @@ namespace DemoCleaner3.DemoParser.parser
             }
             for (int i = index - 1; i >= 0; i--) {
                 var prev = clientEvents[i];
-                if (prev.eventChangePmType || prev.eventChangeUser || prev.eventStartFile) {
+                if (prev.eventChangePmType || prev.eventStartFile) {
                     return 0;
                 }
                 if (prev.eventTimeReset) {
@@ -465,6 +501,9 @@ namespace DemoCleaner3.DemoParser.parser
                 }
                 if (prev.eventStartTime) {
                     return 1;
+                }
+                if (prev.eventChangeUser) {
+                    return 0;
                 }
             }
             return 0;
