@@ -215,9 +215,11 @@ namespace DemoCleaner3.DemoParser.parser
                 var prevEvent = events[events.Count - 1];
                 if (prevEvent.playerNum != snapshot.ps.clientNum) {
                     clientEvent.eventChangeUser = true;
-                } else if (prevEvent.playerMode != snapshot.ps.pm_type) {
+                }
+                if (prevEvent.playerMode != snapshot.ps.pm_type) {
                     clientEvent.eventChangePmType = true;
-                } else if (prevEvent.userStat != snapshot.ps.stats[12]) {
+                }
+                if (prevEvent.userStat != snapshot.ps.stats[12]) {
                     if ((prevEvent.userStat & 4) != (snapshot.ps.stats[12] & 4)) {
                         if ((prevEvent.userStat & 2) == 0) {
                             clientEvent.eventStartTime = true;
