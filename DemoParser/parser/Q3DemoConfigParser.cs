@@ -232,8 +232,10 @@ namespace DemoCleaner3.DemoParser.parser
                         if (!clientEvent.eventChangeUser) {
                             clientEvent.eventFinish = true;
                         }
-                    } else {
-                        clientEvent.eventCheckPoint = true;
+                    } else if((prevEvent.userStat & 16) != (snapshot.ps.stats[12] & 16)) {
+                        if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
+                            clientEvent.eventCheckPoint = true;
+                        }
                     }
                 }
             }
