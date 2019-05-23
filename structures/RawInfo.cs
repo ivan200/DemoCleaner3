@@ -108,20 +108,19 @@ namespace DemoCleaner3.DemoParser.parser
             if (timeStrings.Count > 0) {
                 var strInfo = GetGoodTimeStringInfo();
                 if (strInfo != null) {
-                    times.Add(keyRecordTime, strInfo.timeString);
                     if (!string.IsNullOrEmpty(strInfo.recordDateString)) {
                         times.Add(keyRecordDate, strInfo.recordDateString);
                     }
+                    times.Add(keyRecordTime, strInfo.timeString);
                 } else {
                     for (int i = 0; i < timeStrings.Count; i++) {
                         var timeInfo = timeStrings[i];
-                        string keyTime = timeStrings.Count > 1 ? keyRecordTime + " " + (i + 1) : keyRecordTime;
-                        times.Add(keyTime, timeInfo.timeString);
-
                         if (!string.IsNullOrEmpty(timeInfo.recordDateString)) {
                             string keyDate = timeStrings.Count > 1 ? keyRecordDate + " " + (i + 1) : keyRecordDate;
-                            times.Add(keyTime, timeInfo.recordDateString);
+                            times.Add(keyDate, timeInfo.recordDateString);
                         }
+                        string keyTime = timeStrings.Count > 1 ? keyRecordTime + " " + (i + 1) : keyRecordTime;
+                        times.Add(keyTime, timeInfo.timeString);
                     }
                 }
             }
@@ -153,7 +152,7 @@ namespace DemoCleaner3.DemoParser.parser
                             var prev = clientEvents[i-1];
                             long t = ce.time - prev.time;
                             if (t > 0 && prev.time > 0) {
-                                diff = " (+" + getDiffByMillis(t) + ")";
+                                diff = string.Format(" (+{0})", getDiffByMillis(t));
                             }
                         }
                         if (ce.eventStartFile) {
@@ -343,6 +342,13 @@ namespace DemoCleaner3.DemoParser.parser
                 if (!string.IsNullOrEmpty(str.Value)) {
                     if (replaces.ContainsKey(str.Key)) {
                         res[replaces[str.Key]] = str.Value;
+                        if (str.Key == "n") {
+                            string name = str.Value;
+                            string unColoredName = removeColors(name);
+                            if (!name.Equals(unColoredName)) {
+                                res["uncoloredName"] = unColoredName;
+                            }
+                        }
                     } else {
                         res[str.Key] = str.Value;
                     }
@@ -432,6 +438,9 @@ namespace DemoCleaner3.DemoParser.parser
         public static TimeSpan getTimeSpan(string timeString)
         {
             var times = timeString.Split('-', '.', ':').Reverse().ToList();
+            if (times.Count > 0 && times[0].Length != 3) {
+                return TimeSpan.Zero;
+            }
             //since we reversed the times, milliseconds will be in the beginning
             return TimeSpan.Zero
                 .Add(TimeSpan.FromMilliseconds(times.Count > 0 ? int.Parse(times[0]) : 0))

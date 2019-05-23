@@ -53,6 +53,15 @@ namespace DemoCleaner3
             }
             return minObject;
         }
+        public static int CountOf<T>(IEnumerable<T> collection, T toCompare) {
+            int count = 0;
+            foreach (var val in collection) {
+                if (val.Equals(toCompare)) {
+                    count++;
+                }
+            }
+            return count;
+        }
 
     }
 

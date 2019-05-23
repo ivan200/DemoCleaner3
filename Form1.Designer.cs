@@ -92,6 +92,7 @@
             this.toolStripStatusNumbers = new System.Windows.Forms.ToolStripStatusLabel();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.toolStripStatusFileName = new System.Windows.Forms.ToolStripStatusLabel();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -806,7 +807,8 @@
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripProgressBar1,
             this.toolStripStatusLabel1,
-            this.toolStripStatusNumbers});
+            this.toolStripStatusNumbers,
+            this.toolStripStatusFileName});
             this.statusStrip1.Location = new System.Drawing.Point(0, 278);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(369, 22);
@@ -841,6 +843,11 @@
             this.toolTip1.InitialDelay = 300;
             this.toolTip1.IsBalloon = true;
             this.toolTip1.ReshowDelay = 100;
+            // 
+            // toolStripStatusFileName
+            // 
+            this.toolStripStatusFileName.Name = "toolStripStatusFileName";
+            this.toolStripStatusFileName.Size = new System.Drawing.Size(0, 17);
             // 
             // Form1
             // 
@@ -955,5 +962,6 @@
         private System.Windows.Forms.LinkLabel linkLabelInfoRenamer;
         private System.Windows.Forms.CheckBox checkBoxStopOnException;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusNumbers;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusFileName;
     }
 }

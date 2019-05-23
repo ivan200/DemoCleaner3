@@ -43,6 +43,10 @@ namespace DemoCleaner3
             }
         }
 
+        private void setProgressFileName(string fileName) {
+            toolStripStatusFileName.Text = fileName;
+        }
+
         FolderBrowser2 folderBrowserDialog;
 
         public DirectoryInfo _currentDemoPath;
@@ -469,6 +473,7 @@ namespace DemoCleaner3
 
         delegate void SetItemInt(int num);
         delegate void SetItem(bool num);
+        delegate void SetItemString(string fileName);
 
         //turn off access to the elements in the demo processing (and then turn on)
         private void SetButtonCallBack(bool enabled)
@@ -515,6 +520,11 @@ namespace DemoCleaner3
                 textBoxMoveDemosFolder.Text = Path.Combine(_currentDemoPath.FullName, _moveDemosdirName);
             }
 
+            //if (job == JobType.RENAME) {
+            //    RenameThread(_currentDemoPath);
+            //    return;
+            //} 
+
             //We start a thread in which we will process everything
             backgroundThread = new Thread(delegate () {
                 try {
@@ -531,9 +541,11 @@ namespace DemoCleaner3
                     this.Invoke(new SetItemInt(setProgressPercent), 0);
                     this.Invoke(new SetItem(SetButtonCallBack), true);
                     this.Invoke(new SetItemInt(showEndMessage), job);
+                    this.Invoke(new SetItemString(setProgressFileName), "");
                 } catch (Exception ex) {
                     this.Invoke(new SetItemInt(setProgressPercent), 0);
                     this.Invoke(new SetItem(SetButtonCallBack), true);
+                    this.Invoke(new SetItemString(setProgressFileName), "");
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             });
@@ -883,7 +895,7 @@ namespace DemoCleaner3
         }
 
 
-        //Fix the demos!
+        //Fix demos!
         private void runRename(DirectoryInfo filedemos)
         {
             var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
@@ -903,6 +915,7 @@ namespace DemoCleaner3
 
             foreach (var file in files) {
                 try {
+                    this.Invoke(new SetItemString(setProgressFileName), file.Name);
                     demo = Demo.GetDemoFromFileRaw(file);
                     demo.useValidation = checkBoxRulesValidation.Checked;
 
@@ -933,6 +946,70 @@ namespace DemoCleaner3
             if (exception != null) {
                 throw new Exception(exception.Message + "\nFile:\n" + filepath);
             }
+        }
+
+
+
+        void RenameThread(DirectoryInfo filedemos) {
+            //We start a thread in which we will process everything
+            backgroundThread = new Thread(delegate () {
+                var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
+                    SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                if (radioRenameBad.Checked) {
+                    files = files.Where(x => Demo.GetDemoFromFile(x).hasError == true).ToArray();
+                }
+                fileHelper.resetValues(files.Length);
+
+                var renameFiles = new Stack<FileInfo>(files);
+                var badFiles = new Stack<Demo>();
+
+                var objPair = new KeyValuePair<Stack<FileInfo>, Stack<Demo>>(renameFiles, badFiles);
+
+                int toProcess = 10;
+                using (ManualResetEvent resetEvent = new ManualResetEvent(false)) {
+                    for (int i = 0; i < toProcess; i++) {
+                        ThreadPool.QueueUserWorkItem(new WaitCallback(x => {
+                            renameInsideThread(x);
+
+                            // Safely decrement the counter
+                            if (Interlocked.Decrement(ref toProcess) == 0)
+                                resetEvent.Set();
+                        }), objPair);
+                    }
+                    resetEvent.WaitOne();
+                }
+                fileHelper.resetValues(badFiles.Count, false);
+                operateBadDemos(badFiles);
+
+                if (checkBoxDeleteEmptyDirs.Checked) {
+                    fileHelper.deleteEmpty(_currentDemoPath);
+                }
+                this.Invoke(new SetItemInt(setProgressPercent), 0);
+                this.Invoke(new SetItem(SetButtonCallBack), true);
+                this.Invoke(new SetItemInt(showEndMessage), job);
+            });
+            backgroundThread.Start();
+        }
+
+        void renameInsideThread(object callback) {
+            var filesObject = (KeyValuePair<Stack<FileInfo>, Stack<Demo>>)callback;
+            do {
+                var file = filesObject.Key.Pop();
+                var demo = Demo.GetDemoFromFileRaw(file);
+                demo.useValidation = checkBoxRulesValidation.Checked;
+
+                string newPath = fileHelper.renameFile(file, demo.demoNewName, checkBoxDeleteIdentical.Checked);
+
+                if (File.Exists(newPath)) {
+                    demo.file = new FileInfo(newPath);
+                    if (checkBoxFixCreationTime.Checked) {
+                        fileHelper.fixCreationTime(demo.file, demo.recordTime);
+                    }
+                }
+                if (!demo.hasCorrectName) {
+                    filesObject.Value.Push(demo);
+                }
+            } while (filesObject.Key.Count > 0);
         }
     }
 }

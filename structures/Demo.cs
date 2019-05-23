@@ -298,7 +298,8 @@ namespace DemoCleaner3
             if (gType == 0) {
                 var gName = Ext.GetOrNull(frConfig[RawInfo.keyClient], "gamename");
                 var fsGName = frConfig.ContainsKey(RawInfo.keyGame) ? Ext.GetOrNull(frConfig[RawInfo.keyGame], "fs_game") : "";
-                if (gName?.ToLowerInvariant() == "defrag" || fsGName?.ToLowerInvariant() == "defrag") {
+                var fsdf = fsGName?.ToLowerInvariant()?.StartsWith("defrag");
+                if (gName?.ToLowerInvariant() == "defrag" || (fsdf.HasValue && fsdf.Value)) {
                     demo.dfType = "df";
 
                     //in older protocols may not be information about physic, then there vq3
@@ -423,7 +424,7 @@ namespace DemoCleaner3
                 filename = Uri.UnescapeDataString(filename);
             }
             //r7-falkydf.cpm00.09.960xas.China.dm_68
-            if (!filename.Contains("[") && !filename.Contains("]") && !filename.Contains("(") && !filename.Contains("]")) {
+            if (!filename.Contains("[") && !filename.Contains("]") && !filename.Contains("(") && !filename.Contains(")")) {
                 int index = Math.Max(filename.IndexOf(".cpm"), filename.IndexOf(".vq3"));
                 if (index > 0) {
                     try {
@@ -444,6 +445,22 @@ namespace DemoCleaner3
                     }
                 }
             }
+            //dfcomp009_3.792_VipeR_Russia.dm_68
+            //dmp02a_jinx_13.880_t0t3r_germany.dm_68
+            if (Ext.CountOf(filename, '_') >= 4 && !filename.Contains("(") && !filename.Contains(")")) {
+                var array = filename.Substring(0, filename.Length - file.Extension.Length).Split('_');
+                TimeSpan? time = null;
+                for (int i = 1; i < 4; i++) {
+                    if (time == null) {
+                        time = tryGetTimeFromBrackets(array[i]);
+                    }
+                }
+                if (time != null) {
+                    var fName = string.Join("_", array.Take(array.Length - 2).ToArray());
+                    filename = string.Format("{0}({1}.{2}){3}", fName, array[array.Length - 2], array[array.Length - 1], file.Extension);
+                }
+            }
+
             return filename;
         }
 

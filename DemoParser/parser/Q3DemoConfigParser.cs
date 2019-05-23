@@ -202,7 +202,7 @@ namespace DemoCleaner3.DemoParser.parser
         }
 
         private void updateClientEvents(CLSnapshot snapshot) {
-            if (client.dfvers <= 0 || client.mapNameChecksum <= 0) {
+            if (client.dfvers <= 0 || client.mapname.Length <= 0) {
                 return;
             }
             var time = getTime(snapshot.ps, (int)snapshot.serverTime, client.dfvers, client.mapNameChecksum);
