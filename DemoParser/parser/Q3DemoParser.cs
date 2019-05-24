@@ -41,7 +41,7 @@ namespace DemoCleaner3.DemoParser.parser
                 }
             }
             catch (Exception r) {
-                Console.WriteLine(r.Message);
+                Q3Utils.PrintDebug(r.Message);
             }
             messageStream.close();
             return msgParser;

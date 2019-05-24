@@ -35,5 +35,13 @@ namespace DemoCleaner3.DemoParser.utils
             }
             return rez;
         }
+
+        static bool debug = false;
+        public static void PrintDebug(string message, params object[] arg) {
+            if(debug) Console.WriteLine(message, arg); 
+        }
+        public static void PrintDebug(string message) {
+            if (debug) Console.WriteLine(message);
+        }
     }
 }

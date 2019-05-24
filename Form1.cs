@@ -615,8 +615,6 @@ namespace DemoCleaner3
                 return;
             }
 
-            //var badDemos = demos.Where(x => x.hasError == true);//.OrderBy(x => x.file.Name);
-
             var count = badDemos.Count();
 
             if (count > 0) {
@@ -948,8 +946,6 @@ namespace DemoCleaner3
             }
         }
 
-
-
         void RenameThread(DirectoryInfo filedemos) {
             //We start a thread in which we will process everything
             backgroundThread = new Thread(delegate () {
@@ -960,21 +956,23 @@ namespace DemoCleaner3
                 }
                 fileHelper.resetValues(files.Length);
 
-                var renameFiles = new Stack<FileInfo>(files);
                 var badFiles = new Stack<Demo>();
 
-                var objPair = new KeyValuePair<Stack<FileInfo>, Stack<Demo>>(renameFiles, badFiles);
+                int threadCount = 10;
+                int fileCountForThread = files.Length / threadCount;
 
-                int toProcess = 10;
+                var splittedFiles = Ext.Split(files, fileCountForThread);
+
+                int toProcess = splittedFiles.Count();
                 using (ManualResetEvent resetEvent = new ManualResetEvent(false)) {
-                    for (int i = 0; i < toProcess; i++) {
+                    foreach (var split in splittedFiles) {
                         ThreadPool.QueueUserWorkItem(new WaitCallback(x => {
                             renameInsideThread(x);
 
                             // Safely decrement the counter
                             if (Interlocked.Decrement(ref toProcess) == 0)
                                 resetEvent.Set();
-                        }), objPair);
+                        }), new KeyValuePair<IEnumerable<FileInfo>, Stack<Demo>>(split, badFiles));
                     }
                     resetEvent.WaitOne();
                 }
@@ -992,9 +990,10 @@ namespace DemoCleaner3
         }
 
         void renameInsideThread(object callback) {
-            var filesObject = (KeyValuePair<Stack<FileInfo>, Stack<Demo>>)callback;
-            do {
-                var file = filesObject.Key.Pop();
+            var filesObject = (KeyValuePair<IEnumerable<FileInfo>, Stack<Demo>>)callback;
+
+            foreach (var file in filesObject.Key) {
+                this.Invoke(new SetItemString(setProgressFileName), file.Name);
                 var demo = Demo.GetDemoFromFileRaw(file);
                 demo.useValidation = checkBoxRulesValidation.Checked;
 
@@ -1009,7 +1008,7 @@ namespace DemoCleaner3
                 if (!demo.hasCorrectName) {
                     filesObject.Value.Push(demo);
                 }
-            } while (filesObject.Key.Count > 0);
+            }
         }
     }
 }

@@ -200,7 +200,7 @@ namespace DemoCleaner3.DemoParser
 
             int lc = readByte();
             if (lc < 0 || lc > MapperFactory.EntityStateFieldNum) {
-                Console.WriteLine("invalid entityState field count: {" + lc + "}");
+                Q3Utils.PrintDebug("invalid entityState field count: {" + lc + "}");
                 return false;
             }
 

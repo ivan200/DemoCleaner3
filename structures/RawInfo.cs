@@ -212,7 +212,7 @@ namespace DemoCleaner3.DemoParser.parser
                         }
                     }
                 } catch (Exception ex) {
-                    Console.WriteLine(ex.Message);
+                    Q3Utils.PrintDebug(ex.Message);
                 }
                 friendlyInfo.Add(keyTriggers, triggers);
             }
@@ -263,16 +263,25 @@ namespace DemoCleaner3.DemoParser.parser
                 time = fin.Value.Value.time;
             }
             var tmpNames = new DemoNames(kPlayer, null);
-            for (int i = 0; i < timeStrings.Count; i++) {
-                if (!string.IsNullOrEmpty(timeStrings[i].oName)) {
-                    if (timeStrings[i].time.TotalMilliseconds == time && 
-                        (timeStrings[i].oName == tmpNames.uName || timeStrings[i].oName == tmpNames.dfName)) {
-                        return timeStrings[i];
+
+            if (time > 0) {
+                for (int i = 0; i < timeStrings.Count; i++) {
+                    if (!string.IsNullOrEmpty(timeStrings[i].oName)) {
+                        var sameName = (timeStrings[i].oName == tmpNames.uName || timeStrings[i].oName == tmpNames.dfName);
+                        if (timeStrings[i].time.TotalMilliseconds == time && sameName) {
+                            return timeStrings[i];
+                        }
+                    } else {
+                        if (timeStrings[i].time.TotalMilliseconds == time) {
+                            return timeStrings[i];
+                        }
                     }
-                } else {
-                    if (timeStrings[i].time.TotalMilliseconds == time) {
-                        return timeStrings[i];
-                    }
+                }
+            } else {
+                var userStrings = timeStrings.Where(x => !string.IsNullOrEmpty(x.oName)
+                    && (x.oName == tmpNames.uName || x.oName == tmpNames.dfName)).ToList();
+                if (userStrings.Count > 0) {
+                    return Ext.MinOf(userStrings, x => (long)x.time.TotalMilliseconds);
                 }
             }
             return null;
@@ -387,12 +396,15 @@ namespace DemoCleaner3.DemoParser.parser
         public static TimeSpan getTimeOfflineNormal(string demoTimeCmd)
         {
             //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
+            //print \"Time performed by Chell ^s: 00:54:184\n\"
 
             //TODO проверить, что будет если в df_name будет со спецсимволами, например двоеточие, вопрос, кавычки
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");     //print Time performed  by uN-DeaD!Enter : 31:432 (v1.91.23 beta)
-
+            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^.|\\\"|\\n|\")", "");     //print Time performed  by uN-DeaD!Enter : 31:432 (v1.91.23 beta)
             demoTimeCmd = demoTimeCmd.Substring(demoTimeCmd.IndexOf(':') + 2);      //31:432 (v1.91.23 beta)
-            demoTimeCmd = demoTimeCmd.Substring(0, demoTimeCmd.IndexOf(' ')).Trim();    //31:432
+            var spInd = demoTimeCmd.IndexOf(' ');
+            if (spInd > 0) {
+                demoTimeCmd = demoTimeCmd.Substring(0, spInd).Trim();    //31:432
+            }
 
             return getTimeSpan(demoTimeCmd);
         }
@@ -400,7 +412,8 @@ namespace DemoCleaner3.DemoParser.parser
         public static string getNameOffline(string demoTimeCmd)
         {
             //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Time performed  by uN-DeaD!Enter : 31:432 (v1.91.23 beta)
+            //print \"Time performed by Chell ^s: 00:54:184\n\"
+            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^.|\\\"|\\n|\")", "");          //print Time performed  by uN-DeaD!Enter : 31:432 (v1.91.23 beta)
             demoTimeCmd = demoTimeCmd.Substring(24);                                         //uN-DeaD!Enter : 31:432 (v1.91.23 beta)
             demoTimeCmd = demoTimeCmd.Substring(0, demoTimeCmd.LastIndexOf(" : "));          //uN-DeaD!Enter
             return normalizeName(demoTimeCmd);
@@ -464,12 +477,12 @@ namespace DemoCleaner3.DemoParser.parser
             return null;
         }
 
-        //remove the color from the painted nick
-        public static string removeColors(string name)
+        //remove the color from the string
+        public static string removeColors(string text)
         {
-            return string.IsNullOrEmpty(name)
-                ? name
-                : Regex.Replace(name, "\\^.", "");
+            return string.IsNullOrEmpty(text)
+                ? text
+                : Regex.Replace(text, "\\^.", "");
         }
 
         //name that can be used in the file name

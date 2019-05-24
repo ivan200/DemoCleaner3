@@ -141,10 +141,23 @@ namespace DemoCleaner3
             demo.file = file;
             demo.recordTime = demo.file.CreationTime;
 
-            var sub = file.Name.Split("[]()".ToArray());
+            int index = Math.Max(file.Name.IndexOf(".cpm"), file.Name.IndexOf(".vq3"));
+            if (index <= 0) {
+                demo.hasError = true;
+                return demo;
+            }
+            int firstSquareIndex = file.Name.Substring(0, index).LastIndexOf('[');
+            if (firstSquareIndex <= 0) {
+                demo.hasError = true;
+                return demo;
+            }
+            string mapname = file.Name.Substring(0, firstSquareIndex);
+            string others = file.Name.Substring(firstSquareIndex);
+
+            var sub = others.Split("[]()".ToArray());
             if (sub.Length >= 4) {
                 //Map
-                demo.mapName = sub[0];
+                demo.mapName = mapname;
 
                 //Physic
                 demo.modphysic = sub[1];
@@ -215,7 +228,7 @@ namespace DemoCleaner3
             //names
             var names = new DemoNames(Ext.GetOrNull(frConfig, RawInfo.keyPlayer), demoUserName);
 
-            //times
+            //time from triggers
             if (raw.fin.HasValue) {
                 demo.time = TimeSpan.FromMilliseconds(raw.fin.Value.Value.time);
                 demo.hasTr = raw.fin.Value.Key > 1;
@@ -226,11 +239,12 @@ namespace DemoCleaner3
                 var date = timestrings.LastOrDefault(x => x.recordDate != null);
                 demo.recordTime = date?.recordDate;
             } else {
+                //time from commands
                 TimeStringInfo fastestTimeString = null;
                 if (timestrings.Count == 1) {
                     fastestTimeString = timestrings.First();
                 } else if (timestrings.Count >= 1) {
-                    var cuStrings = timestrings.Where(x => (!string.IsNullOrEmpty(x.oName) && (x.oName == dfName || x.oName == uName)));
+                    var cuStrings = timestrings.Where(x => (!string.IsNullOrEmpty(x.oName) && (x.oName == names.dfName || x.oName == names.uName)));
                     if (cuStrings.Count() > 0) {
                         fastestTimeString = Ext.MinOf(cuStrings, x => (long) x.time.TotalMilliseconds);
                     }
@@ -250,7 +264,7 @@ namespace DemoCleaner3
             }
             demo.playerName = names.normalName;
 
-            //at least some time (from the name of the demo)
+            //at least some time (from name of demo)
             if (demo.time.TotalMilliseconds > 0) {
                 demo.rawTime = true;
             } else {
@@ -299,7 +313,7 @@ namespace DemoCleaner3
                 var gName = Ext.GetOrNull(frConfig[RawInfo.keyClient], "gamename");
                 var fsGName = frConfig.ContainsKey(RawInfo.keyGame) ? Ext.GetOrNull(frConfig[RawInfo.keyGame], "fs_game") : "";
                 var fsdf = fsGName?.ToLowerInvariant()?.StartsWith("defrag");
-                if (gName?.ToLowerInvariant() == "defrag" || (fsdf.HasValue && fsdf.Value)) {
+                if (gName?.ToLowerInvariant() == "defrag" || (fsdf.HasValue && fsdf.Value) || demo.rawTime == true) {
                     demo.dfType = "df";
 
                     //in older protocols may not be information about physic, then there vq3
@@ -335,7 +349,7 @@ namespace DemoCleaner3
             }
 
             //If demo has cheats, write it
-            demo.validity = checkValidity(frConfig, demo.time.TotalMilliseconds > 0, demo.rawTime, protocol);
+            demo.validity = checkValidity(frConfig, demo.time.TotalMilliseconds > 0, demo.rawTime, demo.dfType);
 
             //demo has not info about country, so take it from filename
             demo.country = tryGetCountryFromBrackets(countryAndName);
@@ -455,7 +469,7 @@ namespace DemoCleaner3
                         time = tryGetTimeFromBrackets(array[i]);
                     }
                 }
-                if (time != null) {
+                if (time != null && time.Value.TotalMilliseconds > 0) {
                     var fName = string.Join("_", array.Take(array.Length - 2).ToArray());
                     filename = string.Format("{0}({1}.{2}){3}", fName, array[array.Length - 2], array[array.Length - 1], file.Extension);
                 }
@@ -474,7 +488,7 @@ namespace DemoCleaner3
         }
 
         //check demo for validity
-        static string checkValidity(Dictionary<string, Dictionary<string, string>> frConfig, bool hasTime, bool hasRawTime, int protocol) {
+        static string checkValidity(Dictionary<string, Dictionary<string, string>> frConfig, bool hasTime, bool hasRawTime, string dfType) {
             if (!frConfig.ContainsKey(RawInfo.keyGame)) {
                 return "";
             }
@@ -490,13 +504,9 @@ namespace DemoCleaner3
             var online = gametype > 3;
             string res;
 
-            var fs = (gametype == 2 || gametype == 6);
+            var fs = (gametype == 2 || gametype == 6 || dfType == "dm");
             if (!fs) {
                 res = checkKey(kGame, "sv_cheats", 0); if (res.Length > 0) return res;
-            }
-
-            if(online && !fs) { 
-                res = checkKey(kGame, "df_mp_interferenceoff", 3);  if (res.Length > 0) return res;
             }
 
             res = checkKey(kGame, "timescale", 1);                  if (res.Length > 0) return res;
@@ -507,6 +517,10 @@ namespace DemoCleaner3
             if (hasTime && !hasRawTime) {
                 //If the demo was not found messages about the finish map
                 return "client_finish=false";
+            }
+
+            if (online && !fs) {
+                res = checkKey(kGame, "df_mp_interferenceoff", 3); if (res.Length > 0) return res;
             }
 
             res = checkKey(kGame, "pmove_msec", 8);                 if (res.Length > 0) return res;

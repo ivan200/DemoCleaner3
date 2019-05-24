@@ -63,6 +63,24 @@ namespace DemoCleaner3
             return count;
         }
 
+        public static List<List<T>> Split<T>(IEnumerable<T> collection, int chunkSize) {
+            var splitList = new List<List<T>>();
+            var chunkCount = (int)Math.Ceiling((double)collection.Count() / (double)chunkSize);
+
+            for (int c = 0; c < chunkCount; c++) {
+                var skip = c * chunkSize;
+                var take = skip + chunkSize;
+                var chunk = new List<T>(chunkSize);
+
+                for (int e = skip; e < take && e < collection.Count(); e++) {
+                    chunk.Add(collection.ElementAt(e));
+                }
+
+                splitList.Add(chunk);
+            }
+
+            return splitList;
+        }
     }
 
     public static class Ext2<TKey, TValue> where TValue : new()
