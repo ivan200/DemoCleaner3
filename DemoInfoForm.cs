@@ -1,5 +1,7 @@
-﻿using DemoCleaner3.ExtClasses;
+﻿using DemoCleaner3.DemoParser.parser;
+using DemoCleaner3.ExtClasses;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
@@ -51,11 +53,23 @@ namespace DemoCleaner3
                 grid.Rows.Add();
                 grid.Rows[grid.RowCount - 1].Cells[0].Value = cType.Key;
 
-                foreach (var cKey in cType.Value) {
-                    grid.Rows.Add();
+                if (cType.Key == RawInfo.keyConsole && cType.Value.Count > 500) { //reduce huge lag with console duplicates spamming
+                    var newDict = new Dictionary<string, string>();
+                    foreach (var cKey in cType.Value) {
+                        if (!newDict.ContainsKey(cKey.Value)) {
+                            newDict.Add(cKey.Value, cKey.Key);  //just put k/v in new dict by value
+                            grid.Rows.Add();
+                            grid.Rows[grid.RowCount - 1].Cells[1].Value = cKey.Key;
+                            grid.Rows[grid.RowCount - 1].Cells[2].Value = cKey.Value;
+                        }
+                    }
+                } else {
+                    foreach (var cKey in cType.Value) {
+                        grid.Rows.Add();
 
-                    grid.Rows[grid.RowCount - 1].Cells[1].Value = cKey.Key;
-                    grid.Rows[grid.RowCount - 1].Cells[2].Value = cKey.Value;
+                        grid.Rows[grid.RowCount - 1].Cells[1].Value = cKey.Key;
+                        grid.Rows[grid.RowCount - 1].Cells[2].Value = cKey.Value;
+                    }
                 }
             }
         }
