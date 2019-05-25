@@ -82,7 +82,7 @@
             this.buttonRename = new System.Windows.Forms.Button();
             this.buttonSingleFileInfo = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.checkBoxStopOnException = new System.Windows.Forms.CheckBox();
+            this.checkBoxMakeLog = new System.Windows.Forms.CheckBox();
             this.linkLabelInfoAdditional = new System.Windows.Forms.LinkLabel();
             this.checkBoxDeleteIdentical = new System.Windows.Forms.CheckBox();
             this.checkBoxDeleteEmptyDirs = new System.Windows.Forms.CheckBox();
@@ -90,9 +90,9 @@
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusNumbers = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusFileName = new System.Windows.Forms.ToolStripStatusLabel();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.toolStripStatusFileName = new System.Windows.Forms.ToolStripStatusLabel();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -743,7 +743,7 @@
             // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this.checkBoxStopOnException);
+            this.tabPage2.Controls.Add(this.checkBoxMakeLog);
             this.tabPage2.Controls.Add(this.linkLabelInfoAdditional);
             this.tabPage2.Controls.Add(this.checkBoxDeleteIdentical);
             this.tabPage2.Controls.Add(this.groupBoxBadDemos);
@@ -756,15 +756,15 @@
             this.tabPage2.Text = "Additional options";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // checkBoxStopOnException
+            // checkBoxMakeLog
             // 
-            this.checkBoxStopOnException.AutoSize = true;
-            this.checkBoxStopOnException.Location = new System.Drawing.Point(6, 124);
-            this.checkBoxStopOnException.Name = "checkBoxStopOnException";
-            this.checkBoxStopOnException.Size = new System.Drawing.Size(112, 17);
-            this.checkBoxStopOnException.TabIndex = 25;
-            this.checkBoxStopOnException.Text = "Stop on exception";
-            this.checkBoxStopOnException.UseVisualStyleBackColor = true;
+            this.checkBoxMakeLog.AutoSize = true;
+            this.checkBoxMakeLog.Location = new System.Drawing.Point(6, 124);
+            this.checkBoxMakeLog.Name = "checkBoxMakeLog";
+            this.checkBoxMakeLog.Size = new System.Drawing.Size(195, 17);
+            this.checkBoxMakeLog.TabIndex = 25;
+            this.checkBoxMakeLog.Text = "Create a log file for all file operations";
+            this.checkBoxMakeLog.UseVisualStyleBackColor = true;
             // 
             // linkLabelInfoAdditional
             // 
@@ -832,6 +832,11 @@
             this.toolStripStatusNumbers.Name = "toolStripStatusNumbers";
             this.toolStripStatusNumbers.Size = new System.Drawing.Size(0, 17);
             // 
+            // toolStripStatusFileName
+            // 
+            this.toolStripStatusFileName.Name = "toolStripStatusFileName";
+            this.toolStripStatusFileName.Size = new System.Drawing.Size(0, 17);
+            // 
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
@@ -843,11 +848,6 @@
             this.toolTip1.InitialDelay = 300;
             this.toolTip1.IsBalloon = true;
             this.toolTip1.ReshowDelay = 100;
-            // 
-            // toolStripStatusFileName
-            // 
-            this.toolStripStatusFileName.Name = "toolStripStatusFileName";
-            this.toolStripStatusFileName.Size = new System.Drawing.Size(0, 17);
             // 
             // Form1
             // 
@@ -960,7 +960,7 @@
         private System.Windows.Forms.LinkLabel linkLabelInfoCleaner;
         private System.Windows.Forms.LinkLabel linkLabelInfoMover;
         private System.Windows.Forms.LinkLabel linkLabelInfoRenamer;
-        private System.Windows.Forms.CheckBox checkBoxStopOnException;
+        private System.Windows.Forms.CheckBox checkBoxMakeLog;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusNumbers;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusFileName;
     }

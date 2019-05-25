@@ -75,6 +75,7 @@
     <Compile Include="DemoParser\structures\TrType.cs" />
     <Compile Include="ExtClasses\FileHelper.cs" />
     <Compile Include="ExtClasses\ListMap.cs" />
+    <Compile Include="ExtClasses\LogWriter.cs" />
     <Compile Include="structures\Demo.cs" />
     <Compile Include="DemoInfoForm.cs">
       <SubType>Form</SubType>

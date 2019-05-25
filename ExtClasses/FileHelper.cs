@@ -10,10 +10,12 @@ namespace DemoCleaner3.ExtClasses
     {
         Action<int> _onProgressPercentChanged;
         Action<int> _onProgressChanged;
+        LogWriter logger;
 
         public FileHelper(Action<int> onProgressChanged = null, Action<int> onProgressPercentChanged = null) {
             _onProgressChanged = onProgressChanged;
             _onProgressPercentChanged = onProgressPercentChanged;
+            logger = new LogWriter();
         }
 
         public decimal _countMoveFiles = 0;
@@ -56,10 +58,19 @@ namespace DemoCleaner3.ExtClasses
             _countDemosAmount = demosAmount;
         }
 
+        public void StartLogger(Form1.JobType jobType) {
+            logger.openStream(jobType);
+        }
+
+        public void stopLogger() {
+            logger.closeStream();
+        }
+
         //File transfer function
         public void moveFile(FileInfo file, DirectoryInfo dir, bool deleteIdentical)
         {
             if (!dir.Exists) {
+                logger.LogWrite(LogWriter.Operation.CreateDir, dir.FullName);
                 dir.Create();
                 _countCreateDir++;
                 dir.Refresh();
@@ -79,7 +90,7 @@ namespace DemoCleaner3.ExtClasses
                     _CountProgressDemos++;
                 }
             } else {
-                moveCheckRules(file, path);
+                moveCheckRules(file, path, false);
             }
         }
 
@@ -95,11 +106,11 @@ namespace DemoCleaner3.ExtClasses
                         _CountProgressDemos++;
                     }
                 } else {
-                    moveCheckRules(file, newPath);
+                    moveCheckRules(file, newPath, true);
                 }
             } else {
                 if (!newPath.Equals(file.FullName)) {
-                    moveCheckRules(file, newPath);
+                    moveCheckRules(file, newPath, true);
                 } else {
                     _CountProgressDemos++;
                 }
@@ -111,15 +122,16 @@ namespace DemoCleaner3.ExtClasses
         {
             _countDeleteFiles++;
             _CountProgressDemos++;
+            logger.LogWrite(LogWriter.Operation.DeleteFile, file.FullName);
             tryOperateFile(file, f => {
                 file.Delete();
             });
         }
 
-        public void moveCheckRules(FileInfo file, string path)
-        {
+        public void moveCheckRules(FileInfo file, string path, bool isRenaming) {
             _countMoveFiles++;
             _CountProgressDemos++;
+            logger.LogWrite(isRenaming ? LogWriter.Operation.RenameFile : LogWriter.Operation.MoveFile, file.FullName, path);
             tryOperateFile(file, f => {
                 file.MoveTo(path);
             });
@@ -159,7 +171,9 @@ namespace DemoCleaner3.ExtClasses
                     if ((files == null || files.Count() == 0) && (dirs == null || dirs.Count() == 0)) {
                         try {
                             item.Delete();
-                        } catch (Exception) { }
+                        } catch (Exception ex) {}
+
+                        logger.LogWrite(LogWriter.Operation.DeleteDir, item.FullName);
                         _countDeleteDir++;
                     }
                 }
@@ -180,20 +194,22 @@ namespace DemoCleaner3.ExtClasses
         }
 
         public void fixCreationTime(FileInfo file, DateTime? date) {
-            if (date.HasValue) {
+            var now = DateTime.Now;
+            if (!date.HasValue && (file.CreationTime > now || file.LastWriteTime > now)) {
+                date = now;
+            }
+
+            var fc = file.CreationTime;
+
+            if (date.HasValue && (fc.Date != date.Value.Date || fc.Hour != date.Value.Hour || fc.Minute != date.Value.Minute)) {
+                logger.LogWrite(LogWriter.Operation.ChangeCreationTime, file.FullName,
+                    file.CreationTime.ToString("yyyy-MM-dd HH:mm"), date.Value.ToString("yyyy-MM-dd HH:mm"));
                 tryOperateFile(file, f => {
                     f.CreationTime = date.Value;
                     f.LastWriteTime = date.Value;
                 });
-            } else {
-                var now = DateTime.Now;
-                if (file.CreationTime > now || file.LastWriteTime > now) {
-                    tryOperateFile(file, f => {
-                        f.CreationTime = now;
-                        f.LastWriteTime = now;
-                    });
-                }
             }
         }
     }
 }
+
