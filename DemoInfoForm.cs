@@ -24,14 +24,18 @@ namespace DemoCleaner3
 
         private void DemoInfoForm_Load(object sender, EventArgs e)
         {
-            demo = Demo.GetDemoFromFileRaw(demoFile);
-            prop = Properties.Settings.Default;
-            demo.useValidation = prop.renameValidation;
+            try {
+                demo = Demo.GetDemoFromFileRaw(demoFile);
+                prop = Properties.Settings.Default;
+                demo.useValidation = prop.renameValidation;
 
-            loadFriendlyConfig(dataGridView);
-            textNewName.Text = demo.demoNewName;
+                loadFriendlyConfig(dataGridView);
+                textNewName.Text = demo.demoNewName;
 
-            fileHelper = new FileHelper();
+                fileHelper = new FileHelper();
+            } catch (Exception ex) {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         void loadFriendlyConfig(DataGridView grid)

@@ -101,10 +101,12 @@ namespace DemoCleaner3
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
+        private void Form1_Load(object sender, EventArgs e) {
             loadSettings();
+            InitHelp();
+        }
 
+        private void InitHelp() {
             var lang = System.Globalization.CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
             if (lang == "ru" || lang == "uk") {
                 toolTip1.SetToolTip(checkBoxUseSubfolders, "Искать демки в подкаталогах тоже?");
@@ -193,7 +195,7 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(checkBoxProcessMdf,
                     "If there are both online and offline demos on the same map for one player," +
                     "\nshould we keep only the best time of them?");
-                toolTip1.SetToolTip(numericUpDownCountOfBest, "A number of the best demos to save");
+                toolTip1.SetToolTip(numericUpDownCountOfBest, "Number of best demos to save");
                 toolTip1.SetToolTip(labelCountOfBest, "A number of the best demos to save");
                 toolTip1.SetToolTip(radioButtonDeleteSlow, "Slow demos - DELETE");
                 toolTip1.SetToolTip(radioButtonSkipSlow,
@@ -247,7 +249,7 @@ namespace DemoCleaner3
                 //Info
                 toolTip1.SetToolTip(linkLabelInfoCleaner,
                     "In this tab, you can clean up the folder with demos." +
-                    "\nIf you have a large number of them, and they interfere with you," +
+                    "\nIf you have a large number of them, and they're causing you issues," +
                     "\nyou can leave only the best of them, and remove the rest or move to a specific folder.");
                 toolTip1.SetToolTip(linkLabelInfoMover,
                     "In this tab it is possible to make the splitting of all the demos in the subdirectories." +
@@ -740,26 +742,44 @@ namespace DemoCleaner3
             IEnumerable<IGrouping<string, Demo>> groups = null;
 
             if (radioBestTimeOfEachPlayer.Checked) {
-                groups = goodDemos.GroupBy(
-                    x => (x.mapName
+                groups = goodDemos.GroupBy(x => (x.mapName
                     + Demo.mdfToDf(x.modphysic, checkBoxProcessMdf.Checked)
                     + x.playerName).ToLower());
             }
             if (radioBestTimesOnMap.Checked) {
-                groups = goodDemos.GroupBy(x => (
-                    x.mapName + Demo.mdfToDf(x.modphysic, checkBoxProcessMdf.Checked)).ToLower());
+                groups = goodDemos.GroupBy(x => (x.mapName 
+                + Demo.mdfToDf(x.modphysic, checkBoxProcessMdf.Checked)).ToLower());
             }
 
             Exception exception = null;
             string filepath = "";
 
             foreach (var group in groups) {
-                //var bestTime = group.Min(y => y.time);
+                List<Demo> slow = new List<Demo>();
+                int countToSave = (int)numericUpDownCountOfBest.Value;
 
-                var ordered = group.OrderBy(x => x.time).ToList();
+                var groupedByValidity = group.GroupBy(x => x.validity);
+                if (groupedByValidity.Count() > 1) {
+                    //if we have valid and invalid demos, then we save countToSave amount valid demos
+                    //and countToSave amount of demos with every invalid rule, but only if they are faster then valid
 
-                var slow = ordered.Skip((int)numericUpDownCountOfBest.Value);
+                    var lDict = new Dictionary<string, List<Demo>>();
+                    foreach (var g in groupedByValidity) {
+                        var ordered = g.OrderBy(x => x.time).ToList();
+                        lDict.Add(g.Key, ordered.Take(countToSave).ToList());
+                        slow.AddRange(ordered.Skip(countToSave).ToList());
+                    }
+                    long slowestTime = long.MaxValue;
+                    if (lDict.ContainsKey("")) {
+                        slowestTime = (long) lDict[""].LastOrDefault().time.TotalMilliseconds;
+                    }
 
+                    slow.AddRange(lDict.SelectMany(x => x.Value)
+                        .Where(x=>x.time.TotalMilliseconds > slowestTime));
+                } else { 
+                    var ordered = group.OrderBy(x => x.time).ToList();
+                    slow = ordered.Skip(countToSave).ToList();
+                }
                 foreach (var demo in slow) {
                     try {
                         if (radioButtonDeleteSlow.Checked) {
@@ -944,7 +964,6 @@ namespace DemoCleaner3
             DemoInfoForm demoInfoForm = new DemoInfoForm();
             demoInfoForm.demoFile = new FileInfo(fileName);
             demoInfoForm.formLink = this;
-            demoInfoForm.Icon = this.Icon;
             demoInfoForm.Show();
         }
 

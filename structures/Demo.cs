@@ -32,7 +32,7 @@ namespace DemoCleaner3
         string physic;
         string modNum;
 
-        string validity = "";
+        public string validity = "";
         public bool useValidation = true;
         public bool rawTime = false;
 
@@ -178,6 +178,13 @@ namespace DemoCleaner3
                 var countryName = sub[3];
                 demo.country = tryGetCountryFromBrackets(countryName);
                 demo.playerName = tryGetNameFromBrackets(countryName);
+
+                var c1 = file.Name.LastIndexOf(')');
+                var b1 = file.Name.LastIndexOf('{');
+                var b2 = file.Name.LastIndexOf('}');
+                if (b2 > b1 && b1 > c1 && c1 > 0) {
+                    demo.validity = file.Name.Substring(b1 + 1, b2 - b1 - 1);
+                }
             } else {
                 demo.hasError = true;
             }

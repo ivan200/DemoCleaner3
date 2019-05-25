@@ -12,7 +12,7 @@ namespace DemoCleaner3
         /// Главная точка входа для приложения.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(String[] argg)
         {
             AppDomain.CurrentDomain.AssemblyResolve += (sender, arg) => 
             {
@@ -22,7 +22,18 @@ namespace DemoCleaner3
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+
+            FileInfo demoFile = null;
+            if (argg.Length > 0) {
+                demoFile = new FileInfo(argg[0]);
+            }
+            if (demoFile != null && demoFile.Exists && demoFile.Extension.StartsWith(".dm_")) {
+                DemoInfoForm demoInfoForm = new DemoInfoForm();
+                demoInfoForm.demoFile = new FileInfo(argg[0]);
+                Application.Run(demoInfoForm);
+            } else {
+                Application.Run(new Form1());
+            }
         }
     }
 
