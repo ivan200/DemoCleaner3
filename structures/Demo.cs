@@ -37,8 +37,17 @@ namespace DemoCleaner3
         public bool rawTime = false;
 
         public RawInfo rawInfo = null;
-
         private string _demoNewName = "";
+
+        private string _normalizedFileName = "";
+        private string normalizedFileName {
+            get {
+                if (string.IsNullOrEmpty(_normalizedFileName)) {
+                    _normalizedFileName = getNormalizedFileName(file);
+                }
+                return _normalizedFileName;
+            }
+        }
 
         //generating new demo name by all information
         public string demoNewName {
@@ -48,7 +57,7 @@ namespace DemoCleaner3
                 }
 
                 if (hasError) {
-                    return file.Name;
+                    return normalizedFileName;
                 }
 
                 string demoname = "";
@@ -63,7 +72,7 @@ namespace DemoCleaner3
                 } else {
                     hasCorrectName = false;
                     //if there is no time, then tormented with the generation of text
-                    string oldName = file.Name;
+                    string oldName = normalizedFileName;
                     oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //remove the extension
                     oldName = removeSubstr(oldName, mapName);                               //remove the map name
                     if (country.Length > 0) {
@@ -139,20 +148,22 @@ namespace DemoCleaner3
         {
             Demo demo = new Demo();
             demo.file = file;
+            var filename = file.Name;
+
             demo.recordTime = demo.file.CreationTime;
 
-            int index = Math.Max(file.Name.IndexOf(".cpm"), file.Name.IndexOf(".vq3"));
+            int index = Math.Max(filename.IndexOf(".cpm"), filename.IndexOf(".vq3"));
             if (index <= 0) {
                 demo.hasError = true;
                 return demo;
             }
-            int firstSquareIndex = file.Name.Substring(0, index).LastIndexOf('[');
+            int firstSquareIndex = filename.Substring(0, index).LastIndexOf('[');
             if (firstSquareIndex <= 0) {
                 demo.hasError = true;
                 return demo;
             }
-            string mapname = file.Name.Substring(0, firstSquareIndex);
-            string others = file.Name.Substring(firstSquareIndex);
+            string mapname = filename.Substring(0, firstSquareIndex);
+            string others = filename.Substring(firstSquareIndex);
 
             var sub = others.Split("[]()".ToArray());
             if (sub.Length >= 4) {
@@ -179,11 +190,11 @@ namespace DemoCleaner3
                 demo.country = tryGetCountryFromBrackets(countryName);
                 demo.playerName = tryGetNameFromBrackets(countryName);
 
-                var c1 = file.Name.LastIndexOf(')');
-                var b1 = file.Name.LastIndexOf('{');
-                var b2 = file.Name.LastIndexOf('}');
+                var c1 = filename.LastIndexOf(')');
+                var b1 = filename.LastIndexOf('{');
+                var b2 = filename.LastIndexOf('}');
                 if (b2 > b1 && b1 > c1 && c1 > 0) {
-                    demo.validity = file.Name.Substring(b1 + 1, b2 - b1 - 1);
+                    demo.validity = filename.Substring(b1 + 1, b2 - b1 - 1);
                 }
             } else {
                 demo.hasError = true;
@@ -226,7 +237,7 @@ namespace DemoCleaner3
                 return demo;
             }
 
-            var filename = getNormalizedFileName(file);
+            var filename = demo.normalizedFileName;
             var countryAndName = getNameAndCountry(filename);
             string dfName = null;                                       //name in the game in the demo names
             string uName = null;                                        //name in the game
