@@ -263,6 +263,12 @@ namespace DemoCleaner3
                     fastestTimeString = timestrings.First();
                 } else if (timestrings.Count >= 1) {
                     var cuStrings = timestrings.Where(x => (!string.IsNullOrEmpty(x.oName) && (x.oName == names.dfName || x.oName == names.uName)));
+                    if (cuStrings.Count() == 0) {
+                        var groups = timestrings.GroupBy(x => x.oName);
+                        if (groups.Count() == 1) {
+                            cuStrings = timestrings;
+                        }
+                    }
                     if (cuStrings.Count() > 0) {
                         fastestTimeString = Ext.MinOf(cuStrings, x => (long) x.time.TotalMilliseconds);
                     }
@@ -340,8 +346,12 @@ namespace DemoCleaner3
                     }
                 } else if (gName?.ToLowerInvariant() == "osp") {
                     demo.dfType = "osp";
-                } else { 
+                } else {
                     demo.dfType = "dm";
+                }
+            } else {
+                if (string.IsNullOrEmpty(demo.physic)) {
+                    demo.physic = "vq3";
                 }
             }
 
