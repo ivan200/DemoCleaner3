@@ -44,6 +44,12 @@ namespace DemoCleaner3.ExtClasses
             }
         }
 
+        public void increaseProgressCount(int byValue) {
+            if (byValue > 0) {
+                _CountProgressDemos += byValue;
+            }
+        }
+
         //Reset the counter
         public void resetValues(int demosAmount, bool clearCounter = true)
         {

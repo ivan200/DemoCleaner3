@@ -40,6 +40,15 @@ namespace DemoCleaner3
             }
             subkeys[0] = getFirstDir(key);
 
+            for (int i = 0; i < subkeys.Count; i++) {
+                if (ReservedStrings.ContainsKey(subkeys[i].ToLowerInvariant())) {
+                    subkeys[i] = subkeys[i] + "-";
+                }
+            }
+            if (ReservedStrings.ContainsKey(key.ToLowerInvariant())) {
+                key = key + "-";
+            }
+
             var separator = Path.DirectorySeparatorChar.ToString();
 
             var minString = string.Join(separator, subkeys.Take(index + 1).ToArray());
@@ -54,6 +63,14 @@ namespace DemoCleaner3
             }
             return key.Substring(index, 1);
         }
+
+
+        //The following are(case insensitive) reserved names which cannot be assigned to a directory or file in Windows:
+        static Dictionary<string, string> ReservedStrings = new string[24] {
+            "CON","PRN","AUX","NUL",
+            "COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM0",
+            "LPT1","LPT2","LPT3","LPT4","LPT5","LPT6","LPT7","LPT8","LPT9","LPT0"
+        }.ToDictionary(x => x.ToLowerInvariant());
 
     }
 }

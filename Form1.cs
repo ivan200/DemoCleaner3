@@ -760,8 +760,8 @@ namespace DemoCleaner3
 
                 var groupedByValidity = group.GroupBy(x => x.validity);
                 if (groupedByValidity.Count() > 1) {
-                    //if we have valid and invalid demos, then we save countToSave amount valid demos
-                    //and countToSave amount of demos with every invalid rule, but only if they are faster then valid
+                    //if we have valid and invalid demos, then we save 'countToSave' amount valid demos
+                    //and 'countToSave' amount of demos with every invalid rule, but only if they are faster then valid
 
                     var lDict = new Dictionary<string, List<Demo>>();
                     foreach (var g in groupedByValidity) {
@@ -780,6 +780,8 @@ namespace DemoCleaner3
                     var ordered = group.OrderBy(x => x.time).ToList();
                     slow = ordered.Skip(countToSave).ToList();
                 }
+
+                fileHelper.increaseProgressCount(group.Count() - slow.Count);
                 foreach (var demo in slow) {
                     try {
                         if (radioButtonDeleteSlow.Checked) {
