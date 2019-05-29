@@ -515,7 +515,7 @@ namespace DemoCleaner3.DemoParser.parser
             }
             for (int i = index - 1; i >= 0; i--) {
                 var prev = clientEvents[i];
-                if (prev.eventChangePmType || prev.eventStartFile) {
+                if (prev.eventChangePmType) {
                     return 0;
                 }
                 if (prev.eventTimeReset) {
@@ -524,7 +524,9 @@ namespace DemoCleaner3.DemoParser.parser
                 if (prev.eventStartTime) {
                     return 1;
                 }
-                if (prev.eventChangeUser) {
+                //it is possible to start file in one frame with start timer, so check for start file is after
+                //if change user and start timer was in one frame, so demo is normal
+                if (prev.eventStartFile || prev.eventChangeUser) { 
                     return 0;
                 }
             }

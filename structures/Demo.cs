@@ -184,6 +184,9 @@ namespace DemoCleaner3
                 } catch (Exception) {
                     demo.hasError = true;
                 }
+                if (demo.time.TotalMilliseconds <= 0) {
+                    demo.hasError = true;
+                }
 
                 //Name + country
                 var countryName = sub[3];
