@@ -81,7 +81,7 @@ namespace DemoCleaner3
         private void buttonRename_Click(object sender, EventArgs e)
         {
             try {
-                string newPath = fileHelper.renameFile(demo.file, demo.demoNewName, prop.deleteIdentical);
+                string newPath = fileHelper.renameFile(demo.file, textNewName.Text, prop.deleteIdentical);
                 if (prop.renameFixCreationTime) {
                     fileHelper.fixCreationTime(demo.file, demo.recordTime);
                 }
