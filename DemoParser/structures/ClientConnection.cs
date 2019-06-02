@@ -30,6 +30,7 @@ namespace DemoCleaner3.DemoParser.structures
 
         public Dictionary<long, string> console = new Dictionary<long, string>();
         public Dictionary<short, string> configs = new Dictionary<short, string>();
+        public Dictionary<string, string> errors = new Dictionary<string, string>();
 
         public Dictionary<long, EntityState> entityBaselines = new Dictionary<long, EntityState>();
 

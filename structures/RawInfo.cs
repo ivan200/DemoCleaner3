@@ -25,6 +25,7 @@ namespace DemoCleaner3.DemoParser.parser
         public static string keyRecordDate = "date";
         public static string keyRaw = "raw";
         public static string keyConsole = "console";
+        public static string keyErrors = "errors";
         public static string keyBestTime = "bestTime";
 
         public Dictionary<short, string> rawConfig;
@@ -212,7 +213,7 @@ namespace DemoCleaner3.DemoParser.parser
                         }
                     }
                 } catch (Exception ex) {
-                    Q3Utils.PrintDebug(ex.Message);
+                    Q3Utils.PrintDebug(clc.errors, ex.Message);
                 }
                 friendlyInfo.Add(keyTriggers, triggers);
             }
@@ -254,6 +255,15 @@ namespace DemoCleaner3.DemoParser.parser
                 }
                 friendlyInfo.Add(keyConsole, conTexts);
             }
+            if (clc.errors.Count > 0) {
+                Dictionary<string, string> errTexts = new Dictionary<string, string>();
+                int i = 0;
+                foreach (var kv in clc.errors) {
+                    errTexts.Add((++i).ToString(), kv.Key.ToString());
+                }
+                friendlyInfo.Add(keyErrors, errTexts);
+            }
+
             return friendlyInfo;
         }
 

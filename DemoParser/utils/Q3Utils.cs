@@ -38,10 +38,24 @@ namespace DemoCleaner3.DemoParser.utils
 
         static bool debug = false;
         public static void PrintDebug(string message, params object[] arg) {
-            if(debug) Console.WriteLine(message, arg); 
+            string errorstring = string.Format(message, arg);
+            PrintDebug(errorstring);
         }
         public static void PrintDebug(string message) {
-            if (debug) Console.WriteLine(message);
+            if (debug) {
+                Console.WriteLine(message);
+            }
         }
+
+        public static void PrintDebug(Dictionary<string, string> errorsdict, string message, params object[] arg) {
+            string errorstring = string.Format(message, arg);
+            errorsdict[errorstring] = null;
+            PrintDebug(errorstring);
+        }
+        public static void PrintDebug(Dictionary<string, string> errorsdict, string message) {
+            errorsdict[message] = null;
+            PrintDebug(message);
+        }
+
     }
 }
