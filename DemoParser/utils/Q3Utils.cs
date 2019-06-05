@@ -31,7 +31,11 @@ namespace DemoCleaner3.DemoParser.utils
             Dictionary<string, string> rez = new Dictionary<string, string>();
             for (int k = begin_ind; k < src2.Length-1; k += 2)
             {
-                rez.Add(src2[k].ToLower(), src2[k + 1]);
+                var key = src2[k];
+                var value = src2[k + 1];
+                if (!string.IsNullOrEmpty(value)) {
+                    rez.Add(key, value);
+                }
             }
             return rez;
         }

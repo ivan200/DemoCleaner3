@@ -61,6 +61,17 @@ namespace DemoCleaner3
                 }
             }
             return count;
+        } 
+
+        public static int IndexOf<T>(IEnumerable<T> collection, Func<T, bool> function) {
+            int i = 0;
+            foreach (var val in collection) {
+                if (function(val)) {
+                    return i;
+                }
+                i++;
+            }
+            return -1;
         }
 
         public static List<List<T>> Split<T>(IEnumerable<T> collection, int chunkSize) {
@@ -80,6 +91,14 @@ namespace DemoCleaner3
             }
 
             return splitList;
+        }
+
+        public static Dictionary<string, V> LowerKeys<V>(Dictionary<string, V> dictionary) {
+            Dictionary<string, V> rez = new Dictionary<string, V>();
+            foreach (var item in dictionary) {
+                rez.Add(item.Key.ToLowerInvariant(), item.Value);
+            }
+            return rez;
         }
     }
 

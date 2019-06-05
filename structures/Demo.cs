@@ -81,6 +81,7 @@ namespace DemoCleaner3
                     oldName = removeSubstr(oldName, playerName, false);                     //remove the player name
                     oldName = removeSubstr(oldName, country, false);                        //remove the country
                     oldName = removeSubstr(oldName, modphysic);                             //remove the mod with physics
+                    //oldName = removeSubstr(oldName, dfType);                                //remove the mod
                     oldName = removeSubstr(oldName, physic);                                //remove physics
                     oldName = removeSubstr(oldName, validity);                              //remove validation lines
                     oldName = removeDouble(oldName);                                        //remove double characters (except brackets)
@@ -347,14 +348,31 @@ namespace DemoCleaner3
                     if (string.IsNullOrEmpty(demo.physic)) {
                         demo.physic = "vq3";
                     }
-                } else if (gName?.ToLowerInvariant() == "osp") {
+                } else if (gName?.ToLowerInvariant() == "osp" || fsGName == "osp") {
                     demo.dfType = "osp";
+                } else if (gName?.ToLowerInvariant() == "cpma" || fsGName == "cpma") {
+                    demo.dfType = "cpma";
                 } else {
                     demo.dfType = "dm";
                 }
             } else {
                 if (string.IsNullOrEmpty(demo.physic)) {
                     demo.physic = "vq3";
+                }
+            }
+
+            if (demo.dfType == "dm") {
+                var gameTypeDm = Ext.GetOrNull(frConfig[RawInfo.keyClient], "g_gametype");
+                int gTypeDm = -1;
+                if (!string.IsNullOrEmpty(gameTypeDm)) {
+                    int.TryParse(gameTypeDm, out gTypeDm);
+                    switch (gTypeDm) {
+                        case 0: demo.physic = "ffa"; break;
+                        case 1: demo.physic = "tour"; break;
+                        case 2: demo.physic = "ffa"; break;
+                        case 3: demo.physic = "tdm"; break;
+                        case 4: demo.physic = "ctf"; break;
+                    }
                 }
             }
 
@@ -524,7 +542,7 @@ namespace DemoCleaner3
                 return "";
             }
 
-            var kGame = frConfig[RawInfo.keyGame];
+            var kGame = Ext.LowerKeys(frConfig[RawInfo.keyGame]);
 
             var defrag_gametype = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_gametype");
             int gametype = 0;
@@ -535,8 +553,8 @@ namespace DemoCleaner3
             var online = gametype > 3;
             string res;
 
-            var fs = (gametype == 2 || gametype == 6 || dfType == "dm");
-            if (!fs) {
+            var freeStyle = (gametype == 2 || gametype == 6 || dfType == "dm");
+            if (!freeStyle) {
                 res = checkKey(kGame, "sv_cheats", 0); if (res.Length > 0) return res;
             }
 
@@ -550,12 +568,13 @@ namespace DemoCleaner3
                 return "client_finish=false";
             }
 
-            if (online && !fs) {
-                res = checkKey(kGame, "df_mp_interferenceoff", 3); if (res.Length > 0) return res;
+            if (online && !freeStyle) {
+                res = checkKey(kGame, "df_mp_interferenceoff", 3);  if (res.Length > 0) return res;
             }
 
             res = checkKey(kGame, "pmove_msec", 8);                 if (res.Length > 0) return res;
-            res = checkKey(kGame, "defrag_svfps", 125, "sv_fps");   if (res.Length > 0) return res;
+            res = checkKey(kGame, "sv_fps", 125);                   if (res.Length > 0) return res;
+            res = checkKey(kGame, "com_maxfps", 125);               if (res.Length > 0) return res;
 
             res = checkKey(kGame, "pmove_fixed", (online ? 1 : 0)); if (res.Length > 0) return res;
             res = checkKey(kGame, "g_synchronousclients", (online ? 0 : 1), "g_sync"); if (res.Length > 0) return res;

@@ -237,7 +237,7 @@ namespace DemoCleaner3.DemoParser.parser
             }
             //Game
             if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_GAME)) {
-                friendlyInfo.Add(keyGame, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_GAME]));
+                friendlyInfo.Add(keyGame, split_config_game(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_GAME]));
             }
 
             //Raw configs
@@ -342,8 +342,30 @@ namespace DemoCleaner3.DemoParser.parser
             return null;
         }
 
+
+        public static void replaceKeys(ListMap<string, string> src, Dictionary<string, string> replaces) {
+            for (int i = 0; i < src.Count; i++) {
+                var str = src[i];
+                if (replaces.ContainsKey(str.Key.ToLowerInvariant())) {
+                    src[i] = new KeyValuePair<string, string>(replaces[str.Key], str.Value);
+                }
+            }
+        }
+
+        public static Dictionary<string, string> split_config_game(string src) {
+            var split = new ListMap<string, string>(Q3Utils.split_config(src));
+
+            Dictionary<string, string> replaces = new Dictionary<string, string>();
+            replaces.Add("defrag_clfps", "com_maxfps");
+            replaces.Add("defrag_svfps", "sv_fps");
+            replaces.Add("defrag_obs", "df_ob_KillOBs");
+
+            replaceKeys(split, replaces);
+            return split.ToDictionary(); 
+        }
+
         public static Dictionary<string, string> split_config_player(string src) {
-            var split = Q3Utils.split_config(src);
+            var split = new ListMap<string, string>(Q3Utils.split_config(src));
             Dictionary<string, string> replaces = new Dictionary<string, string>();
             replaces.Add("n", "name");
             replaces.Add("dfn", "df_name");
@@ -356,23 +378,18 @@ namespace DemoCleaner3.DemoParser.parser
             replaces.Add("tt", "teamTask");
             replaces.Add("tl", "teamLeader");
 
-            Dictionary<string, string> res = new Dictionary<string, string>();
-            foreach (var str in split) {
-                if (!string.IsNullOrEmpty(str.Value)) {
-                    if (replaces.ContainsKey(str.Key)) {
-                        res[replaces[str.Key]] = str.Value;
-                        if (str.Key == "n") {
-                            string name = str.Value;
-                            string unColoredName = removeColors(name);
-                            if (!name.Equals(unColoredName)) {
-                                res["uncoloredName"] = unColoredName;
-                            }
-                        }
-                    } else {
-                        res[str.Key] = str.Value;
-                    }
+            replaceKeys(split, replaces);
+            var nameIndex = Ext.IndexOf(split, x => x.Key.ToLowerInvariant() == "name");
+            if (nameIndex >= 0) {
+                var name = split[nameIndex].Value;
+                string unColoredName = removeColors(name);
+                if (!name.Equals(unColoredName)) {
+                    split.Insert(nameIndex + 1, new KeyValuePair<string, string>("uncoloredName", unColoredName));
                 }
             }
+
+            Dictionary<string, string> res = split.ToDictionary();
+
             if (res.ContainsKey("team")) {
                 int teamvalue;
                 int.TryParse(res["team"], out teamvalue);
