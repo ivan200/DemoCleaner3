@@ -24,6 +24,9 @@ namespace DemoCleaner3
 
         private void DemoInfoForm_Load(object sender, EventArgs e)
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+
             try {
                 demo = Demo.GetDemoFromFileRaw(demoFile);
                 prop = Properties.Settings.Default;
@@ -94,6 +97,23 @@ namespace DemoCleaner3
         private void DemoInfoForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             formLink?.BringToFront();
+        }
+
+        
+        bool needToExit = false;
+        private void DemoInfoForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Escape && !dataGridView.IsCurrentCellInEditMode) {
+                needToExit = true;
+            }
+        }
+        private void DemoInfoForm_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Escape && needToExit) {
+                this.Close();
+            } else {
+                needToExit = false;
+            }
         }
     }
 }
