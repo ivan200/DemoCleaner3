@@ -9,6 +9,7 @@ namespace DemoCleaner3.structures
     {
         Dictionary<string, string> parameters = null;
 
+        public bool isDefrag = false;
         public string gameName;            //Defrag          //OSP
         public string gameNameShort;       //defrag          //osp
         public string gameType;            //Online defrag   //Team DM  
@@ -69,6 +70,7 @@ namespace DemoCleaner3.structures
             if (hasRawTime ||
                 game.ToLowerInvariant().StartsWith("defrag") 
                 || gName.ToLowerInvariant() == "defrag") {
+                isDefrag = true;
                 return new Pair("defrag", "Defrag");
             }
             if (game == "cpma") {
@@ -190,9 +192,9 @@ namespace DemoCleaner3.structures
                 case "cpma":
                     switch (g_gametype) {
                         case 5: return new Pair("ca", "Clan Arena");
-                        case 6: return new Pair("fr", "Freeze");
-                        case 7: return new Pair("ctfs", "CTFS");
-                        case 8: return new Pair("ntf", "NTF");
+                        case 6: return new Pair("ft", "Freeze Tag");
+                        case 7: return new Pair("ctfs", "Capturestrike");
+                        case 8: return new Pair("ntf", "Not Team Fortress");
                         case -1: return new Pair("hm", "Hoonymode");
                     }
                     break;
@@ -216,7 +218,7 @@ namespace DemoCleaner3.structures
                     if (g_serverData.Contains("G03")) return new Pair("tdm", "Team Deathmatch");
                     if (g_serverData.Contains("G04")) return new Pair("ctf", "Capture the Flag");
                     if (g_serverData.Contains("G05")) return new Pair("ofc", "One Flag CTF");
-                    if (g_serverData.Contains("G09")) return new Pair("cst", "Capturestrike");
+                    if (g_serverData.Contains("G09")) return new Pair("ctfs", "Capturestrike");
                     if (g_serverData.Contains("G10") || g_serverData.Contains("G010")) return new Pair("cctf", "Classic CTF");
                     if (g_serverData.Contains("G11") || g_serverData.Contains("G011")) return new Pair("ar", "Arena");
                     break;
