@@ -28,10 +28,6 @@ namespace DemoCleaner3
         public DateTime? recordTime;
         public bool hasTr = false;
 
-        string dfType;
-        string physic;
-        string modNum;
-
         public string validity = "";
         public bool useValidation = true;
         public bool rawTime = false;
@@ -78,11 +74,14 @@ namespace DemoCleaner3
                     if (country.Length > 0) {
                         oldName = removeSubstr(oldName, playerCountry, false);
                     }
+                    oldName = oldName.Replace("[dm]", "");  //replace previous wrong mod detection
                     oldName = removeSubstr(oldName, playerName, false);                     //remove the player name
                     oldName = removeSubstr(oldName, country, false);                        //remove the country
                     oldName = removeSubstr(oldName, modphysic);                             //remove the mod with physics
-                    //oldName = removeSubstr(oldName, dfType);                                //remove the mod
-                    oldName = removeSubstr(oldName, physic);                                //remove physics
+                    if (rawInfo != null && rawInfo.gameInfo != null) {
+                        oldName = removeSubstr(oldName, rawInfo.gameInfo.gameNameShort);    //remove the mod
+                    }
+                    //oldName = removeSubstr(oldName, physic);                              //remove physics
                     oldName = removeSubstr(oldName, validity);                              //remove validation lines
                     oldName = removeDouble(oldName);                                        //remove double characters (except brackets)
                     oldName = oldName.Replace("[]", "").Replace("()", "");                  //remove the empty brackets
@@ -131,14 +130,21 @@ namespace DemoCleaner3
             int cropend = 0;
             int pos = fromstart ? input.IndexOf(include) : input.LastIndexOf(include);
             if (pos > 0) {
-                symbol = input[pos - 1] + "";
-                cropstart = char.IsLetterOrDigit(input[pos - 1]) ? 0 : 1;
+                var s = input[pos - 1];
+                cropstart = char.IsLetterOrDigit(s) ? 0 : 1;
+                if (cropstart > 0) {
+                    symbol = s.ToString();
+                }
             }
             if (pos + include.Length + 1 < input.Length) {
-                cropend = char.IsLetterOrDigit(input[pos + include.Length]) ? 0 : 1;
-                symbol = input[pos + include.Length] + "";
+                var s = input[pos + include.Length];
+                cropend = char.IsLetterOrDigit(s) ? 0 : 1;
+                if (cropend > 0) {
+                    symbol = s.ToString();
+                }
             }
-            if (symbol == ")" || symbol == "]" || symbol == "}") {
+            if ((cropstart > 0 && (symbol == "(" || symbol == "[" || symbol == "{"))
+                || (cropend > 0 && (symbol == ")" || symbol == "]" || symbol == "}"))) {
                 symbol = "_";
             }
             return input.Substring(0, pos - cropstart) + symbol + input.Substring(pos + include.Length + cropend);
@@ -314,97 +320,19 @@ namespace DemoCleaner3
             }
 
             //Gametype
-            //var parameters = Ext.Join(frConfig[RawInfo.keyClient], frConfig[RawInfo.keyGame]);
-            //var gInfo = new GameInfo(parameters, demo.rawTime);
-
-            //demo.dfType = gInfo.gameTypeShort;
-
-
-            var gameType = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_gametype");
-            int gType = 0;
-            if (!string.IsNullOrEmpty(gameType)) {
-                int.TryParse(gameType, out gType);
-                switch (gType) {
-                    case 1: demo.dfType = "df"; break;
-                    case 2: demo.dfType = "fs"; break;
-                    case 3: demo.dfType = "fc"; break;
-
-                    case 5: demo.dfType = "mdf"; break;
-                    case 6: demo.dfType = "mfs"; break;
-                    case 7: demo.dfType = "mfc"; break;
-                }
-            }
-
-            //Promode
-            var promode = Ext.GetOrNull(frConfig[RawInfo.keyClient], "df_promode");
-            if (!string.IsNullOrEmpty(promode)) {
-                int phMode = 0;
-                int.TryParse(promode, out phMode);
-                demo.physic = phMode == 1 ? "cpm" : "vq3";                  //vq3, cpm
-            }
-
-            if (gType == 0) {
-                var gName = Ext.GetOrNull(frConfig[RawInfo.keyClient], "gamename");
-                var fsGName = frConfig.ContainsKey(RawInfo.keyGame) ? Ext.GetOrNull(frConfig[RawInfo.keyGame], "fs_game") : "";
-                var fsdf = fsGName?.ToLowerInvariant()?.StartsWith("defrag");
-                if (gName?.ToLowerInvariant() == "defrag" || (fsdf.HasValue && fsdf.Value) || demo.rawTime == true) {
-                    demo.dfType = "df";
-
-                    //in older protocols may not be information about physic, then there vq3
-                    if (string.IsNullOrEmpty(demo.physic)) {
-                        demo.physic = "vq3";
-                    }
-                } else if (gName?.ToLowerInvariant() == "osp" || fsGName == "osp") {
-                    demo.dfType = "osp";
-                } else if (gName?.ToLowerInvariant() == "cpma" || fsGName == "cpma") {
-                    demo.dfType = "cpma";
+            var gInfo = raw.gameInfo;
+            if (gInfo.isDefrag) {
+                if (!string.IsNullOrEmpty(gInfo.modType)) {
+                    demo.modphysic = string.Format("{0}.{1}.{2}", gInfo.gameTypeShort, gInfo.gameplayTypeShort, gInfo.modType);
                 } else {
-                    demo.dfType = "dm";
+                    demo.modphysic = string.Format("{0}.{1}", gInfo.gameTypeShort, gInfo.gameplayTypeShort);
                 }
             } else {
-                if (string.IsNullOrEmpty(demo.physic)) {
-                    demo.physic = "vq3";
-                }
-            }
-
-            if (demo.dfType == "dm") {
-                var gameTypeDm = Ext.GetOrNull(frConfig[RawInfo.keyClient], "g_gametype");
-                int gTypeDm = -1;
-                if (!string.IsNullOrEmpty(gameTypeDm)) {
-                    int.TryParse(gameTypeDm, out gTypeDm);
-                    switch (gTypeDm) {
-                        case 0: demo.physic = "ffa"; break;
-                        case 1: demo.physic = "tour"; break;
-                        case 2: demo.physic = "ffa"; break;
-                        case 3: demo.physic = "tdm"; break;
-                        case 4: demo.physic = "ctf"; break;
-                    }
-                }
-            }
-
-            //Mode for fastcaps and freestyle
-            var dfMode = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_mode");
-            if (!string.IsNullOrEmpty(dfMode)) {
-                int defragMode = 0;
-                int.TryParse(dfMode, out defragMode);                                                     //>=0 = mode
-                demo.modNum = (gType != 1 && gType != 5) ? string.Format(".{0}", defragMode) : null;      //.0 - .7
-            }
-
-            //Joining
-            if (demo.physic != null) {
-                demo.modphysic = string.Format("{0}.{1}{2}", demo.dfType, demo.physic, demo.modNum);
-            } else {
-                demo.modphysic = demo.dfType;
-            }
-
-            int protocol = 0;
-            var protocolString = Ext.GetOrNull(frConfig[RawInfo.keyClient], "protocol");
-            if (!string.IsNullOrEmpty(protocolString)) {
-                int.TryParse(protocolString, out protocol);
+                demo.modphysic = string.Format("{0}.{1}", gInfo.gameNameShort, gInfo.gameTypeShort);
             }
 
             //If demo has cheats, write it
-            demo.validity = checkValidity(frConfig, demo.time.TotalMilliseconds > 0, demo.rawTime, demo.dfType);
+            demo.validity = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo);
 
             //demo has not info about country, so take it from filename
             demo.country = tryGetCountryFromBrackets(countryAndName);
@@ -543,24 +471,11 @@ namespace DemoCleaner3
         }
 
         //check demo for validity
-        static string checkValidity(Dictionary<string, Dictionary<string, string>> frConfig, bool hasTime, bool hasRawTime, string dfType) {
-            if (!frConfig.ContainsKey(RawInfo.keyGame)) {
-                return "";
-            }
+        static string checkValidity(bool hasTime, bool hasRawTime, GameInfo gameInfo) {
+            var kGame = Ext.LowerKeys(gameInfo.parameters);
 
-            var kGame = Ext.LowerKeys(frConfig[RawInfo.keyGame]);
-
-            var defrag_gametype = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_gametype");
-            int gametype = 0;
-            if (!string.IsNullOrEmpty(defrag_gametype)) {
-                int.TryParse(defrag_gametype, out gametype);
-            }
-
-            var online = gametype > 3;
             string res;
-
-            var freeStyle = (gametype == 2 || gametype == 6 || dfType == "dm");
-            if (!freeStyle) {
+            if (!gameInfo.isFreeStyle) {
                 res = checkKey(kGame, "sv_cheats", 0); if (res.Length > 0) return res;
             }
 
@@ -569,12 +484,12 @@ namespace DemoCleaner3
             res = checkKey(kGame, "g_gravity", 800);                if (res.Length > 0) return res;
             res = checkKey(kGame, "g_knockback", 1000);             if (res.Length > 0) return res;
 
-            if (hasTime && !hasRawTime) {
+            if (hasTime && !hasRawTime && gameInfo.isDefrag) {
                 //If the demo was not found messages about the finish map
                 return "client_finish=false";
             }
 
-            if (online && !freeStyle) {
+            if (gameInfo.isOnline && !gameInfo.isFreeStyle) {
                 res = checkKey(kGame, "df_mp_interferenceoff", 3);  if (res.Length > 0) return res;
             }
 
@@ -582,8 +497,8 @@ namespace DemoCleaner3
             res = checkKey(kGame, "sv_fps", 125);                   if (res.Length > 0) return res;
             res = checkKey(kGame, "com_maxfps", 125);               if (res.Length > 0) return res;
 
-            res = checkKey(kGame, "pmove_fixed", (online ? 1 : 0)); if (res.Length > 0) return res;
-            res = checkKey(kGame, "g_synchronousclients", (online ? 0 : 1), "g_sync"); if (res.Length > 0) return res;
+            res = checkKey(kGame, "pmove_fixed", (gameInfo.isOnline ? 1 : 0)); if (res.Length > 0) return res;
+            res = checkKey(kGame, "g_synchronousclients", (gameInfo.isOnline ? 0 : 1), "g_sync"); if (res.Length > 0) return res;
             return "";
         }
 

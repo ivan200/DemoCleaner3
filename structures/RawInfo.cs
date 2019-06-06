@@ -17,6 +17,7 @@ namespace DemoCleaner3.DemoParser.parser
         public static string keyDemoName = "demoname";
         public static string keyPlayer = "player";
         public static string keyPlayerNum = "playerNum";
+        public static string keyGameInfo = "gameInfo";
         public static string keyClient = "client";
         public static string keyGame = "game";
         public static string keyRecord = "record";
@@ -54,6 +55,7 @@ namespace DemoCleaner3.DemoParser.parser
         public KeyValuePair<int, ClientEvent>? fin = null;
 
         public Dictionary<string, string> kPlayer = null;
+        public GameInfo gameInfo = null;
 
         public RawInfo(
             string demoName, ClientConnection clientConnection, List<ClientEvent> clientEvents) {
@@ -231,13 +233,44 @@ namespace DemoCleaner3.DemoParser.parser
                 }
             }
 
-            //Client
+            Dictionary<string, string> clInfo = null;
+            Dictionary<string, string> gInfo = null;
             if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT)) {
-                friendlyInfo.Add(keyClient, Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]));
+                clInfo = Q3Utils.split_config(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]);
             }
-            //Game
             if (rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_GAME)) {
-                friendlyInfo.Add(keyGame, split_config_game(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_GAME]));
+                gInfo = split_config_game(rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_GAME]);
+            }
+
+            //Gametype
+            var parameters = Ext.Join(clInfo, gInfo);
+            gameInfo = new GameInfo(parameters);
+            var gameInfoDict = new Dictionary<string, string>();
+            if (parameters.Count > 0) {
+                bool diff = gameInfo.gameName.ToLowerInvariant() != gameInfo.gameNameShort.ToLowerInvariant();
+                if (diff) {
+                    gameInfoDict.Add("gameName", string.Format("{0} ({1})", gameInfo.gameName, gameInfo.gameNameShort));
+                } else {
+                    gameInfoDict.Add("gameName", gameInfo.gameName);
+                }
+                gameInfoDict.Add("gameType", string.Format("{0} ({1})", gameInfo.gameType, gameInfo.gameTypeShort));
+                if (!string.IsNullOrEmpty(gameInfo.gameplayTypeShort)) {
+                    gameInfoDict.Add("gamePlay", string.Format("{0} ({1})", gameInfo.gameplayType, gameInfo.gameplayTypeShort));
+                }
+                if (!string.IsNullOrEmpty(gameInfo.modType)) {
+                    gameInfoDict.Add("modType", string.Format("{0} ({1})", gameInfo.modTypeName, gameInfo.modType));
+                }
+            }
+
+            //Game
+            var game = Ext.Join(gameInfoDict, gInfo);
+            if (game.Count > 0) {
+                friendlyInfo.Add(keyGame, game);
+            }
+
+            //Client
+            if (clInfo != null) {
+                friendlyInfo.Add(keyClient, clInfo);
             }
 
             //Raw configs

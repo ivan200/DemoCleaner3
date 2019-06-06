@@ -4,24 +4,27 @@ using System.Text;
 
 namespace DemoCleaner3.structures
 {
-    
-    class GameInfo
+    public class GameInfo
     {
-        Dictionary<string, string> parameters = null;
+        public Dictionary<string, string> parameters = null;
 
         public bool isDefrag = false;
+        public bool isFreeStyle = false;
+        public bool isOnline = true;
+
         public string gameName;            //Defrag          //OSP
         public string gameNameShort;       //defrag          //osp
         public string gameType;            //Online defrag   //Team DM  
         public string gameTypeShort;       //mdf             //tdm
         public string gameplayType;        //CPM             //VQ3
+        public string gameplayTypeShort;   //CPM             //VQ3
         public string modType;             //4                
         public string modTypeName;         //Weapons Only
 
-        public GameInfo(Dictionary<string, string> parameters, bool hasRawTime) {
+        public GameInfo(Dictionary<string, string> parameters) {
             this.parameters = parameters;
 
-            var gn = getGameName(hasRawTime);
+            var gn = getGameName();
 
             gameNameShort = gn.Key;
             gameName = gn.Value;
@@ -30,8 +33,9 @@ namespace DemoCleaner3.structures
             gameTypeShort = gt.Key;
             gameType = gt.Value;
 
+            gameplayTypeShort = getGameplayTypeShort();
             gameplayType = getGameplayType();
-             
+
             var mt = getModType();
             modType = mt.Key;
             modTypeName = mt.Value;
@@ -39,7 +43,7 @@ namespace DemoCleaner3.structures
 
         Pair getModType() {
             var defrag_gametype = Ext.GetOrZero(parameters, "defrag_gametype");
-            if (defrag_gametype > 1 && defrag_gametype != 5) {
+            if (defrag_gametype > 1 && defrag_gametype != 5) {  //df and mdf have no modtext
                 var dfMode = Ext.GetOrZero(parameters, "defrag_mode");
                 return new Pair(dfMode.ToString(), getDfModText(dfMode));
             }
@@ -60,24 +64,21 @@ namespace DemoCleaner3.structures
             return "";
         }
 
-        Pair getGameName(bool hasRawTime) {
+        Pair getGameName() {
             var game = (Ext.GetOrNull(parameters, "fs_game") ?? "").ToLowerInvariant();
             var gName = (Ext.GetOrNull(parameters, "gamename") ?? "").ToLowerInvariant();
             var gameversion = (Ext.GetOrNull(parameters, "gameversion") ?? "").ToLowerInvariant();
 
-            var names = new Pair("", "");
-
-            if (hasRawTime ||
-                game.ToLowerInvariant().StartsWith("defrag") 
+            if (game.ToLowerInvariant().StartsWith("defrag") 
                 || gName.ToLowerInvariant() == "defrag") {
                 isDefrag = true;
                 return new Pair("defrag", "Defrag");
             }
             if (game == "cpma") {
-                return new Pair("cpma", "CPMA");
+                return new Pair("cpma", "Challenge ProMode Arena");
             }
             if (game == "osp" || gameversion.StartsWith("osp")) {
-                return new Pair("osp", "OSP");
+                return new Pair("osp", "Orange Smoothie Productions");
             }
             if (game == "arena") {
                 return new Pair("ra3", "Rocket Arena");
@@ -102,7 +103,7 @@ namespace DemoCleaner3.structures
             if (game == "excessive") {
                 return new Pair("q3ex", "Excessive");
             }
-            if (game == "Reactance:IU") {
+            if (game == "reactance:iu") { //Reactance:IU
                 return new Pair("q3insta", "InstaUnlagged");
             }
             if (game == "battle") {
@@ -112,13 +113,13 @@ namespace DemoCleaner3.structures
                 return new Pair(game, "Beryllium");
             }
             if (game == "bma") {
-                return new Pair(game, "BMA");
+                return new Pair(game, "Black Metal Assault");
             }
-            if (game.StartsWith("The CorkScrew Mod")) {
-                return new Pair("corkscrew", game);
+            if (game.StartsWith("the corkscrew mod")) {
+                return new Pair("corkscrew", "The CorkScrew Mod");
             }
-            if (game == "F4A") {
-                return new Pair("f4a", game);
+            if (game == "f4a") {
+                return new Pair("f4a", "Freeze For All");
             }
             if (game == "freezeplus") {
                 return new Pair("fp", "Freeze Plus");
@@ -136,10 +137,10 @@ namespace DemoCleaner3.structures
                 return new Pair(game, "Painkeep");
             }
             if (game == "q3f" || game == "q3f2") {
-                return new Pair("q3f", "Q3F");
+                return new Pair("q3f", "Quake 3 Fortress");
             }
             if (game == "truecombat" || game == "q3tc") {
-                return new Pair("q3tc", "True Combat");
+                return new Pair("q3tc", "Quake 3 True Combat");
             }
             if (game.Contains("unlagged")) {
                 return new Pair("unlagged", "Unlagged");
@@ -147,48 +148,59 @@ namespace DemoCleaner3.structures
             if (game.Contains("westernq3")) {
                 return new Pair("westernq3", "Western Quake 3");
             }
-            return new Pair("baseq3", "Quake 3 Arena");
+            return new Pair("q3a", "Quake 3 Arena");
         }
 
-        string getGameplayType() {
+        string getGameplayTypeShort() {
             int server_promode = 0;
             switch (gameNameShort) {
                 case "defrag":
                     var promode = Ext.GetOrZero(parameters, "df_promode");
-                    return promode > 0 ? "CPM" : "VQ3";
+                    return promode > 0 ? "cpm" : "vq3";
                 case "cpma":
                     string server_gameplay = Ext.GetOrNull(parameters, "server_gameplay") ?? "";
                     switch (server_gameplay) {
-                        case "0": case "VQ3": return "VQ3";
-                        case "1": case "PMC": return "PMC";
-                        case "2": case "CPM": return "CPM";
-                        case "CQ3": return "CQ3";
+                        case "0": case "vq3": return "vq3";
+                        case "1": case "pmc": return "pmc";     //ProMode Classic
+                        case "2": case "cpm": return "cpm";
+                        case "cq3": return "cq3";               //Challenge Quake3
                     }
                     server_promode = Ext.GetOrZero(parameters, "server_promode");
-                    return server_promode > 0 ? "CPM" : "VQ3";
+                    return server_promode > 0 ? "cpm" : "vq3";
                 case "osp":
                     server_promode = Ext.GetOrZero(parameters, "server_promode");
-                    return server_promode > 0 ? "CPM" : "VQ3";
+                    return server_promode > 0 ? "cpm" : "vq3";
             }
             return "";
         }
 
+        string getGameplayType() {
+            switch (gameplayTypeShort) {
+                case "vq3": return "Vanilla Quake3";
+                case "cpm": return "Challenge ProMode";
+                case "pmc": return "ProMode Classic";
+                case "cq3": return "Challenge Quake3";
+            }
+            return "";
+        }
 
         Pair getGameType() {
             int g_gametype = Ext.GetOrZero(parameters, "g_gametype");
             switch (gameNameShort) {
                 case "defrag":
                     int dfGType = Ext.GetOrZero(parameters, "defrag_gametype");
+                    isFreeStyle = dfGType == 2 || dfGType == 6;
+                    isOnline = dfGType > 4;
                     switch (dfGType) {
-                        case 1: return new Pair("df", "Defrag");
-                        case 2: return new Pair("fs", "Freestyle");
-                        case 3: return new Pair("fc", "Fast Caps");
+                        case 1: return new Pair("df", "Offline Defrag");
+                        case 2: return new Pair("fs", "Offline Freestyle");
+                        case 3: return new Pair("fc", "Offline Fast Caps");
 
                         case 5: return new Pair("mdf", "Multiplayer Defrag");
                         case 6: return new Pair("mfs", "Multiplayer Freestyle");
                         case 7: return new Pair("mfc", "Multiplayer Fast Caps");
+                        default: return new Pair("df", "Offline Defrag");
                     }
-                    break;
                 case "cpma":
                     switch (g_gametype) {
                         case 5: return new Pair("ca", "Clan Arena");
