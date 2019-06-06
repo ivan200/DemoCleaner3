@@ -41,6 +41,19 @@ namespace DemoCleaner3
             return 0;
         }
 
+        public static Dictionary<TKey, TValue> Join <TKey, TValue>(params Dictionary<TKey, TValue>[] dicts) {
+            var nDict = new Dictionary<TKey, TValue>();
+            foreach (var dict in dicts) {
+                if (dict != null) {
+                    foreach (var item in dict) {
+                        nDict[item.Key] = item.Value;
+                    }
+                }
+            }
+            return nDict;
+        }
+
+
         public static T MinOf<T>(IEnumerable<T> collection, Func<T, long> minComparizon) {
             long minResult = long.MaxValue;
             T minObject = default(T);
@@ -111,5 +124,15 @@ namespace DemoCleaner3
             } 
             return dictionary[key];
         }
+    }
+
+    public struct Pair
+    {
+        public Pair(string key, string value) {
+            Key = key;
+            Value = value;
+        }
+        public string Key { get; }
+        public string Value { get; }
     }
 }

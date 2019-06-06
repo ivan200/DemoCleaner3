@@ -314,6 +314,12 @@ namespace DemoCleaner3
             }
 
             //Gametype
+            //var parameters = Ext.Join(frConfig[RawInfo.keyClient], frConfig[RawInfo.keyGame]);
+            //var gInfo = new GameInfo(parameters, demo.rawTime);
+
+            //demo.dfType = gInfo.gameTypeShort;
+
+
             var gameType = Ext.GetOrNull(frConfig[RawInfo.keyClient], "defrag_gametype");
             int gType = 0;
             if (!string.IsNullOrEmpty(gameType)) {

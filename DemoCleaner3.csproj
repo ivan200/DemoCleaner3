@@ -94,6 +94,7 @@
     <Compile Include="DemoParser\parser\Q3DemoParser.cs" />
     <Compile Include="DemoParser\parser\Q3MessageStream.cs" />
     <Compile Include="structures\DemoNames.cs" />
+    <Compile Include="structures\GameInfo.cs" />
     <Compile Include="structures\RawInfo.cs" />
     <Compile Include="DemoParser\utils\BitStreamReader.cs" />
     <Compile Include="DemoParser\utils\Q3Utils.cs" />
