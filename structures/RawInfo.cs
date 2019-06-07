@@ -153,8 +153,8 @@ namespace DemoCleaner3.DemoParser.parser
                         string diff = "";
                         if (i > 0) {
                             var prev = clientEvents[i-1];
-                            long t = ce.time - prev.time;
-                            if (t > 0 && prev.time > 0) {
+                            long t = ce.serverTime - prev.serverTime;
+                            if (t > 0 && prev.serverTime > 0) {
                                 diff = string.Format(" (+{0})", getDiffByMillis(t));
                             }
                         }
@@ -164,29 +164,21 @@ namespace DemoCleaner3.DemoParser.parser
                                 user = getPlayerInfoByPlayerNum(ce.playerNum);
                             }
                             string username = user == null ? null : Ext.GetOrNull(user, "name");
-                            if (string.IsNullOrEmpty(username)) {
-                                triggers.Add("StartFile", "");
-                            } else {
-                                triggers.Add("StartFile", "Client: " + username);
-                            }
+                            string userString = string.IsNullOrEmpty(username) ? "" : "Client: " + username;
+                            triggers.Add("StartFile", userString);
                         }
                         if (ce.eventStartTime) {
                             var user = getPlayerInfoByPlayerNum(ce.playerNum);
                             string username = user == null ? null : Ext.GetOrNull(user, "name");
-                            if (string.IsNullOrEmpty(username)) {
-                                triggers.Add("StartTimer" + getNumKey(++stCount), "");
-                            } else {
-                                triggers.Add("StartTimer" + getNumKey(++stCount), "Player: " + username);// + " servertime:" + getTimeByMillis(ce.serverTime)
-                            }
+                            string userString = string.IsNullOrEmpty(username) ? "" : "Player: " + username;
+                            triggers.Add("StartTimer" + getNumKey(++stCount), userString + diff);
+                            
                         }
                         if (ce.eventTimeReset) {
                             var user = getPlayerInfoByPlayerNum(ce.playerNum);
                             string username = user == null ? null : Ext.GetOrNull(user, "name");
-                            if (string.IsNullOrEmpty(username)) {
-                                triggers.Add("TimeReset" + getNumKey(++trCount), "");
-                            } else {
-                                triggers.Add("TimeReset" + getNumKey(++trCount), "Player: " + username);
-                            }
+                            string userString = string.IsNullOrEmpty(username) ? "" : "Player: " + username;
+                            triggers.Add("TimeReset" + getNumKey(++trCount), userString + diff);
                         }
                         if (ce.eventFinish) {
                             triggers.Add("FinishTimer" + getNumKey(++ftCount), getTimeByMillis(ce.time) + diff);
@@ -195,11 +187,9 @@ namespace DemoCleaner3.DemoParser.parser
                             triggers.Add("CheckPoint" + getNumKey(++cpCount), getTimeByMillis(ce.time) + diff);
                         }
                         if (ce.eventChangePmType) {
-                            if (ClientEvent.pmTypesStrings.Length > ce.playerMode) {
-                                triggers.Add("ChangePlayerMode" + getNumKey(++pmCount), ClientEvent.pmTypesStrings[ce.playerMode]);
-                            } else {
-                                triggers.Add("ChangePlayerMode" + getNumKey(++pmCount), ce.playerMode.ToString());
-                            }
+                            string pmString = ce.playerMode < ClientEvent.pmTypesStrings.Length 
+                                ? ClientEvent.pmTypesStrings[ce.playerMode] : ce.playerMode.ToString();
+                            triggers.Add("ChangePlayerMode" + getNumKey(++pmCount), pmString + diff);
                         }
                         if (ce.eventSomeTrigger && ce.playerMode == (int)ClientEvent.PlayerMode.PM_NORMAL) {
                             triggers.Add("EventTrigger" + getNumKey(++tCount), getTimeByMillis(ce.time) + diff);
@@ -207,11 +197,8 @@ namespace DemoCleaner3.DemoParser.parser
                         if (ce.eventChangeUser) {
                             var user = getPlayerInfoByPlayerNum(ce.playerNum);
                             string username = user == null ? null : Ext.GetOrNull(user, "name");
-                            if (string.IsNullOrEmpty(username)) {
-                                triggers.Add("ChangeUser" + getNumKey(++cuCount), "");
-                            } else {
-                                triggers.Add("ChangeUser" + getNumKey(++cuCount), "Player: " + username);
-                            }
+                            string userString = string.IsNullOrEmpty(username) ? "" : "Player: " + username;
+                            triggers.Add("ChangeUser" + getNumKey(++cuCount), userString + diff);
                         }
                     }
                 } catch (Exception ex) {
@@ -255,7 +242,7 @@ namespace DemoCleaner3.DemoParser.parser
                 }
                 gameInfoDict.Add("gameType", string.Format("{0} ({1})", gameInfo.gameType, gameInfo.gameTypeShort));
                 if (!string.IsNullOrEmpty(gameInfo.gameplayTypeShort)) {
-                    gameInfoDict.Add("gamePlay", string.Format("{0} ({1})", gameInfo.gameplayType, gameInfo.gameplayTypeShort));
+                    gameInfoDict.Add("gameplay", string.Format("{0} ({1})", gameInfo.gameplayType, gameInfo.gameplayTypeShort));
                 }
                 if (!string.IsNullOrEmpty(gameInfo.modType)) {
                     gameInfoDict.Add("modType", string.Format("{0} ({1})", gameInfo.modTypeName, gameInfo.modType));
@@ -456,7 +443,8 @@ namespace DemoCleaner3.DemoParser.parser
         public static TimeSpan getTimeOfflineNormal(string demoTimeCmd)
         {
             //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
-            //print \"Time performed by Chell ^s: 00:54:184\n\"
+            //print "Time performed by ^2GottWarLorD^7 : ^335:752^7 (defrag 1.9)\n"
+            //print \"Time performed by Chell ^s: 00:54:184\n\"     //q3xp 2.1
 
             //TODO проверить, что будет если в df_name будет со спецсимволами, например двоеточие, вопрос, кавычки
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^.|\\\"|\\n|\")", "");     //print Time performed  by uN-DeaD!Enter : 31:432 (v1.91.23 beta)
@@ -605,12 +593,12 @@ namespace DemoCleaner3.DemoParser.parser
 
                     //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
                     if (value.StartsWith("print \"Time performed by")) {
-                        allTimes.Add(TimeType.OFFLINE_NORMAL, value);
+                        allTimes.Add(TimeType.OFFLINE_NORMAL, value);   //defrag 1.9+
                     }
 
                     //"print \"^3Time Performed: 25:912 (defrag 1.5)\n^7\""
                     if (value.StartsWith("print \"^3Time Performed:")) {
-                        allTimes.Add(TimeType.OFFLINE_OLD2, value);
+                        allTimes.Add(TimeType.OFFLINE_OLD2, value);     //defrag 1.5
                     }
 
                     //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
@@ -620,10 +608,10 @@ namespace DemoCleaner3.DemoParser.parser
 
                 } else if (value.StartsWith("NewTime")) {
                     //"NewTime -971299442 7:200 \"defrag 1.80\" \"Viper\" route ya->->rg"
-                    allTimes.Add(TimeType.OFFLINE_OLD1, value);
+                    allTimes.Add(TimeType.OFFLINE_OLD1, value);     //defrag 1.80
                 } else if (value.StartsWith("newTime")) {
                     //newTime 47080
-                    allTimes.Add(TimeType.OFFLINE_OLD3, value);
+                    allTimes.Add(TimeType.OFFLINE_OLD3, value);     //defrag 1.42
                 }
             }
         }

@@ -74,73 +74,42 @@ namespace DemoCleaner3.structures
                 isDefrag = true;
                 return new Pair("defrag", "Defrag");
             }
-            if (game == "cpma") {
-                return new Pair("cpma", "Challenge ProMode Arena");
-            }
-            if (game == "osp" || gameversion.StartsWith("osp")) {
-                return new Pair("osp", "Orange Smoothie Productions");
-            }
-            if (game == "arena") {
-                return new Pair("ra3", "Rocket Arena");
-            }
-            if (game == "threewave") {
-                return new Pair("q3w", "Threewave CTF");
-            }
-            if (game == "freeze") {
-                return new Pair("q3ft", "Freeze Tag");
-            }
-            if (game == "ufreeze") {
-                return new Pair("q3uft", "Ultra Freeze Tag");
-            }
-            if (game == "q3ut") {
-                return new Pair("q3ut", "Urban Terror");
+
+            switch (game) {
+                case "cpma":                return new Pair("cpma", "Challenge ProMode Arena");
+                case "osp":                 return new Pair("osp", "Orange Smoothie Productions");
+                case "arena":               return new Pair("ra3", "Rocket Arena");
+                case "threewave":           return new Pair("q3w", "Threewave CTF");
+                case "freeze":              return new Pair("q3ft", "Freeze Tag");
+                case "ufreeze":             return new Pair("q3uft", "Ultra Freeze Tag");
+                case "q3ut":                return new Pair(game, "Urban Terror");
+                case "excessiveplus":       return new Pair("q3xp", "Excessive Plus");
+                case "excessive":           return new Pair("q3ex", "Excessive");
+                case "reactance:iu":        return new Pair("q3insta", "InstaUnlagged");   //Reactance:IU
+                case "battle":              return new Pair(game, "Battle");
+                case "beryllium":           return new Pair(game, "Beryllium");
+                case "bma":                 return new Pair(game, "Black Metal Assault");
+                case "the corkscrew mod":   return new Pair("corkscrew", "The CorkScrew Mod");
+                case "f4a":                 return new Pair(game, "Freeze For All");
+                case "freezeplus":          return new Pair("fp", "Freeze Plus");
+                case "generations":         return new Pair("gen", "Generations");
+                case "nemesis":             return new Pair(game, "Nemesis");
+                case "noghost":             return new Pair(game, "NoGhost");
+                case "q3f":
+                case "q3f2":                return new Pair("q3f", "Quake 3 Fortress");
+                case "truecombat":
+                case "q3tc":                return new Pair(game, "Quake 3 True Combat");
             }
 
+            if (gameversion.StartsWith("osp")) {
+                return new Pair("osp", "Orange Smoothie Productions");
+            }
             var xp_version = (Ext.GetOrNull(parameters, "xp_version") ?? "").ToLowerInvariant();
-            if (game == "excessiveplus" || xp_version.StartsWith("xp")) {
+            if (xp_version.StartsWith("xp")) {
                 return new Pair("q3xp", "Excessive Plus");
-            }
-            if (game == "excessive") {
-                return new Pair("q3ex", "Excessive");
-            }
-            if (game == "reactance:iu") { //Reactance:IU
-                return new Pair("q3insta", "InstaUnlagged");
-            }
-            if (game == "battle") {
-                return new Pair(game, "Battle");
-            }
-            if (game == "beryllium") {
-                return new Pair(game, "Beryllium");
-            }
-            if (game == "bma") {
-                return new Pair(game, "Black Metal Assault");
-            }
-            if (game.StartsWith("the corkscrew mod")) {
-                return new Pair("corkscrew", "The CorkScrew Mod");
-            }
-            if (game == "f4a") {
-                return new Pair("f4a", "Freeze For All");
-            }
-            if (game == "freezeplus") {
-                return new Pair("fp", "Freeze Plus");
-            }
-            if (game == "generations") {
-                return new Pair("gen", "Generations");
-            }
-            if (game == "nemesis") {
-                return new Pair("nemesis", "Nemesis");
-            }
-            if (game == "noghost") {
-                return new Pair(game, "NoGhost");
             }
             if (game.StartsWith("pkarena")) {
                 return new Pair(game, "Painkeep");
-            }
-            if (game == "q3f" || game == "q3f2") {
-                return new Pair("q3f", "Quake 3 Fortress");
-            }
-            if (game == "truecombat" || game == "q3tc") {
-                return new Pair("q3tc", "Quake 3 True Combat");
             }
             if (game.Contains("unlagged")) {
                 return new Pair("unlagged", "Unlagged");
