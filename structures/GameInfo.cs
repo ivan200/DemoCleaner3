@@ -12,17 +12,17 @@ namespace DemoCleaner3.structures
         public bool isFreeStyle = false;
         public bool isOnline = true;
 
-        public string gameName;            //Defrag          //OSP
-        public string gameNameShort;       //defrag          //osp
-        public string gameType;            //Online defrag   //Team DM  
-        public string gameTypeShort;       //mdf             //tdm
-        public string gameplayType;        //CPM             //VQ3
-        public string gameplayTypeShort;   //CPM             //VQ3
+        public string gameName;            //Defrag             //Orange Smoothie Productions
+        public string gameNameShort;       //defrag             //osp
+        public string gameType;            //Online defrag      //Team Deathmatch
+        public string gameTypeShort;       //mdf                //tdm
+        public string gameplayType;        //Challenge ProMode  //Vanilla Quake3
+        public string gameplayTypeShort;   //CPM                //VQ3
         public string modType;             //4                
         public string modTypeName;         //Weapons Only
 
         public GameInfo(Dictionary<string, string> parameters) {
-            this.parameters = parameters;
+            this.parameters = Ext.LowerKeys(parameters);
 
             var gn = getGameName();
 
@@ -192,7 +192,7 @@ namespace DemoCleaner3.structures
                     }
                     break;
                 case "q3w":
-                    string g_serverData = Ext.GetOrNull(parameters, "g_serverData") ?? "";
+                    string g_serverData = (Ext.GetOrNull(parameters, "g_serverdata") ?? "").ToUpperInvariant();
 
                     if (g_serverData.Contains("G00")) return new Pair("ffa", "Free for All");
                     if (g_serverData.Contains("G01")) return new Pair("1v1", "Duel");

@@ -625,23 +625,23 @@ namespace DemoCleaner3.DemoParser.parser
                     string oName = "";  //online or offline name derived from a line in the console
 
                     switch (demoTimeCmd.Key) {
-                        case RawInfo.TimeType.OFFLINE_NORMAL:
-                            time = RawInfo.getTimeOfflineNormal(demoTimeCmd.Value);
-                            oName = RawInfo.getNameOffline(demoTimeCmd.Value);
+                        case TimeType.OFFLINE_NORMAL:
+                            time = getTimeOfflineNormal(demoTimeCmd.Value);
+                            oName = getNameOffline(demoTimeCmd.Value);
                             break;
-                        case RawInfo.TimeType.ONLINE_NORMAL:
-                            time = RawInfo.getTimeOnline(demoTimeCmd.Value);
-                            oName = RawInfo.getNameOnline(demoTimeCmd.Value);
+                        case TimeType.ONLINE_NORMAL:
+                            time = getTimeOnline(demoTimeCmd.Value);
+                            oName = getNameOnline(demoTimeCmd.Value);
                             break;
-                        case RawInfo.TimeType.OFFLINE_OLD1:
-                            time = RawInfo.getTimeOld1(demoTimeCmd.Value);
-                            oName = RawInfo.getNameOfflineOld1(demoTimeCmd.Value);
+                        case TimeType.OFFLINE_OLD1:
+                            time = getTimeOld1(demoTimeCmd.Value);
+                            oName = getNameOfflineOld1(demoTimeCmd.Value);
                             break;
-                        case RawInfo.TimeType.OFFLINE_OLD2:
-                            time = RawInfo.getTimeOfflineNormal(demoTimeCmd.Value);
+                        case TimeType.OFFLINE_OLD2:
+                            time = getTimeOfflineNormal(demoTimeCmd.Value);
                             break;
-                        case RawInfo.TimeType.OFFLINE_OLD3:
-                            time = RawInfo.getTimeOld3(demoTimeCmd.Value);
+                        case TimeType.OFFLINE_OLD3:
+                            time = getTimeOld3(demoTimeCmd.Value);
                             break;
                     }
 
@@ -651,7 +651,7 @@ namespace DemoCleaner3.DemoParser.parser
                     info.timeString = demoTimeCmd.Value;
                     if (i < dateStamps.Count) {
                         info.recordDateString = dateStamps[i];
-                        info.recordDate = RawInfo.getDateForDemo(dateStamps[i]);
+                        info.recordDate = getDateForDemo(dateStamps[i]);
                     }
                     infos.Add(info);
                 }

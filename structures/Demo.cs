@@ -28,7 +28,16 @@ namespace DemoCleaner3
         public DateTime? recordTime;
         public bool hasTr = false;
 
-        public string validity = "";
+        public Dictionary<string, string> validDict = new Dictionary<string, string>();
+        public string validity {
+            get {
+                if (validDict.Count > 0) {
+                    var first = validDict.First();
+                    return string.Format("{0}={1}", first.Key, first.Value);
+                } else return "";
+            }
+        }
+
         public bool useValidation = true;
         public bool rawTime = false;
 
@@ -204,7 +213,12 @@ namespace DemoCleaner3
                 var b1 = filename.LastIndexOf('{');
                 var b2 = filename.LastIndexOf('}');
                 if (b2 > b1 && b1 > c1 && c1 > 0) {
-                    demo.validity = filename.Substring(b1 + 1, b2 - b1 - 1);
+                    var vstr = filename.Substring(b1 + 1, b2 - b1 - 1);
+                    var v = vstr.Split('=');
+                    if (v.Length > 1) {
+                        demo.validDict = new Dictionary<string, string>();
+                        demo.validDict.Add(v[0], v[1]);
+                    }
                 }
             } else {
                 demo.hasError = true;
@@ -332,7 +346,7 @@ namespace DemoCleaner3
             }
 
             //If demo has cheats, write it
-            demo.validity = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo);
+            demo.validDict = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo);
 
             //demo has not info about country, so take it from filename
             demo.country = tryGetCountryFromBrackets(countryAndName);
@@ -470,40 +484,40 @@ namespace DemoCleaner3
             return true;
         }
 
-        //check demo for validity
-        static string checkValidity(bool hasTime, bool hasRawTime, GameInfo gameInfo) {
+        //check demo for validity, commmands ordered by relevance. first is more important
+        static Dictionary<string, string> checkValidity(bool hasTime, bool hasRawTime, GameInfo gameInfo)
+        {
+            Dictionary<string, string> invalidParams = new Dictionary<string, string>();
             var kGame = Ext.LowerKeys(gameInfo.parameters);
-
-            string res;
             if (!gameInfo.isFreeStyle) {
-                res = checkKey(kGame, "sv_cheats", 0); if (res.Length > 0) return res;
+                checkKey(invalidParams, kGame, "sv_cheats", 0);
             }
 
-            res = checkKey(kGame, "timescale", 1);                  if (res.Length > 0) return res;
-            res = checkKey(kGame, "g_speed", 320);                  if (res.Length > 0) return res;
-            res = checkKey(kGame, "g_gravity", 800);                if (res.Length > 0) return res;
-            res = checkKey(kGame, "g_knockback", 1000);             if (res.Length > 0) return res;
+            checkKey(invalidParams, kGame, "timescale", 1);
+            checkKey(invalidParams, kGame, "g_speed", 320);
+            checkKey(invalidParams, kGame, "g_gravity", 800);
+            checkKey(invalidParams, kGame, "g_knockback", 1000);
 
             if (hasTime && !hasRawTime && gameInfo.isDefrag) {
                 //If the demo was not found messages about the finish map
-                return "client_finish=false";
+                invalidParams.Add("client_finish", "false");
             }
 
             if (gameInfo.isOnline && !gameInfo.isFreeStyle) {
-                res = checkKey(kGame, "df_mp_interferenceoff", 3);  if (res.Length > 0) return res;
+                checkKey(invalidParams, kGame, "df_mp_interferenceoff", 3);
             }
 
-            res = checkKey(kGame, "pmove_msec", 8);                 if (res.Length > 0) return res;
-            res = checkKey(kGame, "sv_fps", 125);                   if (res.Length > 0) return res;
-            res = checkKey(kGame, "com_maxfps", 125);               if (res.Length > 0) return res;
+            checkKey(invalidParams, kGame, "pmove_msec", 8);
+            checkKey(invalidParams, kGame, "sv_fps", 125);
+            checkKey(invalidParams, kGame, "com_maxfps", 125);
 
-            res = checkKey(kGame, "pmove_fixed", (gameInfo.isOnline ? 1 : 0)); if (res.Length > 0) return res;
-            res = checkKey(kGame, "g_synchronousclients", (gameInfo.isOnline ? 0 : 1), "g_sync"); if (res.Length > 0) return res;
-            return "";
+            checkKey(invalidParams, kGame, "pmove_fixed", (gameInfo.isOnline ? 1 : 0));
+            checkKey(invalidParams, kGame, "g_synchronousclients", (gameInfo.isOnline ? 0 : 1));
+            return invalidParams;
         }
 
         //checking the key for validity
-        static string checkKey(Dictionary<string, string> keysGame, string key, int val, string errorString = "") {
+        static void checkKey(Dictionary<string, string> invalidParams, Dictionary<string, string> keysGame, string key, int val) {
             if (keysGame.ContainsKey(key) && keysGame[key].Length > 0) {
                 var keyValue = keysGame[key];
                 float value = -1;
@@ -511,14 +525,13 @@ namespace DemoCleaner3
                     value = float.Parse(keyValue, CultureInfo.InvariantCulture);
                 } catch (Exception ex) {
                 }
-                if (value < 0 || value != (float) val) {
+                if (value < 0 || value != val) {
                     if (keyValue.StartsWith(".")) {     //edit the timescale display as .3 -> 0.3
                         keyValue = "0" + keyValue;
                     }
-                    return (errorString.Length > 0 ? errorString : key) + "=" + keyValue;
+                    invalidParams.Add(key, keyValue);
                 }
             }
-            return "";
         }
     }
 }
