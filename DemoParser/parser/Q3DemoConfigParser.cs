@@ -244,6 +244,15 @@ namespace DemoCleaner3.DemoParser.parser
                         if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
                             clientEvent.eventCheckPoint = true;
                         }
+                    } else if (prevEvent.eventFinish && (prevStat & 2) != 0 && (newStat & 2) == 0) {
+                        // It is possible recieve the finish event and timer stop event
+                        // in seperate snapshots. In this case, the finish time is when
+                        // the timer stop event is recieved.
+                        if (!clientEvent.eventChangeUser) {
+                            prevEvent.eventFinish = false;
+                            clientEvent.eventFinish = true;
+                        }
+
                     } else {
                         clientEvent.eventSomeTrigger = true;
                     }
