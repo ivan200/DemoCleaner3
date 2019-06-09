@@ -208,11 +208,13 @@ namespace DemoCleaner3.DemoParser.parser
             var events = client.clientEvents;
 
             ClientEvent clientEvent = new ClientEvent(time, snapshot);
+
+            var prevStat = 0;
+            var newStat = snapshot.ps.stats[12];
             if (events.Count == 0) {
                 clientEvent.eventStartFile = true;
-                var prevStat = 0;
                 if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
-                    if ((prevStat & 4) != (snapshot.ps.stats[12] & 4) && (prevStat & 2) == 0) {
+                    if ((prevStat & 4) != (newStat & 4) && (prevStat & 2) == 0) {
                         clientEvent.eventStartTime = true;
                     } 
                 }
@@ -224,20 +226,21 @@ namespace DemoCleaner3.DemoParser.parser
                 if (prevEvent.playerMode != snapshot.ps.pm_type) {
                     clientEvent.eventChangePmType = true;
                 }
-                if (prevEvent.userStat != snapshot.ps.stats[12]) {
-                    if ((prevEvent.userStat & 4) != (snapshot.ps.stats[12] & 4)) {
+                prevStat = prevEvent.userStat;
+                if (prevStat != newStat) {
+                    if ((prevStat & 4) != (newStat & 4)) {
                         if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
-                            if ((prevEvent.userStat & 2) == 0) {
+                            if ((prevStat & 2) == 0) {
                                 clientEvent.eventStartTime = true;
                             } else {
                                 clientEvent.eventTimeReset = true;
                             }
                         }
-                    } else if ((prevEvent.userStat & 8) == 0 && (snapshot.ps.stats[12] & 8) != 0) {
+                    } else if ((prevStat & 8) == 0 && (newStat & 8) != 0) {
                         if (!clientEvent.eventChangeUser) {
                             clientEvent.eventFinish = true;
                         }
-                    } else if ((prevEvent.userStat & 16) != (snapshot.ps.stats[12] & 16)) {
+                    } else if ((prevStat & 16) != (newStat & 16)) {
                         if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
                             clientEvent.eventCheckPoint = true;
                         }
