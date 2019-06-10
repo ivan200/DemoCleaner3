@@ -102,6 +102,11 @@ namespace DemoCleaner3.DemoParser.parser
         {
             if (client.clientConfig == null) {
                 client.clientConfig = new Dictionary<string, string>();
+
+                if (clc.configs.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_GAME)) {
+                    var gameConfig = Q3Utils.split_config(clc.configs[Q3Const.Q3_DEMO_CFG_FIELD_GAME]);
+                    client.isCheatsOn = Ext.GetOrZero(gameConfig, "sv_cheats") > 0;
+                }
                 if (clc.configs.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_CLIENT)) {
                     client.clientConfig = Q3Utils.split_config(clc.configs[Q3Const.Q3_DEMO_CFG_FIELD_CLIENT]);
                     client.dfvers = Ext.GetOrZero(client.clientConfig, "defrag_vers");
@@ -416,7 +421,7 @@ namespace DemoCleaner3.DemoParser.parser
             {
                 return 0;
             }
-            if (client.isOnline) {
+            if (client.isOnline || client.isCheatsOn) {
                 return time;
             }
 

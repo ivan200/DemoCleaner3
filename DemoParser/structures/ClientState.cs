@@ -23,10 +23,12 @@ namespace DemoCleaner3.DemoParser.structures
         public List<ClientEvent> clientEvents = new List<ClientEvent>();
 
         public Dictionary<string, string> clientConfig = null; //this is only client config, not all configs
+        public Dictionary<string, string> gameConfig = null;
 
         public string mapname;
         public int mapNameChecksum = 0;
         public int dfvers = 0;
         public bool isOnline = false;
+        public bool isCheatsOn = false;
     }
 }
