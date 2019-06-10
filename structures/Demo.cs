@@ -40,6 +40,7 @@ namespace DemoCleaner3
 
         public bool useValidation = true;
         public bool rawTime = false;
+        public bool triggerTime = false;
 
         public RawInfo rawInfo = null;
         private string _demoNewName = "";
@@ -53,6 +54,8 @@ namespace DemoCleaner3
                 return _normalizedFileName;
             }
         }
+
+        private long userId = 0;
 
         //generating new demo name by all information
         public string demoNewName {
@@ -106,7 +109,9 @@ namespace DemoCleaner3
                 if (useValidation && validity.Length > 0) {
                     demoname = demoname + "{" + validity + "}"; //add information about validation
                 }
-
+                if (userId > 0) {
+                    demoname = demoname + "[" + userId.ToString() + "]"; //add userId (can be added only with triggertime)
+                }
                 _demoNewName = demoname + file.Extension;
                 return _demoNewName;
             }
@@ -263,8 +268,6 @@ namespace DemoCleaner3
 
             var filename = demo.normalizedFileName;
             var countryAndName = getNameAndCountry(filename);
-            string dfName = null;                                       //name in the game in the demo names
-            string uName = null;                                        //name in the game
             string demoUserName = tryGetNameFromBrackets(countryAndName);  //name from the filename
 
             //names
@@ -274,6 +277,7 @@ namespace DemoCleaner3
             if (raw.fin.HasValue) {
                 demo.time = TimeSpan.FromMilliseconds(raw.fin.Value.Value.time);
                 demo.hasTr = raw.fin.Value.Key > 1;
+                demo.triggerTime = true;
             }
 
             var timestrings = raw.timeStrings;
@@ -350,6 +354,10 @@ namespace DemoCleaner3
 
             //demo has not info about country, so take it from filename
             demo.country = tryGetCountryFromBrackets(countryAndName);
+
+            if (demo.triggerTime) {
+                demo.userId = tryGetUserIdFromFileName(file);
+            }
             return demo;
         }
 
@@ -482,6 +490,38 @@ namespace DemoCleaner3
                 }
             }
             return true;
+        }
+
+        //this is userId what can be parsed from server recorded files like:
+        //lick-dead[49576][1037].dm_68
+        //lick-dead[mdf.vq3]00.49.576(pVquBit)[1037].dm_68
+        //last square=userid, prelast=time
+        static long tryGetUserIdFromFileName(FileInfo file)
+        {
+            if (file.Name.Count(x=>x == '[') < 2) {
+                return 0;
+            }
+            var nameNoExt = file.Name.Substring(0, file.Name.Length - file.Extension.Length);
+            var brackets = Regex.Matches(nameNoExt, "([\\[]\\d+[\\]]){2}$");
+            if (brackets.Count == 1) {
+                var value = brackets[0].Value;
+                var sub = value.Split("[]".ToArray());
+                if (sub.Length != 5) return 0;
+                var stringId = sub[3];
+                long id = 0;
+                long.TryParse(stringId, out id);
+                return id;
+            }
+            brackets = Regex.Matches(nameNoExt, ".+[\\[].+[\\]].+[(].+[)]([\\[]\\d+[\\]])$");
+            if (brackets.Count == 1) {
+                var value = brackets[0].Value;
+                var sub = value.Split("[]".ToArray());
+                var stringId = sub[sub.Length - 2];
+                long id = 0;
+                long.TryParse(stringId, out id);
+                return id;
+            }
+            return 0;
         }
 
         //check demo for validity, commmands ordered by relevance. first is more important

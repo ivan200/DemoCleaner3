@@ -245,14 +245,26 @@ namespace DemoCleaner3.DemoParser.parser
                             clientEvent.eventCheckPoint = true;
                         }
                     } else if (prevEvent.eventFinish && (prevStat & 2) != 0 && (newStat & 2) == 0) {
-                        // It is possible recieve the finish event and timer stop event
-                        // in seperate snapshots. In this case, the finish time is when
-                        // the timer stop event is recieved.
+                        //fix double finish
                         if (!clientEvent.eventChangeUser) {
                             prevEvent.eventFinish = false;
+                            if (!prevEvent.hasAnyEvent) events.RemoveAt(events.Count - 1);
                             clientEvent.eventFinish = true;
                         }
-
+                    } else if (prevEvent.eventStartTime && (prevStat & 2) == 0 && (newStat & 2) != 0) {
+                        //fix double start timer
+                        if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
+                            prevEvent.eventStartTime = false;
+                            if (!prevEvent.hasAnyEvent) events.RemoveAt(events.Count - 1);
+                            clientEvent.eventStartTime = true;
+                        }
+                    } else if (prevEvent.eventTimeReset && (prevStat & 4) == 0 && (newStat & 2) != 0) {
+                        //fix double tr
+                        if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
+                            prevEvent.eventTimeReset = false;
+                            if (!prevEvent.hasAnyEvent) events.RemoveAt(events.Count - 1);
+                            clientEvent.eventTimeReset = true;
+                        }
                     } else {
                         clientEvent.eventSomeTrigger = true;
                     }
