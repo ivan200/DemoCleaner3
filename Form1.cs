@@ -719,6 +719,29 @@ namespace DemoCleaner3
             }
         }
 
+        private KeyValuePair<List<Demo>, List<Demo>> splitByFastSlow(IEnumerable<Demo> demos, int countToSave) {
+            List<Demo> fastDemos = new List<Demo>();
+            List<Demo> slowDemos = new List<Demo>();
+
+            //if we have two demos with same time by same player, then we select by longest country name
+            var groupedTimes = demos.GroupBy(x => x.time).OrderBy(x => x.Key);
+            var fast = groupedTimes.Take(countToSave);
+            var slow = groupedTimes.Skip(countToSave).SelectMany(x => x);
+            slowDemos.AddRange(slow);
+
+            foreach (var item in fast) {
+                if (item.Count() <= 1) {
+                    fastDemos.Add(item.First());
+                } else {
+                    var sameTimeDemos = item.OrderByDescending(x => x.country.Length);
+                    fastDemos.Add(sameTimeDemos.First());
+                    slowDemos.AddRange(sameTimeDemos.Skip(1));
+                }
+            }
+            return new KeyValuePair<List<Demo>, List<Demo>>(fastDemos, slowDemos);
+        }
+
+
         //Clean the demos!
         private void clean(DirectoryInfo filedemos)
         {
@@ -755,34 +778,31 @@ namespace DemoCleaner3
             string filepath = "";
 
             foreach (var group in groups) {
-                List<Demo> slow = new List<Demo>();
+                List<Demo> slowDemos = new List<Demo>();
                 int countToSave = (int)numericUpDownCountOfBest.Value;
 
                 var groupedByValidity = group.GroupBy(x => x.validity);
                 if (groupedByValidity.Count() > 1) {
-                    //if we have valid and invalid demos, then we save 'countToSave' amount valid demos
-                    //and 'countToSave' amount of demos with every invalid rule, but only if they are faster then valid
-
-                    var lDict = new Dictionary<string, List<Demo>>();
+                    var fastDemos = new Dictionary<string, List<Demo>>();
                     foreach (var g in groupedByValidity) {
-                        var ordered = g.OrderBy(x => x.time).ToList();
-                        lDict.Add(g.Key, ordered.Take(countToSave).ToList());
-                        slow.AddRange(ordered.Skip(countToSave).ToList());
+                        var fastSlow = splitByFastSlow(g, countToSave);
+                        fastDemos.Add(g.Key, fastSlow.Key);
+                        slowDemos.AddRange(fastSlow.Value);
                     }
                     long slowestTime = long.MaxValue;
-                    if (lDict.ContainsKey("")) {
-                        slowestTime = (long) lDict[""].LastOrDefault().time.TotalMilliseconds;
+                    if (fastDemos.ContainsKey("")) {
+                        slowestTime = (long) fastDemos[""].LastOrDefault().time.TotalMilliseconds;
                     }
 
-                    slow.AddRange(lDict.SelectMany(x => x.Value)
+                    slowDemos.AddRange(fastDemos.SelectMany(x => x.Value)
                         .Where(x=>x.time.TotalMilliseconds > slowestTime));
-                } else { 
-                    var ordered = group.OrderBy(x => x.time).ToList();
-                    slow = ordered.Skip(countToSave).ToList();
+                } else {
+                    var fastSlow = splitByFastSlow(group, countToSave);
+                    slowDemos.AddRange(fastSlow.Value);
                 }
 
-                fileHelper.increaseProgressCount(group.Count() - slow.Count);
-                foreach (var demo in slow) {
+                fileHelper.increaseProgressCount(group.Count() - slowDemos.Count);
+                foreach (var demo in slowDemos) {
                     try {
                         if (radioButtonDeleteSlow.Checked) {
                             fileHelper.deleteCheckRules(demo.file);
