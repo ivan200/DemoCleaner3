@@ -90,13 +90,13 @@ namespace DemoCleaner3
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files.Length > 1) {
-                MessageBox.Show("Psease, drop only one file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please, drop only one file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             } else {
                 FileInfo file = new FileInfo(files[0]);
                 if (file.Extension.StartsWith(".dm_")) {
                     showDemoInfoFormForFile(files[0]);
                 } else {
-                    MessageBox.Show("Psease, drop demo file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Please, drop \"Quake 3\" demo file, not other.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
