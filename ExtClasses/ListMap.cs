@@ -27,7 +27,7 @@ namespace DemoCleaner3.ExtClasses
         public Dictionary<T, V> ToDictionary() {
             Dictionary<T, V> rez = new Dictionary<T, V>();
             foreach (var item in this) {
-                rez.Add(item.Key, item.Value);
+                rez[item.Key] = item.Value;
             }
             return rez;
         }
