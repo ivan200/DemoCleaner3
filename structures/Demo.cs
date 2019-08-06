@@ -543,7 +543,7 @@ namespace DemoCleaner3
                 invalidParams.Add("client_finish", "false");
             }
 
-            if (gameInfo.isOnline && !gameInfo.isFreeStyle) {
+            if (hasTime && gameInfo.isOnline && !gameInfo.isFreeStyle) {
                 checkKey(invalidParams, kGame, "df_mp_interferenceoff", 3);
             }
 

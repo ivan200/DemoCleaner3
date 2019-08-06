@@ -68,9 +68,9 @@ namespace DemoCleaner3.structures
             var game = (Ext.GetOrNull(parameters, "fs_game") ?? "").ToLowerInvariant();
             var gName = (Ext.GetOrNull(parameters, "gamename") ?? "").ToLowerInvariant();
             var gameversion = (Ext.GetOrNull(parameters, "gameversion") ?? "").ToLowerInvariant();
+            var df_vers = (Ext.GetOrNull(parameters, "defrag_vers") ?? "").ToLowerInvariant();
 
-            if (game.ToLowerInvariant().StartsWith("defrag") 
-                || gName.ToLowerInvariant() == "defrag") {
+            if (game.ToLowerInvariant().StartsWith("defrag") || gName.ToLowerInvariant() == "defrag" || !string.IsNullOrEmpty(df_vers)) {
                 isDefrag = true;
                 return new Pair("defrag", "Defrag");
             }
