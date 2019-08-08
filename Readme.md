@@ -1,6 +1,9 @@
 ﻿# Democleaner3
 A program for processing (moving / deleting / renaming) demo files created when recording the completion of maps in Quake3.
 
+## Download
+https://github.com/ivan200/DemoCleaner3/raw/master/bin/Release/DemoCleaner3.exe
+
 ## Clean tab
 Here you can clean up the folder with demos. If you have a large number of them, and they interfere with you, you can leave only the best of them, and remove the rest, or move to a specific folder.
 
