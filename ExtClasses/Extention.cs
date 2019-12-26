@@ -53,6 +53,14 @@ namespace DemoCleaner3
             return nDict;
         }
 
+        public static bool ContainsAny(String data, params String[] values) {
+            foreach (var item in values) {
+                if (data.Contains(item)) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         public static T MinOf<T>(IEnumerable<T> collection, Func<T, long> minComparizon) {
             long minResult = long.MaxValue;

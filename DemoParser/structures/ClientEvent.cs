@@ -15,11 +15,6 @@ namespace DemoCleaner3.DemoParser.structures
         public bool eventChangePmType = false; //normal, noclip, spectator, death
         public bool eventChangeUser = false;
 
-        public static string[] pmTypesStrings = new string[4] {
-            "normal","noclip","spectator","death"
-        };
-
-
         public bool hasAnyEvent {
             get {
                 return eventStartFile || eventStartTime || eventTimeReset || eventFinish
@@ -27,17 +22,21 @@ namespace DemoCleaner3.DemoParser.structures
             }
         }
 
+        public static string[] pmTypesStrings = new string[4] {
+            "normal","noclip","spectator","death"
+        };
+
+        public enum PlayerMode {
+            PM_NORMAL,              // can accelerate and turn
+            PM_NOCLIP,              // noclip movement
+            PM_SPECTATOR,           // still run into walls
+            PM_DEAD                 // no acceleration or turning, but free falling
+        }
+
         public long time;
         public long serverTime;
         public int playerNum;
         public int playerMode;
-
-        public enum PlayerMode {
-            PM_NORMAL,        // can accelerate and turn
-            PM_NOCLIP,        // noclip movement
-            PM_SPECTATOR,    // still run into walls
-            PM_DEAD        // no acceleration or turning, but free falling
-        }
 
         public int userStat;
         //stats[12]

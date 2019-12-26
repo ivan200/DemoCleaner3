@@ -443,7 +443,7 @@ namespace DemoCleaner3
                 filename = Uri.UnescapeDataString(filename);
             }
             //r7-falkydf.cpm00.09.960xas.China.dm_68
-            if (!filename.Contains("[") && !filename.Contains("]") && !filename.Contains("(") && !filename.Contains(")")) {
+            if (!Ext.ContainsAny(filename, "[", "]", "(", ")")) {
                 int index = Math.Max(filename.IndexOf(".cpm"), filename.IndexOf(".vq3"));
                 if (index > 0) {
                     try {
@@ -466,7 +466,7 @@ namespace DemoCleaner3
             }
             //dfcomp009_3.792_VipeR_Russia.dm_68
             //dmp02a_jinx_13.880_t0t3r_germany.dm_68
-            if (Ext.CountOf(filename, '_') >= 4 && !filename.Contains("(") && !filename.Contains(")")) {
+            if (Ext.CountOf(filename, '_') >= 4 && !Ext.ContainsAny(filename, "(", ")")) {
                 var array = filename.Substring(0, filename.Length - file.Extension.Length).Split('_');
                 TimeSpan? time = null;
                 for (int i = 1; i < 4; i++) {
@@ -536,7 +536,9 @@ namespace DemoCleaner3
             checkKey(invalidParams, kGame, "timescale", 1);
             checkKey(invalidParams, kGame, "g_speed", 320);
             checkKey(invalidParams, kGame, "g_gravity", 800);
+            checkKey(invalidParams, kGame, "handicap", 100);
             checkKey(invalidParams, kGame, "g_knockback", 1000);
+            
 
             if (hasTime && !hasRawTime && gameInfo.isDefrag) {
                 //If the demo was not found messages about the finish map
@@ -544,34 +546,50 @@ namespace DemoCleaner3
             }
 
             if (hasTime && gameInfo.isOnline && !gameInfo.isFreeStyle) {
+                //if the demo was recorded with group support and have time
                 checkKey(invalidParams, kGame, "df_mp_interferenceoff", 3);
             }
 
-            checkKey(invalidParams, kGame, "pmove_msec", 8);
             checkKey(invalidParams, kGame, "sv_fps", 125);
             checkKey(invalidParams, kGame, "com_maxfps", 125);
 
-            checkKey(invalidParams, kGame, "pmove_fixed", (gameInfo.isOnline ? 1 : 0));
-            checkKey(invalidParams, kGame, "g_synchronousclients", (gameInfo.isOnline ? 0 : 1));
+            //fixed by dfwc2019 rules:
+            //a) "g_synchronousClients 1", and any values in "pmove_fixed", "pmove_msec".
+            //b) "g_synchronousClients 0", "pmove_fixed 1", "pmove_msec 8".
+            var gSync = getKey(kGame, "g_synchronousclients");
+            if (gSync != 1) {
+                checkKey(invalidParams, kGame, "pmove_msec", 8);
+                checkKey(invalidParams, kGame, "pmove_fixed", 1);
+            }
+
+            checkKey(invalidParams, kGame, "g_killWallbug", 1);
             return invalidParams;
         }
 
         //checking the key for validity
         static void checkKey(Dictionary<string, string> invalidParams, Dictionary<string, string> keysGame, string key, int val) {
             if (keysGame.ContainsKey(key) && keysGame[key].Length > 0) {
-                var keyValue = keysGame[key];
-                float value = -1;
-                try {
-                    value = float.Parse(keyValue, CultureInfo.InvariantCulture);
-                } catch (Exception ex) {
-                }
+                float value = getKey(keysGame, key);
                 if (value < 0 || value != val) {
+                    var keyValue = keysGame[key];
                     if (keyValue.StartsWith(".")) {     //edit the timescale display as .3 -> 0.3
                         keyValue = "0" + keyValue;
                     }
                     invalidParams.Add(key, keyValue);
                 }
             }
+        }
+
+        static float getKey(Dictionary<string, string> keysGame, string key)
+        {
+            float value = -1;
+            if (keysGame.ContainsKey(key) && keysGame[key].Length > 0) {
+                try {
+                    value = float.Parse(keysGame[key], CultureInfo.InvariantCulture);
+                } catch (Exception ex) {
+                }
+            }
+            return value;
         }
     }
 }
