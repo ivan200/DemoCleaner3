@@ -1,5 +1,6 @@
 ﻿# Democleaner3
 A program for processing (moving / deleting / renaming) demo files created when recording the completion of maps in Quake3.
+And also for viewing information about demo (you can associate .dm_68 files with this program, and open demos with it).
 
 ## Download
 https://github.com/ivan200/DemoCleaner3/raw/master/bin/Release/DemoCleaner3.exe
