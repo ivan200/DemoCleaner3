@@ -378,8 +378,7 @@ namespace DemoCleaner3.DemoParser.parser
             Dictionary<string, string> replaces = new Dictionary<string, string>();
             replaces.Add("defrag_clfps", "com_maxfps");
             replaces.Add("defrag_svfps", "sv_fps");
-            replaces.Add("defrag_obs", "df_ob_KillOBs");
-
+            
             replaceKeys(split, replaces);
             return split.ToDictionary(); 
         }
