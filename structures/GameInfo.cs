@@ -70,7 +70,7 @@ namespace DemoCleaner3.structures
             var gameversion = (Ext.GetOrNull(parameters, "gameversion") ?? "").ToLowerInvariant();
             var df_vers = (Ext.GetOrNull(parameters, "defrag_vers") ?? "").ToLowerInvariant();
 
-            if (game.ToLowerInvariant().StartsWith("defrag") || gName.ToLowerInvariant() == "defrag" || !string.IsNullOrEmpty(df_vers)) {
+            if (game.StartsWith("defrag") || gName == "defrag" || !string.IsNullOrEmpty(df_vers)) {
                 isDefrag = true;
                 return new Pair("defrag", "Defrag");
             }

@@ -211,8 +211,9 @@ namespace DemoCleaner3
 
                 //Name + country
                 var countryName = sub[3];
-                demo.country = tryGetCountryFromBrackets(countryName);
-                demo.playerName = tryGetNameFromBrackets(countryName);
+                var countryNameParsed = tryGetNameAndCountry(countryName);
+                demo.playerName = countryNameParsed.Key;
+                demo.country = countryNameParsed.Value;
 
                 var c1 = filename.LastIndexOf(')');
                 var b1 = filename.LastIndexOf('{');
@@ -268,7 +269,12 @@ namespace DemoCleaner3
 
             var filename = demo.normalizedFileName;
             var countryAndName = getNameAndCountry(filename);
-            string demoUserName = tryGetNameFromBrackets(countryAndName);  //name from the filename
+            var countryNameParsed = tryGetNameAndCountry(countryAndName);
+
+            string demoUserName = countryNameParsed.Key;  //name from the filename
+
+            //demo has not info about country, so take it from filename
+            demo.country = countryNameParsed.Value;
 
             //names
             var names = new DemoNames(Ext.GetOrNull(frConfig, RawInfo.keyPlayer), demoUserName);
@@ -352,9 +358,6 @@ namespace DemoCleaner3
             //If demo has cheats, write it
             demo.validDict = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo);
 
-            //demo has not info about country, so take it from filename
-            demo.country = tryGetCountryFromBrackets(countryAndName);
-
             if (demo.triggerTime) {
                 demo.userId = tryGetUserIdFromFileName(file);
             }
@@ -376,27 +379,16 @@ namespace DemoCleaner3
             return "";
         }
 
-        //We are trying to get a name from the name and country
-        static string tryGetNameFromBrackets(string partname)
-        {
+        //We are trying to split name and country
+        static Pair tryGetNameAndCountry(string partname) {
             int i = partname.LastIndexOf('.');
-            if (i > 0) {
-                partname = partname.Substring(0, i);
-            }
-            return partname;
-        }
-
-        //We are trying to get the country, and only it, from the name and country
-        static string tryGetCountryFromBrackets(string partname)
-        {
-            int i = partname.LastIndexOf('.');
-            if (i > 0 && i +1 < partname.Length) {
-                var country = partname.Substring(i+1, partname.Length - i - 1);
+            if (i > 0 && i + 1 < partname.Length) {
+                var country = partname.Substring(i + 1, partname.Length - i - 1);
                 if (country.Where(c => char.IsNumber(c)).Count() == 0) {
-                    return country;
+                    return new Pair(partname.Substring(0, i), country);
                 }
             }
-            return "";
+            return new Pair(partname, "");
         }
 
         //Trying to get time from the demo filename
@@ -582,14 +574,14 @@ namespace DemoCleaner3
 
         static float getKey(Dictionary<string, string> keysGame, string key)
         {
-            float value = -1;
+            float value;
             if (keysGame.ContainsKey(key) && keysGame[key].Length > 0) {
-                try {
-                    value = float.Parse(keysGame[key], CultureInfo.InvariantCulture);
-                } catch (Exception ex) {
+                bool success = float.TryParse(keysGame[key], out value);
+                if (success) {
+                    return value;
                 }
             }
-            return value;
+            return -1;
         }
     }
 }

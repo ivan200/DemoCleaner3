@@ -18,6 +18,8 @@ namespace DemoCleaner3
         FileHelper fileHelper;
         Properties.Settings prop;
 
+        delegate void SetItem<T>(T num);
+
         //It is used if progress bar in taskbar cannot be used on this OS
         bool _useTaskBarProgress = true;
 
@@ -67,10 +69,10 @@ namespace DemoCleaner3
             }
 
             fileHelper = new FileHelper((fileNumber) => {
-                    this.Invoke(new SetItemInt(setProgressFileNumber), fileNumber);
+                    this.Invoke(new SetItem<int>(setProgressFileNumber), fileNumber);
             }, (percent) => {
                 if (toolStripProgressBar1.Value != percent) {
-                    this.Invoke(new SetItemInt(setProgressPercent), percent);
+                    this.Invoke(new SetItem<int>(setProgressPercent), percent);
                 }
             });
 
@@ -532,10 +534,6 @@ namespace DemoCleaner3
             });
         }
 
-        delegate void SetItemInt(int num);
-        delegate void SetItem(bool num);
-        delegate void SetItemString(string fileName);
-
         //turn off access to the elements in the demo processing (and then turn on)
         private void SetButtonCallBack(bool enabled)
         {
@@ -607,17 +605,17 @@ namespace DemoCleaner3
                         fileHelper.stopLogger();
                     }
 
-                    this.Invoke(new SetItemInt(setProgressPercent), 0);
-                    this.Invoke(new SetItem(SetButtonCallBack), true);
-                    this.Invoke(new SetItemInt(showEndMessage), job);
-                    this.Invoke(new SetItemString(setProgressFileName), "");
+                    this.Invoke(new SetItem<int>(setProgressPercent), 0);
+                    this.Invoke(new SetItem<bool>(SetButtonCallBack), true);
+                    this.Invoke(new SetItem<int>(showEndMessage), job);
+                    this.Invoke(new SetItem<string>(setProgressFileName), "");
                 } catch (Exception ex) {
                     if (prop.makeLogFile) {
                         fileHelper.stopLogger();
                     }
-                    this.Invoke(new SetItemInt(setProgressPercent), 0);
-                    this.Invoke(new SetItem(SetButtonCallBack), true);
-                    this.Invoke(new SetItemString(setProgressFileName), "");
+                    this.Invoke(new SetItem<int>(setProgressPercent), 0);
+                    this.Invoke(new SetItem<bool>(SetButtonCallBack), true);
+                    this.Invoke(new SetItem<string>(setProgressFileName), "");
                     MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             });
@@ -1017,7 +1015,7 @@ namespace DemoCleaner3
 
             foreach (var file in files) {
                 try {
-                    this.Invoke(new SetItemString(setProgressFileName), file.Name);
+                    this.Invoke(new SetItem<string>(setProgressFileName), file.Name);
                     demo = Demo.GetDemoFromFileRaw(file);
                     demo.useValidation = checkBoxRulesValidation.Checked;
 
@@ -1082,9 +1080,9 @@ namespace DemoCleaner3
                 if (checkBoxDeleteEmptyDirs.Checked) {
                     fileHelper.deleteEmpty(_currentDemoPath);
                 }
-                this.Invoke(new SetItemInt(setProgressPercent), 0);
-                this.Invoke(new SetItem(SetButtonCallBack), true);
-                this.Invoke(new SetItemInt(showEndMessage), job);
+                this.Invoke(new SetItem<int>(setProgressPercent), 0);
+                this.Invoke(new SetItem<bool>(SetButtonCallBack), true);
+                this.Invoke(new SetItem<int>(showEndMessage), job);
             });
             backgroundThread.Start();
         }
@@ -1093,7 +1091,7 @@ namespace DemoCleaner3
             var filesObject = (KeyValuePair<IEnumerable<FileInfo>, Stack<Demo>>)callback;
 
             foreach (var file in filesObject.Key) {
-                this.Invoke(new SetItemString(setProgressFileName), file.Name);
+                this.Invoke(new SetItem<string>(setProgressFileName), file.Name);
                 var demo = Demo.GetDemoFromFileRaw(file);
                 demo.useValidation = checkBoxRulesValidation.Checked;
 
