@@ -11,16 +11,13 @@ namespace DemoCleaner3
 {
     public class FolderNameEditor2 : UITypeEditor
     {
-        public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context)
-        {
+        public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context) {
             return UITypeEditorEditStyle.Modal;
         }
 
-        public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
-        {
+        public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value) {
             FolderBrowser2 browser = new FolderBrowser2();
-            if (value != null)
-            {
+            if (value != null) {
                 browser.DirectoryPath = string.Format("{0}", value);
             }
 
@@ -37,72 +34,83 @@ namespace DemoCleaner3
 
         public string Title { get; set; }
 
-        public DialogResult ShowDialog(IWin32Window owner)
-        {
+        public DialogResult ShowDialog(IWin32Window owner) {
             IntPtr hwndOwner = owner != null ? owner.Handle : GetActiveWindow();
 
-            if (Environment.OSVersion.Version.Major >= 6)
-            {
-                IFileOpenDialog dialog = (IFileOpenDialog)new FileOpenDialog();
-                try
-                {
-                    IShellItem item;
-                    if (!string.IsNullOrEmpty(DirectoryPath))
-                    {
-                        IntPtr idl;
-                        uint atts = 0;
-                        if (SHILCreateFromPath(DirectoryPath, out idl, ref atts) == 0)
-                        {
-                            if (SHCreateShellItem(IntPtr.Zero, IntPtr.Zero, idl, out item) == 0)
-                            {
-                                dialog.SetFolder(item);
+            try {
+                if (Environment.OSVersion.Version.Major >= 6) {
+                    IFileOpenDialog dialog = (IFileOpenDialog)new FileOpenDialog();
+                    try {
+                        IShellItem item;
+                        if (!string.IsNullOrEmpty(DirectoryPath)) {
+                            IntPtr idl;
+                            uint atts = 0;
+                            if (SHILCreateFromPath(DirectoryPath, out idl, ref atts) == 0) {
+                                if (SHCreateShellItem(IntPtr.Zero, IntPtr.Zero, idl, out item) == 0) {
+                                    dialog.SetFolder(item);
+                                }
                             }
                         }
+                        dialog.SetTitle(Title);
+
+                        dialog.SetOptions(FOS.FOS_PICKFOLDERS | FOS.FOS_FORCEFILESYSTEM);
+                        uint hr = dialog.Show(hwndOwner);
+                        if (hr == ERROR_CANCELLED)
+                            return DialogResult.Cancel;
+
+                        if (hr != 0)
+                            return DialogResult.Abort;
+
+                        dialog.GetResult(out item);
+                        string path;
+                        item.GetDisplayName(SIGDN.SIGDN_FILESYSPATH, out path);
+                        DirectoryPath = path;
+
+                        return DialogResult.OK;
+                    } finally {
+                        Marshal.ReleaseComObject(dialog);
                     }
-                    dialog.SetTitle(Title);
-
-                    dialog.SetOptions(FOS.FOS_PICKFOLDERS | FOS.FOS_FORCEFILESYSTEM);
-                    uint hr = dialog.Show(hwndOwner);
-                    if (hr == ERROR_CANCELLED)
-                        return DialogResult.Cancel;
-
-                    if (hr != 0)
-                        return DialogResult.Abort;
-
-                    dialog.GetResult(out item);
-                    string path;
-                    item.GetDisplayName(SIGDN.SIGDN_FILESYSPATH, out path);
-                    DirectoryPath = path;
-
-
-                    return DialogResult.OK;
+                } else {
+                    return showDefaultDialogEx(owner);
                 }
-                finally
-                {
-                    Marshal.ReleaseComObject(dialog);
-                }
-            }
-            else
-            {
-                using (var fbd = new FolderBrowserDialogEx())
-                {
-                    fbd.Reset();
-                    fbd.Description = this.Title;
-                    fbd.SelectedPath = this.DirectoryPath;
-                    fbd.ShowEditBox = true;
-                    fbd.NewStyle = true;
-                    fbd.ShowNewFolderButton = true;
-                    fbd.DontIncludeNetworkFoldersBelowDomainLevel = true;
-                    fbd.ShowFullPathInEditBox = false;
-
-                    var result = FolderBrowserLauncher.ShowFolderBrowser(fbd, owner);
-
-                     //var result = fbd.ShowDialog(owner);
-                    DirectoryPath = fbd.SelectedPath;
-                    return result;
-                }
+            } catch (Exception ex) {
+                return showDefaultDialog(owner);
             }
         }
+
+        DialogResult showDefaultDialogEx(IWin32Window owner) {
+            using (var fbd = new FolderBrowserDialogEx()) {
+                fbd.Reset();
+                fbd.Description = this.Title;
+                fbd.SelectedPath = this.DirectoryPath;
+                fbd.ShowEditBox = true;
+                fbd.NewStyle = true;
+                fbd.ShowNewFolderButton = true;
+                fbd.DontIncludeNetworkFoldersBelowDomainLevel = true;
+                fbd.ShowFullPathInEditBox = false;
+
+                var result = FolderBrowserLauncher.ShowFolderBrowser(fbd, owner);
+
+                //var result = fbd.ShowDialog(owner);
+                DirectoryPath = fbd.SelectedPath;
+                return result;
+            }
+        }
+
+        DialogResult showDefaultDialog(IWin32Window owner) {
+            using (var fbd = new FolderBrowserDialog()) {
+                fbd.Reset();
+                fbd.Description = this.Title;
+                fbd.SelectedPath = this.DirectoryPath;
+                fbd.ShowNewFolderButton = true;
+
+                var result = fbd.ShowDialog(owner);
+
+                DirectoryPath = fbd.SelectedPath;
+                return result;
+            }
+        }
+
 
         [DllImport("shell32.dll")]
         private static extern int SHILCreateFromPath([MarshalAs(UnmanagedType.LPWStr)] string pszPath, out IntPtr ppIdl, ref uint rgflnOut);

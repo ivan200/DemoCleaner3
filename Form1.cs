@@ -271,6 +271,14 @@ namespace DemoCleaner3
             }
         }
 
+        private String getExMessage(Exception ex) {
+#if DEBUG
+            return ex.Message + "\n" + ex.StackTrace;
+#else
+            return ex.Message;
+#endif
+        }
+
         //Loading form settings
         private void loadSettings()
         {
@@ -535,7 +543,7 @@ namespace DemoCleaner3
         }
 
         //turn off access to the elements in the demo processing (and then turn on)
-        private void SetButtonCallBack(bool enabled)
+        private void setButtonCallBack(bool enabled)
         {
             tabControl1.Enabled = enabled;
             groupBox1.Enabled = enabled;
@@ -558,7 +566,7 @@ namespace DemoCleaner3
             }
 
             SaveSettings();
-            SetButtonCallBack(false);
+            setButtonCallBack(false);
             switch (job) {
                 case JobType.CLEAN: toolStripStatusLabel1.Text = "Cleaning..."; break;
                 case JobType.MOVE: toolStripStatusLabel1.Text = "Moving..."; break;
@@ -606,17 +614,17 @@ namespace DemoCleaner3
                     }
 
                     this.Invoke(new SetItem<int>(setProgressPercent), 0);
-                    this.Invoke(new SetItem<bool>(SetButtonCallBack), true);
-                    this.Invoke(new SetItem<int>(showEndMessage), job);
+                    this.Invoke(new SetItem<bool>(setButtonCallBack), true);
+                    this.Invoke(new SetItem<JobType>(showEndMessage), job);
                     this.Invoke(new SetItem<string>(setProgressFileName), "");
                 } catch (Exception ex) {
                     if (prop.makeLogFile) {
                         fileHelper.stopLogger();
                     }
                     this.Invoke(new SetItem<int>(setProgressPercent), 0);
-                    this.Invoke(new SetItem<bool>(SetButtonCallBack), true);
+                    this.Invoke(new SetItem<bool>(setButtonCallBack), true);
                     this.Invoke(new SetItem<string>(setProgressFileName), "");
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(getExMessage(ex), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             });
             backgroundThread.Start();
@@ -641,13 +649,13 @@ namespace DemoCleaner3
         }
 
         //output message about the end of the work
-        private void showEndMessage(int jobType)
+        private void showEndMessage(JobType jobType)
         {
             string text = "";
             switch (jobType) {
-                case (int)JobType.CLEAN: text = "Cleaning"; break;
-                case (int)JobType.MOVE: text = "Moving"; break;
-                case (int)JobType.RENAME: text = "Renaming"; break;
+                case JobType.CLEAN: text = "Cleaning"; break;
+                case JobType.MOVE: text = "Moving"; break;
+                case JobType.RENAME: text = "Renaming"; break;
             }
             text += " demos finished\n";
 
@@ -1081,8 +1089,8 @@ namespace DemoCleaner3
                     fileHelper.deleteEmpty(_currentDemoPath);
                 }
                 this.Invoke(new SetItem<int>(setProgressPercent), 0);
-                this.Invoke(new SetItem<bool>(SetButtonCallBack), true);
-                this.Invoke(new SetItem<int>(showEndMessage), job);
+                this.Invoke(new SetItem<bool>(setButtonCallBack), true);
+                this.Invoke(new SetItem<JobType>(showEndMessage), job);
             });
             backgroundThread.Start();
         }
