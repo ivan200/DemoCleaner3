@@ -12,8 +12,6 @@ namespace DemoCleaner3.structures
         public string uName = null;         //name in the game
         public string demoUserName = null;  //name from the filename
 
-        Dictionary<string, string> playerInfo;
-
         public DemoNames(Dictionary<string, string> playerInfo, string bracketsName) {
             //names
             if (playerInfo!= null) {

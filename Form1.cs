@@ -95,7 +95,7 @@ namespace DemoCleaner3
                 MessageBox.Show("Please, drop only one file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             } else {
                 FileInfo file = new FileInfo(files[0]);
-                if (file.Extension.StartsWith(".dm_")) {
+                if (file.Extension.ToLowerInvariant().StartsWith(".dm_")) {
                     showDemoInfoFormForFile(files[0]);
                 } else {
                     MessageBox.Show("Please, drop \"Quake 3\" demo file, not other.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);

@@ -27,7 +27,7 @@ namespace DemoCleaner3
             if (argg.Length > 0) {
                 demoFile = new FileInfo(argg[0]);
             }
-            if (demoFile != null && demoFile.Exists && demoFile.Extension.StartsWith(".dm_")) {
+            if (demoFile != null && demoFile.Exists && demoFile.Extension.ToLowerInvariant().StartsWith(".dm_")) {
                 DemoInfoForm demoInfoForm = new DemoInfoForm();
                 demoInfoForm.demoFile = new FileInfo(argg[0]);
                 Application.Run(demoInfoForm);

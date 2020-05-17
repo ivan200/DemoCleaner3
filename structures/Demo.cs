@@ -112,7 +112,7 @@ namespace DemoCleaner3
                 if (userId > 0) {
                     demoname = demoname + "[" + userId.ToString() + "]"; //add userId (can be added only with triggertime)
                 }
-                _demoNewName = demoname + file.Extension;
+                _demoNewName = demoname + file.Extension.ToLowerInvariant();
                 return _demoNewName;
             }
         }
@@ -468,7 +468,7 @@ namespace DemoCleaner3
                 }
                 if (time != null && time.Value.TotalMilliseconds > 0) {
                     var fName = string.Join("_", array.Take(array.Length - 2).ToArray());
-                    filename = string.Format("{0}({1}.{2}){3}", fName, array[array.Length - 2], array[array.Length - 1], file.Extension);
+                    filename = string.Format("{0}({1}.{2}){3}", fName, array[array.Length - 2], array[array.Length - 1], file.Extension.ToLowerInvariant());
                 }
             }
 
