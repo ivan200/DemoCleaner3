@@ -765,6 +765,7 @@
             this.checkBoxMakeLog.TabIndex = 25;
             this.checkBoxMakeLog.Text = "Create a log file for all file operations";
             this.checkBoxMakeLog.UseVisualStyleBackColor = true;
+            this.checkBoxMakeLog.CheckedChanged += new System.EventHandler(this.checkBoxMakeLog_CheckedChanged);
             // 
             // linkLabelInfoAdditional
             // 

@@ -4,15 +4,12 @@ using System.IO;
 using System.Linq;
 using DemoCleaner3.DemoParser.parser;
 using System.Text.RegularExpressions;
-using System.Globalization;
 using DemoCleaner3.DemoParser.huffman;
 using DemoCleaner3.DemoParser;
-using DemoCleaner3.DemoParser.structures;
-using DemoCleaner3.ExtClasses;
 using DemoCleaner3.structures;
+using System.Globalization;
 
-namespace DemoCleaner3
-{
+namespace DemoCleaner3 {
     //Class to maintain all information about demo file
     public class Demo
     {
@@ -211,7 +208,7 @@ namespace DemoCleaner3
 
                 //Name + country
                 var countryName = sub[3];
-                var countryNameParsed = tryGetNameAndCountry(countryName);
+                var countryNameParsed = tryGetNameAndCountry(countryName, null);
                 demo.playerName = countryNameParsed.Key;
                 demo.country = countryNameParsed.Value;
 
@@ -269,7 +266,9 @@ namespace DemoCleaner3
 
             var filename = demo.normalizedFileName;
             var countryAndName = getNameAndCountry(filename);
-            var countryNameParsed = tryGetNameAndCountry(countryAndName);
+
+            var prenames = new DemoNames(Ext.GetOrNull(frConfig, RawInfo.keyPlayer), null);
+            var countryNameParsed = tryGetNameAndCountry(countryAndName, prenames);
 
             string demoUserName = countryNameParsed.Key;  //name from the filename
 
@@ -380,7 +379,11 @@ namespace DemoCleaner3
         }
 
         //We are trying to split name and country
-        static Pair tryGetNameAndCountry(string partname) {
+        static Pair tryGetNameAndCountry(string partname, DemoNames names) {
+            if (names != null && (partname == names.dfName || partname == names.uName)) {
+                //name can contains dots so if username from parameters equals part in brackets, no country here
+                return new Pair(partname, "");
+            }
             int i = partname.LastIndexOf('.');
             if (i > 0 && i + 1 < partname.Length) {
                 var country = partname.Substring(i + 1, partname.Length - i - 1);
@@ -430,12 +433,82 @@ namespace DemoCleaner3
         //Normalization of demo filenames in case they broken by discord or net
         static string getNormalizedFileName(FileInfo file) {
             string filename = file.Name;
+            string filenameNoExt = filename.Substring(0, filename.Length - file.Extension.Length);
+
             //rm_n2%5Bmdf.vq3%5D00.33.984%28h%40des.CountryHere%29.dm_68
             if (filename.Contains("%")) {
                 filename = Uri.UnescapeDataString(filename);
             }
-            //r7-falkydf.cpm00.09.960xas.China.dm_68
-            if (!Ext.ContainsAny(filename, "[", "]", "(", ")")) {
+            Match match;
+
+            if (!Ext.ContainsAny(filenameNoExt, "(", ")")) {
+                if (Ext.CountOf(filenameNoExt, '_') >= 2) {
+
+                    //tamb10_df.vq3_00.11.304_nL_HaZarD.Russia_
+                    if (Ext.CountOf(filenameNoExt, '_') >= 4) {
+                        match = Regex.Match(filenameNoExt, "([.][vV][qQ][3]|[.][cC][pP][mM]).*[_](\\d+[.]\\d{2}[.]\\d{3}|\\d{1,2}[.]\\d{3})");
+                        if (match.Success && match.Groups.Count == 3) {
+                            try {
+                                //group 0 = .vq3_00.11.304
+                                //group 1 = .vq3
+                                //group 2 = 00.11.304
+                                var indexBracket1 = filenameNoExt.Substring(0, match.Index).LastIndexOf('_');
+                                var indexBracket2 = match.Groups[2].Index - 1;
+                                var indexBracket3 = match.Groups[2].Index + match.Groups[2].Length;
+                                var indexBracket4 = filenameNoExt.Length - 1;
+
+                                var chars = filenameNoExt.ToCharArray();
+                                chars[indexBracket1] = '[';
+                                chars[indexBracket2] = ']';
+                                chars[indexBracket3] = '(';
+                                chars[indexBracket4] = ')';
+
+                                return new string(chars) + file.Extension.ToLowerInvariant();
+                            } catch (Exception ex) {
+                            }
+                        }
+                    }
+
+                    //runmikrob-4[df.vq3]00.14.488_JL.Ua_.dm_68
+                    match = Regex.Match(filenameNoExt, "^.+[\\[].+[\\]](\\d+[.]\\d{2}[.]\\d{3}|\\d{1,2}[.]\\d{3})[_].+[_]$");
+                    if (match.Success) {
+                        //group 0 = runmikrob-4[df.vq3]00.14.488_JL.Ua_
+                        //group 1 = 00.14.488
+
+                        var indexBracket1 = match.Groups[1].Index + match.Groups[1].Length;
+                        var indexBracket2 = filenameNoExt.Length - 1;
+
+                        var chars = filenameNoExt.ToCharArray();
+                        chars[indexBracket1] = '(';
+                        chars[indexBracket2] = ')';
+                        return new string(chars) + file.Extension.ToLowerInvariant();
+                    }
+                }
+
+                //dfcomp009_3.792_VipeR_Russia.dm_68
+                //dmp02a_jinx_13.880_t0t3r_germany.dm_68
+                //fdcj2_3.408_[kzii]f_china.dm_66
+                if (Ext.CountOf(filenameNoExt, '_') >= 3) {
+                    match = Regex.Match(filenameNoExt, ".*[_](\\d+[.]\\d{2}[.]\\d{3}|\\d{1,2}[.]\\d{3})[_]");
+                    if (match.Success && match.Groups.Count == 2) {
+                        try {
+                            //group 0 = dfcomp009_3.792_
+                            //group 1 = 3.792
+                            var mapnametime = match.Groups[0].Value.Substring(0, match.Groups[0].Value.Length - 1);
+                            var playerCountry = filenameNoExt.Substring(match.Groups[0].Length);
+                            var split = playerCountry.LastIndexOf('_');
+                            if (split > 0) {
+                                var pa = playerCountry.ToCharArray();
+                                pa[split] = '.';
+                                playerCountry = new string(pa);
+                            }
+                            return mapnametime + "(" + playerCountry + ")" + file.Extension.ToLowerInvariant();
+                        } catch (Exception ex) {
+                        }
+                    }
+                }
+
+                //r7-falkydf.cpm00.09.960xas.China.dm_68
                 int index = Math.Max(filename.IndexOf(".cpm"), filename.IndexOf(".vq3"));
                 if (index > 0) {
                     try {
@@ -456,20 +529,16 @@ namespace DemoCleaner3
                     }
                 }
             }
-            //dfcomp009_3.792_VipeR_Russia.dm_68
-            //dmp02a_jinx_13.880_t0t3r_germany.dm_68
-            if (Ext.CountOf(filename, '_') >= 4 && !Ext.ContainsAny(filename, "(", ")")) {
-                var array = filename.Substring(0, filename.Length - file.Extension.Length).Split('_');
-                TimeSpan? time = null;
-                for (int i = 1; i < 4; i++) {
-                    if (time == null) {
-                        time = tryGetTimeFromBrackets(array[i]);
-                    }
-                }
-                if (time != null && time.Value.TotalMilliseconds > 0) {
-                    var fName = string.Join("_", array.Take(array.Length - 2).ToArray());
-                    filename = string.Format("{0}({1}.{2}){3}", fName, array[array.Length - 2], array[array.Length - 1], file.Extension.ToLowerInvariant());
-                }
+
+            //DraeliPowa1-[VQ3]-{InT33!Stormer}-{01.09.560}-[Russia].dm_68
+            match = Regex.Match(filenameNoExt, "^.*-[[].{3,}]-{(.*)}-{(\\d+[.]\\d{2}[.]\\d{3}|\\d{1,2}[.]\\d{3})}-[[](.*)[]]$");
+            if (match.Success && match.Groups.Count == 4) {
+                //group 0 = DraeliPowa1-[VQ3]-{InT33!Stormer}-{01.09.560}-[Russia]
+                //group 1 = InT33!Stormer
+                //group 2 = 01.09.560
+                //group 3 = Russia
+                var p1 = filenameNoExt.Substring(0, match.Groups[1].Index - 2);
+                return p1 + match.Groups[2].Value + "(" + match.Groups[1].Value + "." + match.Groups[3].Value + ")" + file.Extension.ToLowerInvariant();
             }
 
             return filename;
@@ -505,6 +574,9 @@ namespace DemoCleaner3
                 return id;
             }
             brackets = Regex.Matches(nameNoExt, ".+[\\[].+[\\]].+[(].+[)]([\\[]\\d+[\\]])$");
+            if (brackets.Count != 1) {
+                brackets = Regex.Matches(nameNoExt, ".+[\\[].+[\\]].+[(].+[)][{].+[}]([\\[]\\d+[\\]])$");
+            }
             if (brackets.Count == 1) {
                 var value = brackets[0].Value;
                 var sub = value.Split("[]".ToArray());
@@ -574,11 +646,14 @@ namespace DemoCleaner3
 
         static float getKey(Dictionary<string, string> keysGame, string key)
         {
-            float value;
-            if (keysGame.ContainsKey(key) && keysGame[key].Length > 0) {
-                bool success = float.TryParse(keysGame[key], out value);
-                if (success) {
-                    return value;
+            if (keysGame.ContainsKey(key)) {
+                string strValue = keysGame[key];
+                float value;
+                if (keysGame.ContainsKey(key) && strValue.Length > 0) {
+                    bool success = float.TryParse(strValue, NumberStyles.Number, CultureInfo.InvariantCulture, out value);
+                    if (success) {
+                        return value;
+                    }
                 }
             }
             return -1;

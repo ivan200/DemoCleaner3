@@ -34,7 +34,7 @@ namespace DemoCleaner3.DemoParser.utils
                 var key = src2[k];
                 var value = src2[k + 1];
                 if (!string.IsNullOrEmpty(value)) {
-                    rez.Add(key, value);
+                    rez[key] = value;
                 }
             }
             return rez;

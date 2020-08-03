@@ -76,6 +76,12 @@
     <Compile Include="ExtClasses\FileHelper.cs" />
     <Compile Include="ExtClasses\ListMap.cs" />
     <Compile Include="ExtClasses\LogWriter.cs" />
+    <Compile Include="LogDetails.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogDetails.Designer.cs">
+      <DependentUpon>LogDetails.cs</DependentUpon>
+    </Compile>
     <Compile Include="structures\Demo.cs" />
     <Compile Include="DemoInfoForm.cs">
       <SubType>Form</SubType>
@@ -120,6 +126,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LogDetails.resx">
+      <DependentUpon>LogDetails.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

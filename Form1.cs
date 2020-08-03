@@ -23,6 +23,8 @@ namespace DemoCleaner3
         //It is used if progress bar in taskbar cannot be used on this OS
         bool _useTaskBarProgress = true;
 
+        bool _loadingSettings = false;
+
         private void setProgressPercent(int num)
         {
             if (_useTaskBarProgress) {
@@ -282,6 +284,7 @@ namespace DemoCleaner3
         //Loading form settings
         private void loadSettings()
         {
+            _loadingSettings = true;
             try {
                 prop = Properties.Settings.Default;
 
@@ -351,6 +354,7 @@ namespace DemoCleaner3
             } catch (Exception) {
 
             }
+            _loadingSettings = false;
         }
 
         //turn on one radio button from the transmitted list
@@ -587,10 +591,6 @@ namespace DemoCleaner3
                 textBoxMoveDemosFolder.Text = Path.Combine(_currentDemoPath.FullName, _moveDemosdirName);
             }
 
-            //if (job == JobType.RENAME) {
-            //    RenameThread(_currentDemoPath);
-            //    return;
-            //} 
 
             //We start a thread in which we will process everything
             backgroundThread = new Thread(delegate () {
@@ -1116,5 +1116,18 @@ namespace DemoCleaner3
                 }
             }
         }
+
+        private void checkBoxMakeLog_CheckedChanged(object sender, EventArgs e) {
+            if (!_loadingSettings && checkBoxMakeLog.Checked) {
+                showLogDetails();
+            }
+        }
+
+        private void showLogDetails() {
+            LogDetails logDetails = new LogDetails();
+            logDetails.formLink = this;
+            logDetails.ShowDialog();
+        }
+
     }
 }

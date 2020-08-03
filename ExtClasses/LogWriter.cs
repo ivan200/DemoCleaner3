@@ -24,8 +24,10 @@ namespace DemoCleaner3.ExtClasses
         StreamWriter logWriter = null;
         bool isOpened = false;
         int writeCount = 0;
+        Properties.Settings prop;
 
         public LogWriter() {
+            prop = Properties.Settings.Default;
         }
 
         public void openStream(Form1.JobType jobType) {
@@ -61,6 +63,16 @@ namespace DemoCleaner3.ExtClasses
             if (!isOpened) {
                 return;
             }
+
+            switch (operation) {
+                case Operation.CreateDir:           if (!prop.logCreateDir)             return; break;
+                case Operation.DeleteDir:           if (!prop.logDelDir)                return; break;
+                case Operation.RenameFile:          if (!prop.logRenameFile)            return; break;
+                case Operation.MoveFile:            if (!prop.logMoveFile)              return; break;
+                case Operation.DeleteFile:          if (!prop.logDelFile)               return; break;
+                case Operation.ChangeCreationTime:  if (!prop.logChangeCreationDate)    return; break;
+            }
+
             writeCount++;
             switch (operation) {
                 case Operation.CreateDir:
@@ -76,13 +88,13 @@ namespace DemoCleaner3.ExtClasses
                 case Operation.RenameFile:
                     logWriter.WriteLine("RenameFile");
                     logWriter.WriteLine(" from: {0}", messages[0]);
-                    logWriter.WriteLine(" to: {0}", messages[1]);
+                    logWriter.WriteLine(" to:   {0}", messages[1]);
                     logWriter.WriteLine("-------------------------------");
                     break;
                 case Operation.MoveFile:
                     logWriter.WriteLine("MoveFile");
                     logWriter.WriteLine(" from: {0}", messages[0]);
-                    logWriter.WriteLine(" to: {0}", messages[1]);
+                    logWriter.WriteLine(" to:   {0}", messages[1]);
                     logWriter.WriteLine("-------------------------------");
                     break;
                 case Operation.DeleteFile:
