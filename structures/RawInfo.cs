@@ -292,7 +292,8 @@ namespace DemoCleaner3.DemoParser.parser
             if (fin.HasValue) {
                 time = fin.Value.Value.time;
             }
-            var tmpNames = new DemoNames(kPlayer, null);
+            var tmpNames = new DemoNames();
+            tmpNames.setNamesByPlayerInfo(kPlayer);
 
             if (time > 0) {
                 for (int i = 0; i < timeStrings.Count; i++) {

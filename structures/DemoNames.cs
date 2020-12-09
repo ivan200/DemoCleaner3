@@ -8,48 +8,40 @@ namespace DemoCleaner3.structures
 {
     public class DemoNames
     {
-        public string dfName = null;        //name in the game in the demo names
+        static string defaultName = "UnnamedPlayer";
+
+        public string dfName = null;        //name in params - df_name
         public string uName = null;         //name in the game
-        public string demoUserName = null;  //name from the filename
+        public string oName = null;         //name from console line (online name)
+        public string fName = null;         //name from the filename
 
-        public DemoNames(Dictionary<string, string> playerInfo, string bracketsName) {
-            //names
-            if (playerInfo!= null) {
+        public void setNamesByPlayerInfo(Dictionary<string, string> playerInfo) {
+            if (playerInfo != null) {
                 dfName = Ext.GetOrNull(playerInfo, "df_name");
-                uName = Ext.GetOrNull(playerInfo, "name");
-                uName = RawInfo.removeColors(uName);
-                uName = RawInfo.normalizeName(uName);
+                uName = RawInfo.normalizeName(RawInfo.removeColors(Ext.GetOrNull(playerInfo, "name")));
             }
-            demoUserName = bracketsName;
         }
 
-        public DemoNames(string onlineName, string bracketsName) {
-            //names
-            uName = onlineName;
-            uName = RawInfo.removeColors(uName);
-            uName = RawInfo.normalizeName(uName);
-            demoUserName = bracketsName;
+        public void setOnlineName(string onlineName) {
+            oName = RawInfo.normalizeName(RawInfo.removeColors(onlineName));
         }
 
-        public string normalName {
-            get {
-                var name = chooseName(dfName, uName, demoUserName);
-                if(name == "UnnamedPlayer") {
-                    name = chooseName(uName, dfName, demoUserName);
-                }
-                return name;
-            }
+        public void setBracketsName(string bracketsName) {
+            fName = bracketsName;
+        }
+
+        public string chooseNormalName() {
+            return chooseName(dfName, uName, oName, fName); 
         }
 
         //selection of the first non-empty string from parameters
         private static string chooseName(params string[] names) {
             for (int i = 0; i < names.Length - 1; i++) {
-                if (!string.IsNullOrEmpty(names[i])) {
+                if (!string.IsNullOrEmpty(names[i]) && names[i] != defaultName) {
                     return names[i];
                 }
             }
-            return names[names.Length - 1];
+            return defaultName;
         }
-
     }
 }

@@ -264,19 +264,9 @@ namespace DemoCleaner3 {
                 return demo;
             }
 
-            var filename = demo.normalizedFileName;
-            var countryAndName = getNameAndCountry(filename);
-
-            var prenames = new DemoNames(Ext.GetOrNull(frConfig, RawInfo.keyPlayer), null);
-            var countryNameParsed = tryGetNameAndCountry(countryAndName, prenames);
-
-            string demoUserName = countryNameParsed.Key;  //name from the filename
-
-            //demo has not info about country, so take it from filename
-            demo.country = countryNameParsed.Value;
-
-            //names
-            var names = new DemoNames(Ext.GetOrNull(frConfig, RawInfo.keyPlayer), demoUserName);
+            //config names
+            var names = new DemoNames();
+            names.setNamesByPlayerInfo(Ext.GetOrNull(frConfig, RawInfo.keyPlayer));
 
             //time from triggers
             if (raw.fin.HasValue) {
@@ -286,40 +276,39 @@ namespace DemoCleaner3 {
             }
 
             var timestrings = raw.timeStrings;
+
+            var fastestTimeString = getFastestTimeStringInfo(timestrings, names);
+
             if (demo.time.TotalMilliseconds > 0) {
                 var date = timestrings.LastOrDefault(x => x.recordDate != null);
                 demo.recordTime = date?.recordDate;
             } else {
                 //time from commands
-                TimeStringInfo fastestTimeString = null;
-                if (timestrings.Count == 1) {
-                    fastestTimeString = timestrings.First();
-                } else if (timestrings.Count >= 1) {
-                    var cuStrings = timestrings.Where(x => (!string.IsNullOrEmpty(x.oName) && (x.oName == names.dfName || x.oName == names.uName)));
-                    if (cuStrings.Count() == 0) {
-                        var groups = timestrings.GroupBy(x => x.oName);
-                        if (groups.Count() == 1) {
-                            cuStrings = timestrings;
-                        }
-                    }
-                    if (cuStrings.Count() > 0) {
-                        fastestTimeString = Ext.MinOf(cuStrings, x => (long) x.time.TotalMilliseconds);
-                    }
-                }
                 if (fastestTimeString != null) {
                     demo.time = fastestTimeString.time;
                     demo.recordTime = fastestTimeString.recordDate;
-                    if (fastestTimeString.oName.Length > 0) {
-                        var user = raw.getPlayerInfoByPlayerName(fastestTimeString.oName);
-                        if (user != null) {
-                            names = new DemoNames(user, demoUserName);
-                        } else {
-                            names = new DemoNames(fastestTimeString.oName, demoUserName);
-                        }
+
+                    var user = raw.getPlayerInfoByPlayerName(fastestTimeString.oName);
+                    if (user != null) {
+                        names.setNamesByPlayerInfo(user);
                     }
                 }
             }
-            demo.playerName = names.normalName;
+            if (fastestTimeString != null) {
+                names.setOnlineName(fastestTimeString.oName);
+            }
+
+            var filename = demo.normalizedFileName;
+            var countryAndName = getNameAndCountry(filename);
+            var countryNameParsed = tryGetNameAndCountry(countryAndName, names);
+
+            //fle name
+            names.setBracketsName(countryNameParsed.Key);   //name from the filename
+
+            demo.playerName = names.chooseNormalName();
+
+            //demo has not info about country, so take it from filename
+            demo.country = countryNameParsed.Value;
 
             //at least some time (from name of demo)
             if (demo.time.TotalMilliseconds > 0) {
@@ -363,6 +352,26 @@ namespace DemoCleaner3 {
             return demo;
         }
 
+        static TimeStringInfo getFastestTimeStringInfo(List<TimeStringInfo> timestrings, DemoNames names) {
+            TimeStringInfo fastestTimeString = null;
+            if (timestrings.Count == 1) {
+                fastestTimeString = timestrings.First();
+            } else if (timestrings.Count >= 1) {
+                var cuStrings = timestrings.Where(x => (!string.IsNullOrEmpty(x.oName) && (x.oName == names.dfName || x.oName == names.uName)));
+                if (cuStrings.Count() == 0) {
+                    var groups = timestrings.GroupBy(x => x.oName);
+                    if (groups.Count() == 1) {
+                        cuStrings = timestrings;
+                    }
+                }
+                if (cuStrings.Count() > 0) {
+                    fastestTimeString = Ext.MinOf(cuStrings, x => (long)x.time.TotalMilliseconds);
+                }
+            }
+            return fastestTimeString;
+        }
+
+
         //We are trying to get the name and country from the demo (the first occurrence of two round brackets)
         static string getNameAndCountry(string filename) {
             var brackets = Regex.Matches(filename, "\\([^)]*\\)");
@@ -380,7 +389,7 @@ namespace DemoCleaner3 {
 
         //We are trying to split name and country
         static Pair tryGetNameAndCountry(string partname, DemoNames names) {
-            if (names != null && (partname == names.dfName || partname == names.uName)) {
+            if (names != null && (partname == names.dfName || partname == names.uName || partname == names.oName)) {
                 //name can contains dots so if username from parameters equals part in brackets, no country here
                 return new Pair(partname, "");
             }
