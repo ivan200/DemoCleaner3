@@ -421,7 +421,8 @@ namespace DemoCleaner3.DemoParser.parser
             {
                 return 0;
             }
-            if (client.isOnline || client.isCheatsOn) {
+            //encryption in cheated demos changed somewhere between >=19110 and <=19112
+            if (client.isOnline || (df_ver >= 19112 && client.isCheatsOn)) {
                 return time;
             }
 
