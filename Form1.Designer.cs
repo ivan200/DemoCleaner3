@@ -93,6 +93,7 @@
             this.toolStripStatusFileName = new System.Windows.Forms.ToolStripStatusLabel();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.checkBoxBrokenDemos = new System.Windows.Forms.CheckBox();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -632,6 +633,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.checkBoxBrokenDemos);
             this.tabPage4.Controls.Add(this.linkLabelInfoRenamer);
             this.tabPage4.Controls.Add(this.checkBoxFixCreationTime);
             this.tabPage4.Controls.Add(this.groupBox2);
@@ -850,6 +852,18 @@
             this.toolTip1.IsBalloon = true;
             this.toolTip1.ReshowDelay = 100;
             // 
+            // checkBoxBrokenDemos
+            // 
+            this.checkBoxBrokenDemos.AutoSize = true;
+            this.checkBoxBrokenDemos.Checked = true;
+            this.checkBoxBrokenDemos.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxBrokenDemos.Location = new System.Drawing.Point(6, 124);
+            this.checkBoxBrokenDemos.Name = "checkBoxBrokenDemos";
+            this.checkBoxBrokenDemos.Size = new System.Drawing.Size(155, 17);
+            this.checkBoxBrokenDemos.TabIndex = 33;
+            this.checkBoxBrokenDemos.Text = "Make .broken demos folder";
+            this.checkBoxBrokenDemos.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -964,5 +978,6 @@
         private System.Windows.Forms.CheckBox checkBoxMakeLog;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusNumbers;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusFileName;
+        private System.Windows.Forms.CheckBox checkBoxBrokenDemos;
     }
 }

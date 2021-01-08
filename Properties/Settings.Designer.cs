@@ -370,5 +370,17 @@ namespace DemoCleaner3.Properties {
                 this["logChangeCreationDate"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool makeBrokenFolder {
+            get {
+                return ((bool)(this["makeBrokenFolder"]));
+            }
+            set {
+                this["makeBrokenFolder"] = value;
+            }
+        }
     }
 }

@@ -20,6 +20,7 @@ namespace DemoCleaner3 {
         public string playerName;
         public string country;
         public FileInfo file;
+        public bool isBroken;
         public bool hasError;
         public bool hasCorrectName = false;
         public DateTime? recordTime;
@@ -84,7 +85,9 @@ namespace DemoCleaner3 {
                         oldName = removeSubstr(oldName, playerCountry, false);
                     }
                     oldName = oldName.Replace("[dm]", "");  //replace previous wrong mod detection
-                    oldName = removeSubstr(oldName, playerName, false);                     //remove the player name
+
+                    var normalizedName = DemoNames.normalizeName(playerName);
+                    oldName = removeSubstr(oldName, normalizedName, false);                 //remove the player name
                     oldName = removeSubstr(oldName, country, false);                        //remove the country
                     oldName = removeSubstr(oldName, modphysic);                             //remove the mod with physics
                     if (rawInfo != null && rawInfo.gameInfo != null) {
@@ -261,6 +264,7 @@ namespace DemoCleaner3 {
             demo.file = file;
             if (frConfig.Count == 0 || !frConfig.ContainsKey(RawInfo.keyClient)) {
                 demo.hasError = true;
+                demo.isBroken = true;
                 return demo;
             }
 

@@ -60,6 +60,7 @@ namespace DemoCleaner3
 
         Thread backgroundThread;
 
+        string _brokenDemosDirName = ".broken";
         string _badDemosDirName = ".no_time";
         string _slowDemosDirName = ".slow_demos";
         string _moveDemosdirName = "!demos";
@@ -157,6 +158,9 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(buttonSingleFileInfo, 
                     "Просмотреть детальную информацию об одной демке." + 
                     "\n(Помимо этой кнопки, можно также просто перенести файл на окошко программы)");
+                toolTip1.SetToolTip(checkBoxBrokenDemos, 
+                    "Создать папку со сломанными демками." +
+                    "\n(Которые вообще невозможно воспроизвести в дефраге)");
 
                 //additional
                 toolTip1.SetToolTip(radioButtonDeleteBad, "Некорректно именованые демки - УДАЛИТЬ");
@@ -237,6 +241,9 @@ namespace DemoCleaner3
                     "View detailed information about one demo." +
                     "\n(in addition to this button, you can also" + 
                     "\nsimply drop demo file to this program window)");
+                toolTip1.SetToolTip(checkBoxBrokenDemos,
+                    "Create a folder with broken demos." +
+                    "\n(Which cannot be played in defrag at all)");
 
                 //additional
                 toolTip1.SetToolTip(radioButtonDeleteBad, "Incorrectly named demos - DELETE");
@@ -339,6 +346,7 @@ namespace DemoCleaner3
                 checkBoxFixCreationTime.Checked = prop.renameFixCreationTime;
                 checkBoxRulesValidation.Checked = prop.renameValidation;
                 openFileDialog1.InitialDirectory = dir;
+                checkBoxBrokenDemos.Checked = prop.makeBrokenFolder;
 
                 //additional
                 checkBoxDeleteEmptyDirs.Checked = prop.deleteEmptyDirs;
@@ -391,7 +399,6 @@ namespace DemoCleaner3
             prop.maxFolders = decimal.ToInt32(numericUpDownMaxFolders.Value);
             prop.moveOnlyYourTimes = checkBoxMoveOnlyYour.Checked;
             prop.yourName = textBoxYourName.Text;
-
             prop.moveDemoFolder = _currentMovePath?.FullName ?? "";
             prop.badDemoFolder = _currentBadDemosPath?.FullName ?? "";
             prop.slowDemoFolder = _currentSlowDemosPath?.FullName ?? "";
@@ -400,6 +407,7 @@ namespace DemoCleaner3
             prop.renameOption = getIntFromParameters(radioRenameBad, radioRenameAll);
             prop.renameFixCreationTime = checkBoxFixCreationTime.Checked;
             prop.renameValidation = checkBoxRulesValidation.Checked;
+            prop.makeBrokenFolder = checkBoxBrokenDemos.Checked;
 
             //additional
             prop.badDemosOption = getIntFromParameters(radioButtonDeleteBad, radioButtonSkipBad, radioButtonMoveBad);
@@ -725,6 +733,20 @@ namespace DemoCleaner3
             }
         }
 
+        private void operateBrokenDemos(IEnumerable<Demo> brokenDemos) {
+            if (!checkBoxBrokenDemos.Checked || brokenDemos.Count() == 0) {
+                return;
+            }
+            var brokenDemosPath = new DirectoryInfo(Path.Combine(_currentDemoPath.FullName, _brokenDemosDirName));
+            if (!brokenDemosPath.Exists) {
+                brokenDemosPath.Create();
+            }
+
+            foreach (var item in brokenDemos) {
+                fileHelper.moveFile(item.file, brokenDemosPath, checkBoxDeleteIdentical.Checked);
+            }
+        }
+
         private KeyValuePair<List<Demo>, List<Demo>> splitByFastSlow(IEnumerable<Demo> demos, int countToSave) {
             List<Demo> fastDemos = new List<Demo>();
             List<Demo> slowDemos = new List<Demo>();
@@ -1045,7 +1067,16 @@ namespace DemoCleaner3
             }
 
             fileHelper.resetValues(badDemos.Count, false);
-            operateBadDemos(badDemos);
+
+            if (checkBoxBrokenDemos.Checked) {
+                var broken = badDemos.Where(x => x.isBroken).ToList();
+                operateBrokenDemos(broken);
+
+                var justBad = badDemos.Where(x => !x.isBroken).ToList();
+                operateBadDemos(justBad);
+            } else {
+                operateBadDemos(badDemos);
+            }
 
             if (exception != null) {
                 throw new Exception(exception.Message + "\nFile:\n" + filepath);

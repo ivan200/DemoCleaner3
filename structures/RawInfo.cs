@@ -429,7 +429,7 @@ namespace DemoCleaner3.DemoParser.parser
             //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
             string name = demoTimeCmd.Substring(6, demoTimeCmd.LastIndexOf(" reached") - 6); //Rom
-            return normalizeName(name);
+            return DemoNames.normalizeName(name);
         }
 
         public static TimeSpan getTimeOnline(string demoTimeCmd)
@@ -464,7 +464,7 @@ namespace DemoCleaner3.DemoParser.parser
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^.|\\\"|\\n|\")", "");          //print Time performed  by uN-DeaD!Enter : 31:432 (v1.91.23 beta)
             demoTimeCmd = demoTimeCmd.Substring(24);                                         //uN-DeaD!Enter : 31:432 (v1.91.23 beta)
             demoTimeCmd = demoTimeCmd.Substring(0, demoTimeCmd.LastIndexOf(" : "));          //uN-DeaD!Enter
-            return normalizeName(demoTimeCmd);
+            return DemoNames.normalizeName(demoTimeCmd);
         }
 
         public static string getNameOfflineOld1(string demoTimeCmd) {
@@ -472,7 +472,7 @@ namespace DemoCleaner3.DemoParser.parser
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");  //NewTime -971299442 7:200 defrag 1.80 Viper route ya->->rg
             var parts = demoTimeCmd.Split(' ');
             var name = parts[5];
-            return normalizeName(name);
+            return DemoNames.normalizeName(name);
         }
 
         public static TimeSpan getTimeOld1(string demoTimeCmd)
@@ -531,14 +531,6 @@ namespace DemoCleaner3.DemoParser.parser
             return string.IsNullOrEmpty(text)
                 ? text
                 : Regex.Replace(text, "\\^.", "");
-        }
-
-        //name that can be used in the file name
-        public static string normalizeName(string name)
-        {
-            return string.IsNullOrEmpty(name)
-                ? name
-                : Regex.Replace(name, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
         }
 
         private KeyValuePair<int, ClientEvent>? getCorrectFinishEvent() {

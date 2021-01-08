@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DemoCleaner3.structures
 {
@@ -18,12 +19,12 @@ namespace DemoCleaner3.structures
         public void setNamesByPlayerInfo(Dictionary<string, string> playerInfo) {
             if (playerInfo != null) {
                 dfName = Ext.GetOrNull(playerInfo, "df_name");
-                uName = RawInfo.normalizeName(RawInfo.removeColors(Ext.GetOrNull(playerInfo, "name")));
+                uName = normalizeName(RawInfo.removeColors(Ext.GetOrNull(playerInfo, "name")));
             }
         }
 
         public void setOnlineName(string onlineName) {
-            oName = RawInfo.normalizeName(RawInfo.removeColors(onlineName));
+            oName = normalizeName(RawInfo.removeColors(onlineName));
         }
 
         public void setBracketsName(string bracketsName) {
@@ -42,6 +43,15 @@ namespace DemoCleaner3.structures
                 }
             }
             return defaultName;
+        }
+
+
+
+        //name that can be used in the file name
+        public static string normalizeName(string name) {
+            return string.IsNullOrEmpty(name)
+                ? name
+                : Regex.Replace(name, "[^a-zA-Z0-9\\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\[\\]\\^_\\{\\}]", "");
         }
     }
 }
