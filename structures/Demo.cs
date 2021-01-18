@@ -26,6 +26,12 @@ namespace DemoCleaner3 {
         public DateTime? recordTime;
         public bool hasTr = false;
 
+        public bool isTas = false;  //tool assisted speedrun (boted, scripted, etc...)
+        private static String[] tasTriggers =
+            new String[] { "tas", "bot", "script", "boted", "scripted", "scriptland", "botland" }
+            .OrderByDescending(x => x.Length)
+            .ToArray();
+
         public Dictionary<string, string> validDict = new Dictionary<string, string>();
         public string validity {
             get {
@@ -37,8 +43,8 @@ namespace DemoCleaner3 {
         }
 
         public bool useValidation = true;
-        public bool rawTime = false;
-        public bool triggerTime = false;
+        public bool rawTime = false;            //time is obtained from triggers or console prints
+        public bool triggerTime = false;        //time is obtained from trigger touching, not from prefs
 
         public RawInfo rawInfo = null;
         private string _demoNewName = "";
@@ -71,9 +77,8 @@ namespace DemoCleaner3 {
 
                 if (time.TotalMilliseconds > 0) {
                     //if we have time, write a normal name for the demo
-                    string trString = hasTr ? "_tr" : "";
-                    demoname = string.Format("{0}{1}[{2}]{3:D2}.{4:D2}.{5:D3}({6})",
-                    mapName, trString, modphysic, (int) time.TotalMinutes, time.Seconds, time.Milliseconds, playerCountry);
+                    demoname = string.Format("{0}[{1}]{2:D2}.{3:D2}.{4:D3}({5})",
+                    mapName, modphysic, (int) time.TotalMinutes, time.Seconds, time.Milliseconds, playerCountry);
                     hasCorrectName = true;
                 } else {
                     hasCorrectName = false;
@@ -119,7 +124,7 @@ namespace DemoCleaner3 {
 
         //the removing of the double non-alphanumeric characters and replace at first
         //for example: test__abc-_.xy -> test_abc-xy
-        string removeDouble(string input)
+        static string removeDouble(string input)
         {
             var dup = Regex.Match(input, "[^[a-zA-Z0-9\\(\\)\\]\\[]{2,}");
             if (dup.Success && dup.Groups.Count > 0) {
@@ -133,7 +138,7 @@ namespace DemoCleaner3 {
         //removing substring with adjacent characters for example: test_abc.xy -> test.xy
         //the last character is taken if there are symbols to left and to right 
         //and the first if only from left: test_abcxy -> test_xy
-        string removeSubstr(string input, string include, bool fromstart = true)
+        static string removeSubstr(string input, string include, bool fromstart = true)
         {
             if (include == null || include.Length == 0 || !input.Contains(include)) {
                 return input;
@@ -232,6 +237,22 @@ namespace DemoCleaner3 {
             return demo;
         }
 
+        public static string getModPhysic(string filename) {
+            int index = Math.Max(filename.IndexOf(".cpm"), filename.IndexOf(".vq3"));
+            if (index <= 0) return null;
+
+            int firstSquareIndex = filename.Substring(0, index).LastIndexOf('[');
+            int secondSquareIndex = filename.Substring(index + 1).IndexOf(']');
+
+            if (firstSquareIndex < 0 || secondSquareIndex < 0) return null;
+
+            var modphysic = filename.Substring(firstSquareIndex + 1, secondSquareIndex);
+            if (modphysic.Length < 3) return null;
+
+            return modphysic;
+        }
+
+
         //processing grouping files, if selected with processing mdf as df
         public static string mdfToDf(string mod, bool processIt)
         {
@@ -304,6 +325,12 @@ namespace DemoCleaner3 {
 
             var filename = demo.normalizedFileName;
             var countryAndName = getNameAndCountry(filename);
+            if (Ext.ContainsAny(countryAndName, tasTriggers)) {
+                demo.isTas = true;
+                foreach (string tasFlag in tasTriggers) {
+                    countryAndName = removeSubstr(countryAndName, tasFlag);
+                }
+            }
             var countryNameParsed = tryGetNameAndCountry(countryAndName, names);
 
             //fle name
@@ -335,6 +362,12 @@ namespace DemoCleaner3 {
                 demo.mapName = mapName.ToLowerInvariant();
             }
 
+            //tas
+            var modPhysic = getModPhysic(filename);
+            if (modPhysic != null && Ext.ContainsAny(modPhysic, tasTriggers)) {
+                demo.isTas = true;
+            }
+
             //Gametype
             var gInfo = raw.gameInfo;
             if (gInfo.isDefrag) {
@@ -347,6 +380,13 @@ namespace DemoCleaner3 {
                 demo.modphysic = string.Format("{0}.{1}", gInfo.gameNameShort, gInfo.gameTypeShort);
             }
 
+            if (demo.hasTr) {
+                demo.modphysic = string.Format("{0}.{1}", demo.modphysic, "tr");
+            }
+            if (demo.isTas) {
+                demo.modphysic = string.Format("{0}.{1}", demo.modphysic, "tas");
+            }
+
             //If demo has cheats, write it
             demo.validDict = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo);
 
@@ -355,6 +395,7 @@ namespace DemoCleaner3 {
             }
             return demo;
         }
+
 
         static TimeStringInfo getFastestTimeStringInfo(List<TimeStringInfo> timestrings, DemoNames names) {
             TimeStringInfo fastestTimeString = null;
