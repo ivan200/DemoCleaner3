@@ -75,7 +75,7 @@ namespace DemoCleaner3.DemoParser.parser
                     case Q3_SVC.BASELINE:
                         long newnum = reader.readNumBits(Q3Const.GENTITYNUM_BITS);
                         if (newnum < 0 || newnum >= Q3Const.MAX_GENTITIES) {
-                            Q3Utils.PrintDebug(clc.errors, "Baseline number out of range: {}", newnum);
+                            Q3Utils.PrintDebug(clc.errors, "Baseline number out of range: {0}", newnum);
                             return;
                         }
 
@@ -156,7 +156,7 @@ namespace DemoCleaner3.DemoParser.parser
 
             int len = decoder.readByte();
             if (len > newSnap.areamask.Length) {
-                Q3Utils.PrintDebug(clc.errors, "CL_ParseSnapshot: Invalid size {} for areamask", len);
+                Q3Utils.PrintDebug(clc.errors, "CL_ParseSnapshot: Invalid size {0} for areamask", len);
                 return;
             }
             decoder.readData(newSnap.areamask, len);
