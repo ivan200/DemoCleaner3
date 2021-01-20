@@ -279,6 +279,13 @@ namespace DemoCleaner3.DemoParser.parser
             if (clientEvent.hasAnyEvent) {
                 events.Add(clientEvent);
             }
+
+            var x = Math.Abs(snapshot.ps.velocity[0]);
+            var y = Math.Abs(snapshot.ps.velocity[1]);
+            var speed = Math.Sqrt(x * x + y * y);
+            if (speed > client.maxSpeed) {
+                client.maxSpeed = (int)speed;
+            }
         }
 
         private void parsePacketEntities(Q3HuffmanReader decoder, CLSnapshot oldframe, CLSnapshot newframe)

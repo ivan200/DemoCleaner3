@@ -28,6 +28,7 @@ namespace DemoCleaner3.DemoParser.parser
         public static string keyConsole = "console";
         public static string keyErrors = "errors";
         public static string keyBestTime = "bestTime";
+        public static string keyMaxSpeed = "maxSpeed";
 
         public Dictionary<short, string> rawConfig;
 
@@ -56,21 +57,21 @@ namespace DemoCleaner3.DemoParser.parser
 
         public Dictionary<string, string> kPlayer = null;
         public GameInfo gameInfo = null;
+        public int maxSpeed = 0;
 
-        public RawInfo(
-            string demoName, ClientConnection clientConnection, List<ClientEvent> clientEvents) {
+        public RawInfo(string demoName, ClientConnection clientConnection, List<ClientEvent> clientEvents, int maxSpeed) {
             this.demoPath = demoName;
             this.clc = clientConnection;
             this.rawConfig = clientConnection.configs;
             this.clientEvents = clientEvents;
             this.fin = getCorrectFinishEvent();
+            this.maxSpeed = maxSpeed;
 
             fillTimes(clientConnection.console);
             timeStrings = getTimeStrings();
         }
 
-        public Dictionary<string, Dictionary<string, string>> getFriendlyInfo()
-        {
+        public Dictionary<string, Dictionary<string, string>> getFriendlyInfo() {
             if (friendlyInfo != null) {
                 return friendlyInfo;
             }
@@ -132,6 +133,9 @@ namespace DemoCleaner3.DemoParser.parser
                 bool hasTr = fin.Value.Key > 1;
                 string trAdd = hasTr ? " (Time reset)" : "";
                 times.Add(keyBestTime, bestTime + trAdd);
+            }
+            if (maxSpeed > 0) {
+                times.Add(keyMaxSpeed, maxSpeed.ToString());
             }
 
             friendlyInfo.Add(keyRecord, times);

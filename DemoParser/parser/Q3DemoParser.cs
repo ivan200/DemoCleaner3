@@ -22,7 +22,7 @@ namespace DemoCleaner3.DemoParser.parser
         {
             var msgParser = new Q3DemoConfigParser();
             this.doParse(msgParser);
-            RawInfo info = new RawInfo(file_name, msgParser.clc, msgParser.client.clientEvents);
+            RawInfo info = new RawInfo(file_name, msgParser.clc, msgParser.client.clientEvents, msgParser.client.maxSpeed);
             return info;
         }
 
