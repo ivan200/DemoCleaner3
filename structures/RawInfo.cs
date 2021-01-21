@@ -58,6 +58,7 @@ namespace DemoCleaner3.DemoParser.parser
         public Dictionary<string, string> kPlayer = null;
         public GameInfo gameInfo = null;
         public int maxSpeed = 0;
+        public bool isLongStart = false;
 
         public RawInfo(string demoName, ClientConnection clientConnection, List<ClientEvent> clientEvents, int maxSpeed) {
             this.demoPath = demoName;
@@ -139,10 +140,12 @@ namespace DemoCleaner3.DemoParser.parser
             }
 
             friendlyInfo.Add(keyRecord, times);
-            
+
             //demo triggers
             if (clientEvents != null && clientEvents.Count > 0) {
                 Dictionary<string, string> triggers = new Dictionary<string, string>();
+                long startFileServerTime = 0;
+                long startTimerServerTime = 0;
                 try {
                     int stCount = 0;
                     int trCount = 0;
@@ -156,7 +159,7 @@ namespace DemoCleaner3.DemoParser.parser
                         ClientEvent ce = clientEvents[i];
                         string diff = "";
                         if (i > 0) {
-                            var prev = clientEvents[i-1];
+                            var prev = clientEvents[i - 1];
                             long t = ce.serverTime - prev.serverTime;
                             if (t > 0 && prev.serverTime > 0) {
                                 diff = string.Format(" (+{0})", getDiffByMillis(t));
@@ -170,13 +173,18 @@ namespace DemoCleaner3.DemoParser.parser
                             string username = user == null ? null : Ext.GetOrNull(user, "name");
                             string userString = string.IsNullOrEmpty(username) ? "" : "Client: " + username;
                             triggers.Add("StartFile", userString);
+                            startFileServerTime = ce.serverTime;
                         }
                         if (ce.eventStartTime) {
                             var user = getPlayerInfoByPlayerNum(ce.playerNum);
                             string username = user == null ? null : Ext.GetOrNull(user, "name");
                             string userString = string.IsNullOrEmpty(username) ? "" : "Player: " + username;
                             triggers.Add("StartTimer" + getNumKey(++stCount), userString + diff);
-                            
+
+                            //check only first start timer
+                            if (startTimerServerTime == 0) {
+                                startTimerServerTime = ce.serverTime;
+                            }
                         }
                         if (ce.eventTimeReset) {
                             var user = getPlayerInfoByPlayerNum(ce.playerNum);
@@ -191,7 +199,7 @@ namespace DemoCleaner3.DemoParser.parser
                             triggers.Add("CheckPoint" + getNumKey(++cpCount), getTimeByMillis(ce.time) + diff);
                         }
                         if (ce.eventChangePmType) {
-                            string pmString = ce.playerMode < ClientEvent.pmTypesStrings.Length 
+                            string pmString = ce.playerMode < ClientEvent.pmTypesStrings.Length
                                 ? ClientEvent.pmTypesStrings[ce.playerMode] : ce.playerMode.ToString();
                             triggers.Add("ChangePlayerMode" + getNumKey(++pmCount), pmString + diff);
                         }
@@ -208,9 +216,24 @@ namespace DemoCleaner3.DemoParser.parser
                 } catch (Exception ex) {
                     Q3Utils.PrintDebug(clc.errors, ex.Message);
                 }
+
+                //detection demos with very long start
+                var timeMillis = startTimerServerTime - startFileServerTime;
+                if (timeMillis > 0) {
+                    var time = TimeSpan.FromMilliseconds(timeMillis);
+                    if (time.TotalSeconds > 20) {
+
+                        var sTime = TimeSpan.FromMilliseconds(startTimerServerTime);
+                        var sTimeString = string.Format("{0:D2}:{1:D2}:{2:D3}", (int)sTime.TotalMinutes, sTime.Seconds, sTime.Milliseconds);
+
+                        friendlyInfo[keyRecord].Add("lateStart", $"{(int)time.TotalSeconds} sec (servertime: {sTimeString})");
+                        isLongStart = true;
+                    }
+                }
+
                 friendlyInfo.Add(keyTriggers, triggers);
             }
-            
+
             if (rawConfig == null) {
                 return friendlyInfo;
             }

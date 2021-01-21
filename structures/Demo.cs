@@ -32,7 +32,7 @@ namespace DemoCleaner3 {
             .OrderByDescending(x => x.Length)
             .ToArray();
 
-        public Dictionary<string, string> validDict = new Dictionary<string, string>();
+        public Dictionary<string, string> validDict = new Dictionary<string, string>(); //incorrect validation params dictionary
         public string validity {
             get {
                 if (validDict.Count > 0) {
@@ -89,7 +89,7 @@ namespace DemoCleaner3 {
                     if (country.Length > 0) {
                         oldName = removeSubstr(oldName, playerCountry, false);
                     }
-                    oldName = oldName.Replace("[dm]", "");  //replace previous wrong mod detection
+                    oldName = oldName.Replace("[dm]", "");                                  //replace previous wrong mod detection
 
                     var normalizedName = DemoNames.normalizeName(playerName);
                     oldName = removeSubstr(oldName, normalizedName, false);                 //remove the player name
@@ -104,7 +104,7 @@ namespace DemoCleaner3 {
                     oldName = oldName.Replace("[]", "").Replace("()", "");                  //remove the empty brackets
                     //oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9]+|[^[a-zA-Z0-9]+$)", "");
                     oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //we remove crap at the beginning and at the end of name
-                    oldName = oldName.Replace(" ", "_");                                    //убираем пробелы
+                    oldName = oldName.Replace(" ", "_");                                    //remove_spaces
                     
                     demoname = string.Format("{0}[{1}]{2}({3})", mapName, modphysic, oldName, playerCountry);
 
@@ -117,6 +117,7 @@ namespace DemoCleaner3 {
                 if (userId > 0) {
                     demoname = demoname + "[" + userId.ToString() + "]"; //add userId (can be added only with triggertime)
                 }
+
                 _demoNewName = demoname + file.Extension.ToLowerInvariant();
                 return _demoNewName;
             }
@@ -200,6 +201,12 @@ namespace DemoCleaner3 {
                 demo.modphysic = sub[1];
                 if (demo.modphysic.Length < 3) {
                     demo.hasError = true;
+                }
+                if (demo.modphysic.Contains(".tr")) {
+                    demo.hasTr = true;
+                }
+                if (demo.modphysic.Contains(".tas")) {
+                    demo.isTas = true;
                 }
 
                 //Time
@@ -616,27 +623,22 @@ namespace DemoCleaner3 {
             if (file.Name.Count(x=>x == '[') < 2) {
                 return 0;
             }
+            long id = 0;
+
             var nameNoExt = file.Name.Substring(0, file.Name.Length - file.Extension.Length);
-            var brackets = Regex.Matches(nameNoExt, "([\\[]\\d+[\\]]){2}$");
-            if (brackets.Count == 1) {
-                var value = brackets[0].Value;
-                var sub = value.Split("[]".ToArray());
-                if (sub.Length != 5) return 0;
-                var stringId = sub[3];
-                long id = 0;
-                long.TryParse(stringId, out id);
+
+            var v1 = Regex.Match(nameNoExt, "^.+\\[\\d+\\]\\[(\\d+)\\]$");
+            //lick-dead[49576][1037].dm_68
+            if (v1.Groups.Count == 2) {
+                long.TryParse(v1.Groups[1].Value, out id);
                 return id;
             }
-            brackets = Regex.Matches(nameNoExt, ".+[\\[].+[\\]].+[(].+[)]([\\[]\\d+[\\]])$");
-            if (brackets.Count != 1) {
-                brackets = Regex.Matches(nameNoExt, ".+[\\[].+[\\]].+[(].+[)][{].+[}]([\\[]\\d+[\\]])$");
-            }
-            if (brackets.Count == 1) {
-                var value = brackets[0].Value;
-                var sub = value.Split("[]".ToArray());
-                var stringId = sub[sub.Length - 2];
-                long id = 0;
-                long.TryParse(stringId, out id);
+
+            var v2 = Regex.Match(nameNoExt, $"^.+\\[.+\\].+\\(.+\\)(?:{{.+}})*\\[(\\d+)\\]$");
+            //fried-rust[df.cpm]00.26.304(uN-DeaD!Enter.Russia){dsads}[100]
+            //fried-rust[df.cpm]00.26.304(uN-DeaD!Enter.Russia)[100]
+            if (v2.Groups.Count == 2) {
+                long.TryParse(v2.Groups[1].Value, out id);
                 return id;
             }
             return 0;
