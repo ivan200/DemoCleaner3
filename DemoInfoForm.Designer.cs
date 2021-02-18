@@ -56,6 +56,7 @@
             this.dataGridView.RowTemplate.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.dataGridView.Size = new System.Drawing.Size(659, 495);
             this.dataGridView.TabIndex = 4;
+            this.dataGridView.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dataGridView_CellPainting);
             // 
             // ColumnType
             // 
