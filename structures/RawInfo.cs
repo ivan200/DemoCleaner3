@@ -276,7 +276,7 @@ namespace DemoCleaner3.DemoParser.parser
                     gameInfoDict.Add("modType", string.Format("{0} ({1})", gameInfo.modTypeName, gameInfo.modType));
                 }
             }
-
+            
             //Game
             var game = Ext.Join(gameInfoDict, gInfo);
             if (game.Count > 0) {
@@ -299,10 +299,13 @@ namespace DemoCleaner3.DemoParser.parser
             if (clc.console.Count > 0) {
                 Dictionary<string, string> conTexts = new Dictionary<string, string>();
                 foreach(var kv in clc.console) {
-                    conTexts.Add(kv.Key.ToString(), removeColors(kv.Value.ToString()));
+                    var asciiText = removeNonAscii(kv.Value.ToString());
+                    conTexts.Add(kv.Key.ToString(), asciiText);
                 }
                 friendlyInfo.Add(keyConsole, conTexts);
             }
+
+            //Errors
             if (clc.errors.Count > 0) {
                 Dictionary<string, string> errTexts = new Dictionary<string, string>();
                 int i = 0;
@@ -559,6 +562,10 @@ namespace DemoCleaner3.DemoParser.parser
             return string.IsNullOrEmpty(text)
                 ? text
                 : Regex.Replace(text, "\\^.", "");
+        }
+
+        public static string removeNonAscii(string text) {
+            return string.IsNullOrEmpty(text) ? text : Regex.Replace(text, @"[^\u0020-\u007F]+", string.Empty);
         }
 
         private KeyValuePair<int, ClientEvent>? getCorrectFinishEvent() {
