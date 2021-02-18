@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static DemoCleaner3.DemoParser.utils.Q3Utils;
 
 namespace DemoCleaner3.DemoParser.parser
 {
@@ -41,7 +42,7 @@ namespace DemoCleaner3.DemoParser.parser
                 }
             }
             catch (Exception r) {
-                Q3Utils.PrintDebug(msgParser.clc.errors, r.Message);
+                Q3Utils.PrintDebug(msgParser.clc.errors, ErrorType.Unknown1);
             }
             messageStream.close();
             return msgParser;

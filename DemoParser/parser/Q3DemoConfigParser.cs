@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using static DemoCleaner3.DemoParser.structures.PlayerState.StatIndex;
+using static DemoCleaner3.DemoParser.utils.Q3Utils;
 
 namespace DemoCleaner3.DemoParser.parser
 {
@@ -75,18 +76,18 @@ namespace DemoCleaner3.DemoParser.parser
                     case Q3_SVC.BASELINE:
                         long newnum = reader.readNumBits(Q3Const.GENTITYNUM_BITS);
                         if (newnum < 0 || newnum >= Q3Const.MAX_GENTITIES) {
-                            Q3Utils.PrintDebug(clc.errors, "Baseline number out of range: {0}", newnum);
+                            Q3Utils.PrintDebug(clc.errors, ErrorType.BaselineNumberOutOfRange);
                             return;
                         }
 
                         EntityState es = Ext2<long, EntityState>.GetOrCreate(clc.entityBaselines, newnum);
                         if (!reader.readDeltaEntity(es, (int)newnum)) {
-                            Q3Utils.PrintDebug(clc.errors, "unable to parse delta-entity state");
+                            Q3Utils.PrintDebug(clc.errors, ErrorType.UnableToParseDeltaEntityState);
                             return;
                         }
                         break;
                     default:
-                        Q3Utils.PrintDebug(clc.errors, "bad command in parseGameState");
+                        Q3Utils.PrintDebug(clc.errors, ErrorType.BadCommandInParseGameState);
                         return;
                 }
             }
@@ -142,13 +143,13 @@ namespace DemoCleaner3.DemoParser.parser
                 old = Ext2<int, CLSnapshot>.GetOrCreate(client.snapshots, newSnap.deltaNum & Q3Const.PACKET_MASK);
                 if (old == null || !old.valid) {
                     // should never happen
-                    Q3Utils.PrintDebug(clc.errors, "Delta from invalid frame (not supposed to happen!)");
+                    Q3Utils.PrintDebug(clc.errors, ErrorType.DeltaFromInvalidFrame);
                 } else if (old.messageNum != newSnap.deltaNum) {
                     // The frame that the server did the delta from
                     // is too old, so we can't reconstruct it properly.
-                    Q3Utils.PrintDebug(clc.errors, "Delta frame too old.");
+                    Q3Utils.PrintDebug(clc.errors, ErrorType.DeltaFrameTooOld);
                 } else if ((client.parseEntitiesNum - old.parseEntitiesNum) > (Q3Const.MAX_PARSE_ENTITIES - 128)) {
-                    Q3Utils.PrintDebug(clc.errors, "Delta parseEntitiesNum too old");
+                    Q3Utils.PrintDebug(clc.errors, ErrorType.DeltaParseEntitiesNumTooOld);
                 } else {
                     newSnap.valid = true;  // valid delta parse
                 }
@@ -156,7 +157,7 @@ namespace DemoCleaner3.DemoParser.parser
 
             int len = decoder.readByte();
             if (len > newSnap.areamask.Length) {
-                Q3Utils.PrintDebug(clc.errors, "CL_ParseSnapshot: Invalid size {0} for areamask", len);
+                Q3Utils.PrintDebug(clc.errors, ErrorType.ParseSnapshotInvalidsize);
                 return;
             }
             decoder.readData(newSnap.areamask, len);
@@ -316,7 +317,7 @@ namespace DemoCleaner3.DemoParser.parser
                 }
 
                 if (decoder.isEOD()) {
-                    Q3Utils.PrintDebug(clc.errors, "ERR_DROP, CL_ParsePacketEntities: end of message");
+                    Q3Utils.PrintDebug(clc.errors, ErrorType.ParsePacketEntitiesEndOfMessage);
                     return;
                 }
 
@@ -476,7 +477,7 @@ namespace DemoCleaner3.DemoParser.parser
 
             if (local1c != (local20 & 0x3f))
             {
-                Q3Utils.PrintDebug(clc.errors, "bad checksum at decoding demo time");
+                Q3Utils.PrintDebug(clc.errors, ErrorType.BadChecksum);
             }
             return time;
         }

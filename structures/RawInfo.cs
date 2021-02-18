@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using static DemoCleaner3.DemoParser.utils.Q3Utils;
 
 namespace DemoCleaner3.DemoParser.parser
 {
@@ -214,7 +215,7 @@ namespace DemoCleaner3.DemoParser.parser
                         }
                     }
                 } catch (Exception ex) {
-                    Q3Utils.PrintDebug(clc.errors, ex.Message);
+                    Q3Utils.PrintDebug(clc.errors, ErrorType.Unknown2);
                 }
 
                 //detection demos with very long start
