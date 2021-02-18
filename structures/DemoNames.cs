@@ -13,7 +13,8 @@ namespace DemoCleaner3.structures
 
         public string dfName = null;        //name in params - df_name
         public string uName = null;         //name in the game
-        public string oName = null;         //name from console line (online name)
+        public string oName = null;         //name from console line - online name
+        public string cName = null;         //name from console line - offline name, was used before df_name was added
         public string fName = null;         //name from the filename
 
         public void setNamesByPlayerInfo(Dictionary<string, string> playerInfo) {
@@ -23,8 +24,12 @@ namespace DemoCleaner3.structures
             }
         }
 
-        public void setOnlineName(string onlineName) {
-            oName = normalizeName(RawInfo.removeColors(onlineName));
+        public void setConsoleName(string onlineName, bool isOnline) {
+            if (isOnline) {
+                oName = normalizeName(RawInfo.removeColors(onlineName));
+            } else {
+                cName = normalizeName(RawInfo.removeColors(onlineName));
+            }
         }
 
         public void setBracketsName(string bracketsName) {
@@ -32,7 +37,7 @@ namespace DemoCleaner3.structures
         }
 
         public string chooseNormalName() {
-            return chooseName(dfName, uName, oName, fName); 
+            return chooseName(dfName, cName, uName, oName, fName); 
         }
 
         //selection of the first non-empty string from parameters

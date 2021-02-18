@@ -327,7 +327,7 @@ namespace DemoCleaner3 {
                 }
             }
             if (fastestTimeString != null) {
-                names.setOnlineName(fastestTimeString.oName);
+                names.setConsoleName(fastestTimeString.oName, raw.gameInfo.isOnline);
             }
 
             var filename = demo.normalizedFileName;
