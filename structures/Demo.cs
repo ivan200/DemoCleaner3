@@ -495,14 +495,22 @@ namespace DemoCleaner3 {
         //Normalization of demo filenames in case they broken by discord or net
         static string getNormalizedFileName(FileInfo file) {
             string filename = file.Name;
-            string filenameNoExt = filename.Substring(0, filename.Length - file.Extension.Length);
 
             //rm_n2%5Bmdf.vq3%5D00.33.984%28h%40des.CountryHere%29.dm_68
             if (filename.Contains("%")) {
                 filename = Uri.UnescapeDataString(filename);
             }
-            Match match;
 
+            string filenameNoExt = filename.Substring(0, filename.Length - file.Extension.Length);
+
+            if (filenameNoExt.ToLowerInvariant().Contains(" — копия")) {
+                filenameNoExt = Regex.Replace(filenameNoExt, "( — [к|К]опия( \\(\\d+\\))?)+", "");
+            }
+            if (filenameNoExt.ToLowerInvariant().Contains(" — copy")) {
+                filenameNoExt = Regex.Replace(filenameNoExt, "( — [c|C]opy( \\(\\d+\\))?)+", "");
+            }
+
+            Match match;
             if (!Ext.ContainsAny(filenameNoExt, "(", ")")) {
                 if (Ext.CountOf(filenameNoExt, '_') >= 2) {
 
@@ -571,21 +579,18 @@ namespace DemoCleaner3 {
                 }
 
                 //r7-falkydf.cpm00.09.960xas.China.dm_68
-                int index = Math.Max(filename.IndexOf(".cpm"), filename.IndexOf(".vq3"));
+                int index = Math.Max(filenameNoExt.IndexOf(".cpm"), filenameNoExt.IndexOf(".vq3"));
                 if (index > 0) {
                     try {
-                        int i1 = filename[index - 3] == 'm' ? index - 3 : index - 2;
-                        int i2 = filename[index + 4] == '.' ? index + 6 : index + 4;
+                        int i1 = filenameNoExt[index - 3] == 'm' ? index - 3 : index - 2;
+                        int i2 = filenameNoExt[index + 4] == '.' ? index + 6 : index + 4;
                         int i3 = i2 + 9;
-                        int i4 = file.Name.Length - file.Extension.Length;
-                        int i5 = file.Name.Length;
-                        string mapname = filename.Substring(0, i1);
-                        string physic = filename.Substring(i1, i2 - i1);
-                        string time = filename.Substring(i2, i3 - i2);
-                        string name = filename.Substring(i3, i4 - i3);
-                        string ext = filename.Substring(i4, i5 - i4);
+                        string mapname = filenameNoExt.Substring(0, i1);
+                        string physic = filenameNoExt.Substring(i1, i2 - i1);
+                        string time = filenameNoExt.Substring(i2, i3 - i2);
+                        string name = filenameNoExt.Substring(i3);
                         if (isDigits(time[0], time[1], time[3], time[4], time[7], time[8])) {
-                            filename = string.Format("{0}[{1}]{2}({3}){4}", mapname, physic, time, name, ext);
+                            return string.Format("{0}[{1}]{2}({3}){4}", mapname, physic, time, name, file.Extension);
                         }
                     } catch (Exception ex) {
                     }
