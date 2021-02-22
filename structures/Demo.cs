@@ -28,7 +28,7 @@ namespace DemoCleaner3 {
 
         public bool isTas = false;  //tool assisted speedrun (boted, scripted, etc...)
         private static String[] tasTriggers =
-            new String[] { "tas", "bot", "script", "boted", "scripted", "scriptland", "botland" }
+            new String[] { "tas", "bot", "wiz", "script", "boted", "tasbot", "scripted", "scriptland", "botland" }
             .OrderByDescending(x => x.Length)
             .ToArray();
 
@@ -44,7 +44,8 @@ namespace DemoCleaner3 {
 
         public bool useValidation = true;
         public bool rawTime = false;            //time is obtained from triggers or console prints
-        public bool triggerTime = false;        //time is obtained from trigger touching, not from prefs
+        public bool triggerTime = false;        //time is obtained from trigger touching, not from prefs\
+        public bool isSpectator = false;
 
         public RawInfo rawInfo = null;
         private string _demoNewName = "";
@@ -59,7 +60,7 @@ namespace DemoCleaner3 {
             }
         }
 
-        private long userId = 0;
+        private long userId = -1;
 
         //generating new demo name by all information
         public string demoNewName {
@@ -114,8 +115,12 @@ namespace DemoCleaner3 {
                 if (useValidation && validity.Length > 0) {
                     demoname = demoname + "{" + validity + "}"; //add information about validation
                 }
-                if (userId > 0) {
+                if (userId >= 0) {
                     demoname = demoname + "[" + userId.ToString() + "]"; //add userId (can be added only with triggertime)
+                } else {
+                    if (isSpectator || (rawInfo != null && rawInfo.isSpectator)) {
+                        demoname = demoname + "[spect]";                //add spectator tag
+                    }
                 }
 
                 _demoNewName = demoname + file.Extension.ToLowerInvariant();
@@ -156,7 +161,7 @@ namespace DemoCleaner3 {
                     symbol = s.ToString();
                 }
             }
-            if (pos + include.Length + 1 < input.Length) {
+            if (pos + include.Length < input.Length) {
                 var s = input[pos + include.Length];
                 cropend = char.IsLetterOrDigit(s) ? 0 : 1;
                 if (cropend > 0) {
@@ -179,39 +184,23 @@ namespace DemoCleaner3 {
 
             demo.recordTime = demo.file.CreationTime;
 
-            int index = Math.Max(filename.IndexOf(".cpm"), filename.IndexOf(".vq3"));
-            if (index <= 0) {
-                demo.hasError = true;
-                return demo;
-            }
-            int firstSquareIndex = filename.Substring(0, index).LastIndexOf('[');
-            if (firstSquareIndex <= 0) {
-                demo.hasError = true;
-                return demo;
-            }
-            string mapname = filename.Substring(0, firstSquareIndex);
-            string others = filename.Substring(firstSquareIndex);
-
-            var sub = others.Split("[]()".ToArray());
-            if (sub.Length >= 4) {
+            string fileNameNoExt = filename.Substring(0, filename.Length - file.Extension.Length);
+            var match = Regex.Match(fileNameNoExt, "(.+)\\[(.+)\\](\\d+\\.\\d{2}\\.\\d{3})\\((.+)\\)(\\{(.+)\\})?(\\[(.+)\\])?");
+            if (match.Success && match.Groups.Count >= 5) {
                 //Map
-                demo.mapName = mapname;
+                demo.mapName = match.Groups[1].Value;
 
                 //Physic
-                demo.modphysic = sub[1];
-                if (demo.modphysic.Length < 3) {
-                    demo.hasError = true;
-                }
-                if (demo.modphysic.Contains(".tr")) {
-                    demo.hasTr = true;
-                }
-                if (demo.modphysic.Contains(".tas")) {
-                    demo.isTas = true;
-                }
+                demo.modphysic = match.Groups[2].Value;
+                var physic = demo.modphysic.ToLowerInvariant();
+                int index = Math.Max(physic.IndexOf(".cpm"), physic.IndexOf(".vq3"));
+                if (index <= 0) demo.hasError = true;
+                if (physic.Length < 3) demo.hasError = true;
+                if (physic.Contains(".tr")) demo.hasTr = true;
+                if (physic.Contains(".tas")) demo.isTas = true;
 
                 //Time
-                demo.timeString = sub[2];
-                var times = demo.timeString.Split('-', '.');
+                demo.timeString = match.Groups[3].Value;
                 try {
                     demo.time = RawInfo.getTimeSpan(demo.timeString);
                 } catch (Exception) {
@@ -222,20 +211,36 @@ namespace DemoCleaner3 {
                 }
 
                 //Name + country
-                var countryName = sub[3];
+                var countryName = match.Groups[4].Value;
                 var countryNameParsed = tryGetNameAndCountry(countryName, null);
                 demo.playerName = countryNameParsed.Key;
                 demo.country = countryNameParsed.Value;
 
-                var c1 = filename.LastIndexOf(')');
-                var b1 = filename.LastIndexOf('{');
-                var b2 = filename.LastIndexOf('}');
-                if (b2 > b1 && b1 > c1 && c1 > 0) {
-                    var vstr = filename.Substring(b1 + 1, b2 - b1 - 1);
-                    var v = vstr.Split('=');
+                //Validity
+                if (match.Groups.Count >= 7) {
+                    var validString = match.Groups[6].Value;
+                    var v = validString.Split('=');
                     if (v.Length > 1) {
                         demo.validDict = new Dictionary<string, string>();
                         demo.validDict.Add(v[0], v[1]);
+                    }
+                }
+
+                //userId
+                if (match.Groups.Count >= 9) {
+                    var idString = match.Groups[8].Value;
+                    if (!string.IsNullOrEmpty(idString)) {
+                        if (isDigits(idString.ToCharArray())) {
+                            long id = -1;
+                            long.TryParse(idString, out id);
+                            if (id >= 0) {
+                                demo.userId = id;
+                            }
+                        } else {
+                            if (idString == "spect") {
+                                demo.isSpectator = true;
+                            }
+                        }
                     }
                 }
             } else {
@@ -332,7 +337,7 @@ namespace DemoCleaner3 {
 
             var filename = demo.normalizedFileName;
             var countryAndName = getNameAndCountry(filename);
-            if (Ext.ContainsAny(countryAndName, tasTriggers)) {
+            if (Ext.ContainsAnySplitted(countryAndName, tasTriggers)) {
                 demo.isTas = true;
                 foreach (string tasFlag in tasTriggers) {
                     countryAndName = removeSubstr(countryAndName, tasFlag);
@@ -371,7 +376,7 @@ namespace DemoCleaner3 {
 
             //tas
             var modPhysic = getModPhysic(filename);
-            if (modPhysic != null && Ext.ContainsAny(modPhysic, tasTriggers)) {
+            if (modPhysic != null && Ext.ContainsAnySplitted(modPhysic, tasTriggers)) {
                 demo.isTas = true;
             }
 
@@ -627,9 +632,9 @@ namespace DemoCleaner3 {
         static long tryGetUserIdFromFileName(FileInfo file)
         {
             if (file.Name.Count(x=>x == '[') < 2) {
-                return 0;
+                return -1;
             }
-            long id = 0;
+            long id = -1;
 
             var nameNoExt = file.Name.Substring(0, file.Name.Length - file.Extension.Length);
 
@@ -647,7 +652,7 @@ namespace DemoCleaner3 {
                 long.TryParse(v2.Groups[1].Value, out id);
                 return id;
             }
-            return 0;
+            return -1;
         }
 
         //check demo for validity, commmands ordered by relevance. first is more important

@@ -60,6 +60,7 @@ namespace DemoCleaner3.DemoParser.parser
         public GameInfo gameInfo = null;
         public int maxSpeed = 0;
         public bool isLongStart = false;
+        public bool isSpectator = false;
 
         public RawInfo(string demoName, ClientConnection clientConnection, List<ClientEvent> clientEvents, int maxSpeed) {
             this.demoPath = demoName;
@@ -147,6 +148,8 @@ namespace DemoCleaner3.DemoParser.parser
                 Dictionary<string, string> triggers = new Dictionary<string, string>();
                 long startFileServerTime = 0;
                 long startTimerServerTime = 0;
+                string startFileUserName = null;
+                string startTimerUserName = null;
                 try {
                     int stCount = 0;
                     int trCount = 0;
@@ -171,15 +174,15 @@ namespace DemoCleaner3.DemoParser.parser
                             if (user == null) {
                                 user = getPlayerInfoByPlayerNum(ce.playerNum);
                             }
-                            string username = user == null ? null : Ext.GetOrNull(user, "name");
-                            string userString = string.IsNullOrEmpty(username) ? "" : "Client: " + username;
+                            startFileUserName = user == null ? null : Ext.GetOrNull(user, "name");
+                            string userString = string.IsNullOrEmpty(startFileUserName) ? "" : "Client: " + startFileUserName;
                             triggers.Add("StartFile", userString);
                             startFileServerTime = ce.serverTime;
                         }
                         if (ce.eventStartTime) {
                             var user = getPlayerInfoByPlayerNum(ce.playerNum);
-                            string username = user == null ? null : Ext.GetOrNull(user, "name");
-                            string userString = string.IsNullOrEmpty(username) ? "" : "Player: " + username;
+                            startTimerUserName = user == null ? null : Ext.GetOrNull(user, "name");
+                            string userString = string.IsNullOrEmpty(startTimerUserName) ? "" : "Player: " + startTimerUserName;
                             triggers.Add("StartTimer" + getNumKey(++stCount), userString + diff);
 
                             //check only first start timer
@@ -215,7 +218,15 @@ namespace DemoCleaner3.DemoParser.parser
                         }
                     }
                 } catch (Exception ex) {
-                    Q3Utils.PrintDebug(clc.errors, ErrorType.Unknown2);
+                    Q3Utils.PrintDebug(clc.errors, ex);
+                }
+
+                //detection demos recorded by spectator
+                if (!string.IsNullOrEmpty(startFileUserName) 
+                    && !string.IsNullOrEmpty(startTimerUserName) 
+                    && startFileUserName != startTimerUserName) {
+                    friendlyInfo[keyRecord].Add("spectatorRecorded", "true");
+                    isSpectator = true;
                 }
 
                 //detection demos with very long start
@@ -223,12 +234,11 @@ namespace DemoCleaner3.DemoParser.parser
                 if (timeMillis > 0) {
                     var time = TimeSpan.FromMilliseconds(timeMillis);
                     if (time.TotalSeconds > 20) {
+                        isLongStart = true;
 
                         var sTime = TimeSpan.FromMilliseconds(startTimerServerTime);
                         var sTimeString = string.Format("{0:D2}:{1:D2}:{2:D3}", (int)sTime.TotalMinutes, sTime.Seconds, sTime.Milliseconds);
-
                         friendlyInfo[keyRecord].Add("lateStart", $"{(int)time.TotalSeconds} sec (servertime: {sTimeString})");
-                        isLongStart = true;
                     }
                 }
 

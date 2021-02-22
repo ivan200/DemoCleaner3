@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Collections;
+using System.Text.RegularExpressions;
 
 namespace DemoCleaner3
 {
@@ -57,6 +58,18 @@ namespace DemoCleaner3
             foreach (var item in values) {
                 if (data.Contains(item)) {
                     return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool ContainsAnySplitted(String data, params String[] values) {
+            var splitted = Regex.Split(data, "[^a-zA-Z0-9]");
+            foreach (var part in splitted) {
+                foreach (var item in values) {
+                    if (data.ToLowerInvariant() == item.ToLowerInvariant()) {
+                        return true;
+                    }
                 }
             }
             return false;
