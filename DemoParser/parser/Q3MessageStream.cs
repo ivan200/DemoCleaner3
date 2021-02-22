@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using DemoCleaner3.DemoParser.utils;
 
 namespace DemoCleaner3.DemoParser.parser
 {
@@ -23,7 +24,7 @@ namespace DemoCleaner3.DemoParser.parser
 
             if (!fileHandle.CanRead)
             {
-                throw new Exception("can't open demofile {file_name}...");
+                throw new ErrorCantOpenFile();
             }
             else
             {
@@ -55,7 +56,7 @@ namespace DemoCleaner3.DemoParser.parser
             }
 
             if (msgLength < 0 || msgLength > Constants.Q3_MESSAGE_MAX_SIZE) {
-                throw new Exception("Demo file is corrupted, wrong message length: {msgLength}");
+                throw new ErrorWrongLength();
             }
 
             var msg = new Q3DemoMessage(sequence, msgLength);

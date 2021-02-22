@@ -42,7 +42,7 @@ namespace DemoCleaner3.DemoParser.parser
                 }
             }
             catch (Exception r) {
-                Q3Utils.PrintDebug(msgParser.clc.errors, ErrorType.Unknown1);
+                Q3Utils.PrintDebug(msgParser.clc.errors, r);
             }
             messageStream.close();
             return msgParser;

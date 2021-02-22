@@ -73,6 +73,7 @@
     <Compile Include="DemoParser\structures\MapperFactory.cs" />
     <Compile Include="DemoParser\structures\Trajectory.cs" />
     <Compile Include="DemoParser\structures\TrType.cs" />
+    <Compile Include="DemoParser\utils\ParserEx.cs" />
     <Compile Include="ExtClasses\FileHelper.cs" />
     <Compile Include="ExtClasses\ListMap.cs" />
     <Compile Include="ExtClasses\LogWriter.cs" />
