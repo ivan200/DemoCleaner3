@@ -18,19 +18,22 @@ namespace DemoCleaner3
 
         FileHelper fileHelper;
         Properties.Settings prop;
+        SolidBrush brush;
 
         public DemoInfoForm()
         {
             InitializeComponent();
         }
 
-        private void DemoInfoForm_Load(object sender, EventArgs e)
-        {
+        private void DemoInfoForm_Load(object sender, EventArgs e) {
+            brush = new SolidBrush(Color.Black);
+
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Icon = (Icon)resources.GetObject("$this.Icon");
 
             try {
                 demo = Demo.GetDemoFromFileRaw(demoFile);
+
                 prop = Properties.Settings.Default;
                 demo.useValidation = prop.renameValidation;
 
@@ -98,6 +101,7 @@ namespace DemoCleaner3
 
         private void DemoInfoForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            brush.Dispose();
             formLink?.BringToFront();
         }
 
@@ -118,7 +122,6 @@ namespace DemoCleaner3
             }
         }
 
-        SolidBrush brush = new SolidBrush(Color.Black);
         private void dataGridView_CellPainting(object sender, DataGridViewCellPaintingEventArgs e) {
             if (e.Value != null && e.Value.ToString().Contains("^") && !e.Value.ToString().StartsWith("n\\")) {
                 string content = e.Value.ToString().Replace("\n", "");
