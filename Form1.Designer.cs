@@ -59,6 +59,7 @@
             this.radioButtonDeleteSlow = new System.Windows.Forms.RadioButton();
             this.textBoxSlowDemos = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.checkBoxMoveToMap = new System.Windows.Forms.CheckBox();
             this.linkLabelInfoMover = new System.Windows.Forms.LinkLabel();
             this.checkBoxMoveOnlyYour = new System.Windows.Forms.CheckBox();
             this.checkBoxSplitFolders = new System.Windows.Forms.CheckBox();
@@ -73,6 +74,7 @@
             this.buttonBrowseWhereMove = new System.Windows.Forms.Button();
             this.textBoxMoveDemosFolder = new System.Windows.Forms.TextBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.checkBoxBrokenDemos = new System.Windows.Forms.CheckBox();
             this.linkLabelInfoRenamer = new System.Windows.Forms.LinkLabel();
             this.checkBoxFixCreationTime = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -93,7 +95,6 @@
             this.toolStripStatusFileName = new System.Windows.Forms.ToolStripStatusLabel();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.checkBoxBrokenDemos = new System.Windows.Forms.CheckBox();
             this.groupBoxBadDemos.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -462,6 +463,7 @@
             // tabPage3
             // 
             this.tabPage3.AllowDrop = true;
+            this.tabPage3.Controls.Add(this.checkBoxMoveToMap);
             this.tabPage3.Controls.Add(this.linkLabelInfoMover);
             this.tabPage3.Controls.Add(this.checkBoxMoveOnlyYour);
             this.tabPage3.Controls.Add(this.checkBoxSplitFolders);
@@ -476,6 +478,18 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Demo mover";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxMoveToMap
+            // 
+            this.checkBoxMoveToMap.AutoSize = true;
+            this.checkBoxMoveToMap.Location = new System.Drawing.Point(183, 122);
+            this.checkBoxMoveToMap.Name = "checkBoxMoveToMap";
+            this.checkBoxMoveToMap.Size = new System.Drawing.Size(132, 17);
+            this.checkBoxMoveToMap.TabIndex = 32;
+            this.checkBoxMoveToMap.Text = "Move to m/mapname/";
+            this.checkBoxMoveToMap.UseVisualStyleBackColor = true;
+            this.checkBoxMoveToMap.Visible = false;
+            this.checkBoxMoveToMap.CheckedChanged += new System.EventHandler(this.checkBoxMoveToMap_CheckedChanged);
             // 
             // linkLabelInfoMover
             // 
@@ -647,6 +661,18 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Demo renamer";
             this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxBrokenDemos
+            // 
+            this.checkBoxBrokenDemos.AutoSize = true;
+            this.checkBoxBrokenDemos.Checked = true;
+            this.checkBoxBrokenDemos.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxBrokenDemos.Location = new System.Drawing.Point(6, 124);
+            this.checkBoxBrokenDemos.Name = "checkBoxBrokenDemos";
+            this.checkBoxBrokenDemos.Size = new System.Drawing.Size(155, 17);
+            this.checkBoxBrokenDemos.TabIndex = 33;
+            this.checkBoxBrokenDemos.Text = "Make .broken demos folder";
+            this.checkBoxBrokenDemos.UseVisualStyleBackColor = true;
             // 
             // linkLabelInfoRenamer
             // 
@@ -852,18 +878,6 @@
             this.toolTip1.IsBalloon = true;
             this.toolTip1.ReshowDelay = 100;
             // 
-            // checkBoxBrokenDemos
-            // 
-            this.checkBoxBrokenDemos.AutoSize = true;
-            this.checkBoxBrokenDemos.Checked = true;
-            this.checkBoxBrokenDemos.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxBrokenDemos.Location = new System.Drawing.Point(6, 124);
-            this.checkBoxBrokenDemos.Name = "checkBoxBrokenDemos";
-            this.checkBoxBrokenDemos.Size = new System.Drawing.Size(155, 17);
-            this.checkBoxBrokenDemos.TabIndex = 33;
-            this.checkBoxBrokenDemos.Text = "Make .broken demos folder";
-            this.checkBoxBrokenDemos.UseVisualStyleBackColor = true;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -979,5 +993,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusNumbers;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusFileName;
         private System.Windows.Forms.CheckBox checkBoxBrokenDemos;
+        private System.Windows.Forms.CheckBox checkBoxMoveToMap;
     }
 }

@@ -139,6 +139,7 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(checkBoxMoveOnlyYour, "Перемещать только твои демки");
                 toolTip1.SetToolTip(labelYourName, "Твой ник");
                 toolTip1.SetToolTip(textBoxYourName, "Твой ник");
+                toolTip1.SetToolTip(checkBoxMoveToMap, "Переместить демки в папку: (первая буква карты)/(название карты)/(демка)");
 
                 //rename
                 toolTip1.SetToolTip(radioRenameBad, 
@@ -222,6 +223,7 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(checkBoxMoveOnlyYour, "Move only your demos");
                 toolTip1.SetToolTip(labelYourName, "Your nickname");
                 toolTip1.SetToolTip(textBoxYourName, "Your nickname");
+                toolTip1.SetToolTip(checkBoxMoveToMap, "Move demos to: (first mapname letter)/(map name)/(demo name)");
 
                 //rename
                 toolTip1.SetToolTip(radioRenameBad,
@@ -289,8 +291,7 @@ namespace DemoCleaner3
         }
 
         //Loading form settings
-        private void loadSettings()
-        {
+        private void loadSettings() {
             _loadingSettings = true;
             try {
                 prop = Properties.Settings.Default;
@@ -313,8 +314,8 @@ namespace DemoCleaner3
                 tabControl1.SelectedIndex = prop.tabSelectedIndex;
 
                 //clean
-                setRadioFromInt(prop.cleanOption,radioBestTimeOfEachPlayer,radioBestTimesOnMap);
-                setRadioFromInt(prop.slowDemosOption,radioButtonDeleteSlow,radioButtonSkipSlow,radioButtonMoveSlow);
+                setRadioFromInt(prop.cleanOption, radioBestTimeOfEachPlayer, radioBestTimesOnMap);
+                setRadioFromInt(prop.slowDemosOption, radioButtonDeleteSlow, radioButtonSkipSlow, radioButtonMoveSlow);
                 textBoxSlowDemos.Enabled = radioButtonMoveSlow.Checked;
                 buttonSlowDemosBrowse.Enabled = radioButtonMoveSlow.Checked;
                 checkBoxProcessMdf.Checked = prop.processMdf;
@@ -329,6 +330,7 @@ namespace DemoCleaner3
                 textBoxYourName.Text = prop.yourName;
                 checkBoxSplitFolders.Checked = prop.splitBySmallFolders;
                 checkBoxUseSubfolders.Checked = prop.useSubFolders;
+                checkBoxMoveToMap.Checked = prop.moveToMapname;
 
                 if (!string.IsNullOrEmpty(prop.moveDemoFolder)) {
                     textBoxMoveDemosFolder.Text = prop.moveDemoFolder;
@@ -339,7 +341,6 @@ namespace DemoCleaner3
                 if (!string.IsNullOrEmpty(prop.badDemoFolder)) {
                     textBoxBadDemos.Text = prop.badDemoFolder;
                 }
-
 
                 //rename
                 setRadioFromInt(prop.renameOption, radioRenameBad, radioRenameAll);
@@ -402,6 +403,7 @@ namespace DemoCleaner3
             prop.moveDemoFolder = _currentMovePath?.FullName ?? "";
             prop.badDemoFolder = _currentBadDemosPath?.FullName ?? "";
             prop.slowDemoFolder = _currentSlowDemosPath?.FullName ?? "";
+            prop.moveToMapname = checkBoxMoveToMap.Checked;
 
             //rename
             prop.renameOption = getIntFromParameters(radioRenameBad, radioRenameAll);
@@ -1083,7 +1085,7 @@ namespace DemoCleaner3
             }
         }
 
-        void RenameThread(DirectoryInfo filedemos) {
+       /* void RenameThread(DirectoryInfo filedemos) {
             //We start a thread in which we will process everything
             backgroundThread = new Thread(delegate () {
                 var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
@@ -1146,7 +1148,7 @@ namespace DemoCleaner3
                     filesObject.Value.Push(demo);
                 }
             }
-        }
+        }*/
 
         private void checkBoxMakeLog_CheckedChanged(object sender, EventArgs e) {
             if (!_loadingSettings && checkBoxMakeLog.Checked) {
@@ -1160,5 +1162,9 @@ namespace DemoCleaner3
             logDetails.ShowDialog();
         }
 
+        private void checkBoxMoveToMap_CheckedChanged(object sender, EventArgs e) {
+            groupBoxSplit.Enabled = !checkBoxMoveToMap.Checked;
+            checkBoxSplitFolders.Enabled = !checkBoxMoveToMap.Checked;
+        }
     }
 }
