@@ -420,10 +420,12 @@
             // radioButtonMoveSlow
             // 
             this.radioButtonMoveSlow.AutoSize = true;
+            this.radioButtonMoveSlow.Checked = true;
             this.radioButtonMoveSlow.Location = new System.Drawing.Point(156, 19);
             this.radioButtonMoveSlow.Name = "radioButtonMoveSlow";
             this.radioButtonMoveSlow.Size = new System.Drawing.Size(67, 17);
             this.radioButtonMoveSlow.TabIndex = 7;
+            this.radioButtonMoveSlow.TabStop = true;
             this.radioButtonMoveSlow.Text = "Move to:";
             this.radioButtonMoveSlow.UseVisualStyleBackColor = true;
             this.radioButtonMoveSlow.CheckedChanged += new System.EventHandler(this.radioButtonMoveSlow_CheckedChanged);
@@ -441,12 +443,10 @@
             // radioButtonDeleteSlow
             // 
             this.radioButtonDeleteSlow.AutoSize = true;
-            this.radioButtonDeleteSlow.Checked = true;
             this.radioButtonDeleteSlow.Location = new System.Drawing.Point(6, 19);
             this.radioButtonDeleteSlow.Name = "radioButtonDeleteSlow";
             this.radioButtonDeleteSlow.Size = new System.Drawing.Size(56, 17);
             this.radioButtonDeleteSlow.TabIndex = 5;
-            this.radioButtonDeleteSlow.TabStop = true;
             this.radioButtonDeleteSlow.Text = "Delete";
             this.radioButtonDeleteSlow.UseVisualStyleBackColor = true;
             // 
@@ -484,11 +484,10 @@
             this.checkBoxMoveToMap.AutoSize = true;
             this.checkBoxMoveToMap.Location = new System.Drawing.Point(183, 122);
             this.checkBoxMoveToMap.Name = "checkBoxMoveToMap";
-            this.checkBoxMoveToMap.Size = new System.Drawing.Size(132, 17);
+            this.checkBoxMoveToMap.Size = new System.Drawing.Size(124, 17);
             this.checkBoxMoveToMap.TabIndex = 32;
-            this.checkBoxMoveToMap.Text = "Move to m/mapname/";
+            this.checkBoxMoveToMap.Text = "Cleanly move to map";
             this.checkBoxMoveToMap.UseVisualStyleBackColor = true;
-            this.checkBoxMoveToMap.Visible = false;
             this.checkBoxMoveToMap.CheckedChanged += new System.EventHandler(this.checkBoxMoveToMap_CheckedChanged);
             // 
             // linkLabelInfoMover
@@ -714,22 +713,22 @@
             // radioRenameBad
             // 
             this.radioRenameBad.AutoSize = true;
-            this.radioRenameBad.Checked = true;
             this.radioRenameBad.Location = new System.Drawing.Point(6, 19);
             this.radioRenameBad.Name = "radioRenameBad";
             this.radioRenameBad.Size = new System.Drawing.Size(205, 17);
             this.radioRenameBad.TabIndex = 3;
-            this.radioRenameBad.TabStop = true;
             this.radioRenameBad.Text = "Process only incorrectly named demos";
             this.radioRenameBad.UseVisualStyleBackColor = true;
             // 
             // radioRenameAll
             // 
             this.radioRenameAll.AutoSize = true;
+            this.radioRenameAll.Checked = true;
             this.radioRenameAll.Location = new System.Drawing.Point(6, 42);
             this.radioRenameAll.Name = "radioRenameAll";
             this.radioRenameAll.Size = new System.Drawing.Size(110, 17);
             this.radioRenameAll.TabIndex = 2;
+            this.radioRenameAll.TabStop = true;
             this.radioRenameAll.Text = "Process all demos";
             this.radioRenameAll.UseVisualStyleBackColor = true;
             // 

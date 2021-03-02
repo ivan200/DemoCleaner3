@@ -7,6 +7,7 @@ using System.Threading;
 using DemoCleaner3.DemoParser.huffman;
 using DemoCleaner3.DemoParser.parser;
 using DemoCleaner3.ExtClasses;
+using DemoCleaner3.structures;
 
 namespace DemoCleaner3
 {
@@ -139,7 +140,9 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(checkBoxMoveOnlyYour, "Перемещать только твои демки");
                 toolTip1.SetToolTip(labelYourName, "Твой ник");
                 toolTip1.SetToolTip(textBoxYourName, "Твой ник");
-                toolTip1.SetToolTip(checkBoxMoveToMap, "Переместить демки в папку: (первая буква карты)/(название карты)/(демка)");
+                toolTip1.SetToolTip(checkBoxMoveToMap, "Переместить демки в папку: (буква карты)/(название карты)/(демка), " +
+                    "\nи параллельно почистить то что там сейчас есть," +
+                    "\nчтобы в папке оставались только лучшие таймы");
 
                 //rename
                 toolTip1.SetToolTip(radioRenameBad, 
@@ -223,7 +226,9 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(checkBoxMoveOnlyYour, "Move only your demos");
                 toolTip1.SetToolTip(labelYourName, "Your nickname");
                 toolTip1.SetToolTip(textBoxYourName, "Your nickname");
-                toolTip1.SetToolTip(checkBoxMoveToMap, "Move demos to: (first mapname letter)/(map name)/(demo name)");
+                toolTip1.SetToolTip(checkBoxMoveToMap, "Move demos to: (mapname letter)/(map name)/(demo name)" +
+                    "\nand at the same time clean up what is there now, " +
+                    "\nso that only the best demos stay in the folder");
 
                 //rename
                 toolTip1.SetToolTip(radioRenameBad,
@@ -930,7 +935,7 @@ namespace DemoCleaner3
         //returns a boolean flag -
         //true - the demo needs to be deleted
         //false - existing demos needs to be deleted, and then rescan the folder
-        private bool checkSameTimeDemos(Demo demo, List<Demo> sameTimeDemos) {
+        private bool checkSameTimeDemos(Demo demo, List<Demo> sameTimeDemos, bool checkName = false) {
             List <Demo> sameSizeDemos = sameTimeDemos.Where(x => x.file.Length == demo.file.Length).ToList();
             if (sameSizeDemos.Count > 0) {
                 //We got demos with one size and one half. I will not check the hash, since the time and size are enough
@@ -965,7 +970,25 @@ namespace DemoCleaner3
                     existDemo.userId = userIds.First().userId;
                 }
 
-                if(existFileName != existDemo.demoNewName) {
+                //if sameTimeDemos can contain demos with different username
+                if (checkName) {
+                    var demoname = DemoNames.chooseName(demoList.Select(x => x.playerName).ToArray());
+                    existDemo.playerName = demoname;
+                }
+
+                //if 2 demos are same and probably demos have not time written in console, find oldest demo creation time 
+                var existOldestTime = DateTime.Now;
+                foreach (var tmpDemo in demoList) {
+                    if (tmpDemo.file.CreationTime < existOldestTime) existOldestTime = tmpDemo.file.CreationTime;
+                    if (tmpDemo.file.LastWriteTime < existOldestTime) existOldestTime = tmpDemo.file.LastWriteTime;
+                }
+
+                //so keep oldest time
+                if (existDemo.file.CreationTime != existOldestTime || existDemo.file.LastAccessTime != existOldestTime) {
+                    fileHelper.fixCreationTime(existDemo.file, existOldestTime);
+                }
+
+                if (existFileName != existDemo.demoNewName) {
                     fileHelper._CountDemosAmount += 1;
                     //rename the existing
                     fileHelper.renameFile(existDemo.file, existDemo.demoNewName, prop.deleteIdentical);
@@ -1022,6 +1045,13 @@ namespace DemoCleaner3
             }).ToList();
         }
 
+        private List<Demo> getSameRecsForDir(Demo demo, List<Demo> mapDirDemos) {
+            return mapDirDemos.Where(x => {
+                var xList = new List<string> { x.mapName.ToLowerInvariant(), x.modphysic.ToLowerInvariant(), x.time.TotalMilliseconds.ToString(), x.file.Length.ToString() };
+                var demoList = new List<string> { demo.mapName.ToLowerInvariant(), demo.modphysic.ToLowerInvariant(), demo.time.TotalMilliseconds.ToString(), demo.file.Length.ToString() };
+                return xList.SequenceEqual(demoList);
+            }).ToList();
+        }
 
         //Move new demos to static map folder
         private void moveToMap(IEnumerable<Demo> goodFiles, DirectoryInfo dirdemos) {
@@ -1038,7 +1068,14 @@ namespace DemoCleaner3
                 foreach (var demo in mapDemos.Select(x => x)) {
                     var newPath = Path.Combine(mapDir.FullName, demo.file.Name);
 
-                    //TODO: дописать проверку файлов с одинаковым размером, если юзернейм = UnnamedPlayer так как реальный юзернейм мог сброситься
+                    var sameFileSizeAndTimeDemos = getSameRecsForDir(demo, mapDirDemos);
+                    if (sameFileSizeAndTimeDemos.Count > 0) {
+                        //if one of the files has username in filename - "UnnamedPlayer" with all the parameters of UnnamedPlayer,
+                        //and then the same demo came, but with indicated name, we will rename the existing one and delete the new one
+                        checkSameTimeDemos(demo, sameFileSizeAndTimeDemos, true);
+                        operateSlowDemo(demo);
+                        continue;
+                    }
 
                     var playerRecs = getPlayerRecsForDir(demo, mapDirDemos);
 

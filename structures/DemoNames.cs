@@ -42,7 +42,7 @@ namespace DemoCleaner3.structures
         }
 
         //selection of the first non-empty string from parameters
-        private static string chooseName(params string[] names) {
+        public static string chooseName(params string[] names) {
             var validNames = names.ToList().Where(x => !string.IsNullOrEmpty(x) && x != defaultName);
             return validNames.FirstOrDefault() ?? defaultName;
         }
