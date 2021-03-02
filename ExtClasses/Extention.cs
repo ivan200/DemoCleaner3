@@ -67,7 +67,7 @@ namespace DemoCleaner3
             var splitted = Regex.Split(data, "[^a-zA-Z0-9]");
             foreach (var part in splitted) {
                 foreach (var item in values) {
-                    if (data.ToLowerInvariant() == item.ToLowerInvariant()) {
+                    if (part.ToLowerInvariant() == item.ToLowerInvariant()) {
                         return true;
                     }
                 }

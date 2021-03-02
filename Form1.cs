@@ -748,6 +748,26 @@ namespace DemoCleaner3
                 fileHelper.moveFile(item.file, brokenDemosPath, checkBoxDeleteIdentical.Checked);
             }
         }
+        private KeyValuePair<Exception, string>? operateSlowDemos(IEnumerable<Demo> slowDemos) {
+            KeyValuePair<Exception, string>? rex = null;
+            foreach (var demo in slowDemos) {
+                try {
+                    operateSlowDemo(demo);
+                } catch (Exception ex) {
+                    rex = new KeyValuePair<Exception, string>(ex, demo.file.FullName);
+                }
+            }
+            return rex;
+        }
+        private void operateSlowDemo(Demo demo) {
+            if (radioButtonDeleteSlow.Checked) {
+                fileHelper.deleteCheckRules(demo.file);
+            } else {
+                if (radioButtonMoveSlow.Checked) {
+                    fileHelper.moveFile(demo.file, _currentSlowDemosPath, checkBoxDeleteIdentical.Checked);
+                }
+            }
+        }
 
         private KeyValuePair<List<Demo>, List<Demo>> splitByFastSlow(IEnumerable<Demo> demos, int countToSave) {
             List<Demo> fastDemos = new List<Demo>();
@@ -763,7 +783,9 @@ namespace DemoCleaner3
                 if (item.Count() <= 1) {
                     fastDemos.Add(item.First());
                 } else {
-                    var sameTimeDemos = item.OrderByDescending(x => x.country.Length);
+                    var sameTimeDemos = item.OrderBy(x=>x.userId)
+                        .ThenBy(x=>!x.isSpectator)
+                        .ThenByDescending(x => x.country.Length);
                     fastDemos.Add(sameTimeDemos.First());
                     slowDemos.AddRange(sameTimeDemos.Skip(1));
                 }
@@ -771,6 +793,47 @@ namespace DemoCleaner3
             return new KeyValuePair<List<Demo>, List<Demo>>(fastDemos, slowDemos);
         }
 
+        private KeyValuePair<List<Demo>, List<Demo>> splitByFastSlowWithValidity(IEnumerable<Demo> group, int countToSave) {
+            List<Demo> slowDemos = new List<Demo>();
+            List<Demo> fastDemos = new List<Demo>();
+
+            var fastDemosGroups = new Dictionary<string, List<Demo>>();
+
+            var groupedByValidity = group.GroupBy(x => x.validity);
+            if (groupedByValidity.Count() > 1) {
+                foreach (var g in groupedByValidity) {
+                    var fastSlow = splitByFastSlow(g, countToSave);
+                    fastDemosGroups.Add(g.Key, fastSlow.Key);
+                    slowDemos.AddRange(fastSlow.Value);
+                }
+                if (fastDemosGroups.ContainsKey("")) {
+                    long slowestTime = long.MaxValue;
+                    var fastValid = fastDemosGroups[""];
+
+                    slowestTime = (long) fastValid.LastOrDefault().time.TotalMilliseconds;
+
+                    fastDemos.AddRange(fastValid);
+
+                    var fastInvalid = fastDemosGroups.Where(x => x.Key != "")
+                        .SelectMany(x => x.Value)
+                        .Where(x => x.time.TotalMilliseconds < slowestTime);
+                    fastDemos.AddRange(fastInvalid);
+
+                    var sametimeInvalid = fastDemosGroups.Where(x=>x.Key != "")
+                        .SelectMany(x=>x.Value)
+                        .Where(x => x.time.TotalMilliseconds >= slowestTime);
+                    slowDemos.AddRange(sametimeInvalid);
+
+                } else {
+                    fastDemos = fastDemosGroups.SelectMany(x => x.Value).ToList();
+                }
+            } else {
+                var fastSlow = splitByFastSlow(group, countToSave);
+                fastDemos = fastSlow.Key;
+                slowDemos = fastSlow.Value;
+            }
+            return new KeyValuePair<List<Demo>, List<Demo>>(fastDemos, slowDemos);
+        }
 
         //Clean the demos!
         private void clean(DirectoryInfo filedemos)
@@ -804,51 +867,21 @@ namespace DemoCleaner3
                 + Demo.mdfToDf(x.modphysic, checkBoxProcessMdf.Checked)).ToLower());
             }
 
-            Exception exception = null;
-            string filepath = "";
-
+            KeyValuePair<Exception, string>? rex = null;
+            
             foreach (var group in groups) {
-                List<Demo> slowDemos = new List<Demo>();
                 int countToSave = (int)numericUpDownCountOfBest.Value;
 
-                var groupedByValidity = group.GroupBy(x => x.validity);
-                if (groupedByValidity.Count() > 1) {
-                    var fastDemos = new Dictionary<string, List<Demo>>();
-                    foreach (var g in groupedByValidity) {
-                        var fastSlow = splitByFastSlow(g, countToSave);
-                        fastDemos.Add(g.Key, fastSlow.Key);
-                        slowDemos.AddRange(fastSlow.Value);
-                    }
-                    long slowestTime = long.MaxValue;
-                    if (fastDemos.ContainsKey("")) {
-                        slowestTime = (long) fastDemos[""].LastOrDefault().time.TotalMilliseconds;
-                    }
+                var fastSlow = splitByFastSlowWithValidity(group, countToSave);
+                var fastDemos = fastSlow.Key;
+                //since we dont touch fast demos, then just increase progress
+                fileHelper.increaseProgressCount(fastDemos.Count);
 
-                    slowDemos.AddRange(fastDemos.SelectMany(x => x.Value)
-                        .Where(x=>x.time.TotalMilliseconds > slowestTime));
-                } else {
-                    var fastSlow = splitByFastSlow(group, countToSave);
-                    slowDemos.AddRange(fastSlow.Value);
-                }
-
-                fileHelper.increaseProgressCount(group.Count() - slowDemos.Count);
-                foreach (var demo in slowDemos) {
-                    try {
-                        if (radioButtonDeleteSlow.Checked) {
-                            fileHelper.deleteCheckRules(demo.file);
-                        } else {
-                            if (radioButtonMoveSlow.Checked) {
-                                fileHelper.moveFile(demo.file, _currentSlowDemosPath, checkBoxDeleteIdentical.Checked);
-                            }
-                        }
-                    } catch (Exception ex) {
-                        exception = ex;
-                        filepath = demo.file.FullName;
-                    }
-                }
+                var slowDemos = fastSlow.Value;
+                rex = operateSlowDemos(slowDemos);
             }
-            if (exception != null) {
-                throw new Exception(exception.Message + "\nFile:\n" + filepath);
+            if (rex.HasValue) {
+                throw new Exception(rex.Value.Key.Message + "\nFile:\n" + rex.Value.Value);
             }
         }
 
@@ -893,10 +926,167 @@ namespace DemoCleaner3
             return groups;
         }
 
+        //here comes a new demo from the user on the map, and an array of demos with the same time on the same map and physics
+        //returns a boolean flag -
+        //true - the demo needs to be deleted
+        //false - existing demos needs to be deleted, and then rescan the folder
+        private bool checkSameTimeDemos(Demo demo, List<Demo> sameTimeDemos) {
+            List <Demo> sameSizeDemos = sameTimeDemos.Where(x => x.file.Length == demo.file.Length).ToList();
+            if (sameSizeDemos.Count > 0) {
+                //We got demos with one size and one half. I will not check the hash, since the time and size are enough
+
+                //- demos have the same name - just delete the existing one
+                if (sameSizeDemos.Where(x => x.file.Name == demo.file.Name).Count() > 0) {
+                    return true;
+                }
+                var existDemo = sameSizeDemos.First();
+                var existFileName = existDemo.file.Name;
+
+                var demoList = new List<Demo>();
+                demoList.AddRange(sameTimeDemos);
+                demoList.Add(demo);
+
+                //1) if one demo does not have a country or the country has a tastrigger, and the second has a normal one, then the country is taken
+                var countries = demoList
+                    .Where(x => x.country != null && x.country.Length > 0 && !Demo.tasTriggers.Contains(x.country));
+                if (countries.Count() > 0) {
+                    existDemo.country = countries.First().country;
+                }
+
+                //2) if at least one has validation, then we take it
+                var validities = demoList.Where(x => x.validDict.Count > 0);
+                if (validities.Count() > 0) {
+                    existDemo.validDict = validities.First().validDict;
+                }
+
+                //3) if at least one has a userId, then we take it
+                var userIds = demoList.Where(x => x.userId >= 0).ToList();
+                if (userIds.Count > 0) {
+                    existDemo.userId = userIds.First().userId;
+                }
+
+                if(existFileName != existDemo.demoNewName) {
+                    fileHelper._CountDemosAmount += 1;
+                    //rename the existing
+                    fileHelper.renameFile(existDemo.file, existDemo.demoNewName, prop.deleteIdentical);
+                }
+                return true;
+            }
+
+            List<Demo> diffSizeDemos = sameTimeDemos.Where(x => x.file.Length != demo.file.Length).ToList();
+            if (diffSizeDemos.Count > 0) {
+                //If demos with one time of the same user, but of different sizes, then:
+
+                //- this is a demo recorded by spectator vs a demo without spectator - take the one where there is no inscription [spect]
+                if (demo.isSpectator && diffSizeDemos.Where(x => !x.isSpectator).Count() > 0) {
+                    return true;
+                }
+                if (!demo.isSpectator && diffSizeDemos.Where(x => x.isSpectator).Count() > 0) {
+                    return false;
+                }
+
+                //- this is a server demo vs a client demo - take the one where there is no inscription [123]
+                if (demo.userId >= 0 && diffSizeDemos.Where(x => x.userId < 0).Count() > 0) {
+                    return true;
+                }
+                if (demo.userId < 0 && diffSizeDemos.Where(x => x.userId >= 0).Count() > 0) {
+                    return false;
+                }
+
+                //- new tas demo without a tag, but there is already a tas demo. Here tas has priority since tas trigger can be added by hands
+                if (demo.isTas == false && diffSizeDemos.Where(x => x.isTas == true).Count() > 0) {
+                    return true;
+                }
+                if (demo.isTas == true && diffSizeDemos.Where(x => x.isTas == false).Count() > 0) {
+                    return false;
+                }
+
+                //- it's just two different times of the same user - we take the smaller one by filesize
+                if (diffSizeDemos.Where(x => x.file.Length < demo.file.Length).Count() > 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        private List<Demo> getDemosForDir(DirectoryInfo mapDir) { 
+            return mapDir.GetFiles().Select(x => Demo.GetDemoFromFile(x)).Where(x => x.hasError == false).ToList();
+        }
+        private List<Demo> getPlayerRecsForDir(Demo demo, List<Demo> mapDirDemos) {
+            return mapDirDemos.Where(x => {
+                var xList = new List<string> { x.mapName.ToLowerInvariant(), x.modphysic.ToLowerInvariant(), x.playerName.ToLowerInvariant() };
+                var demoList = new List<string> { demo.mapName.ToLowerInvariant(), demo.modphysic.ToLowerInvariant(), demo.playerName.ToLowerInvariant() };
+                return xList.SequenceEqual(demoList);
+            }).ToList();
+        }
+
+
+        //Move new demos to static map folder
+        private void moveToMap(IEnumerable<Demo> goodFiles, DirectoryInfo dirdemos) {
+            _currentSlowDemosPath.Refresh();
+            var groups = goodFiles.GroupBy(x => DemoFolder.GetFolderForMapname(x.mapName)).ToList();
+            foreach (var mapDemos in groups) {
+                var mapDir = new DirectoryInfo(Path.Combine(dirdemos.FullName, mapDemos.Key));
+                if (!mapDir.Exists) {
+                    mapDir.Create();
+                    fileHelper._countCreateDir++;
+                }
+                var mapDirDemos = getDemosForDir(mapDir);
+
+                foreach (var demo in mapDemos.Select(x => x)) {
+                    var newPath = Path.Combine(mapDir.FullName, demo.file.Name);
+
+                    //TODO: дописать проверку файлов с одинаковым размером, если юзернейм = UnnamedPlayer так как реальный юзернейм мог сброситься
+
+                    var playerRecs = getPlayerRecsForDir(demo, mapDirDemos);
+
+                    List<Demo> sameTimeDemos = playerRecs.Where(x => x.time == demo.time).ToList();
+                    if (sameTimeDemos.Count > 0) {
+                        var isDemoNeedToDelete = checkSameTimeDemos(demo, sameTimeDemos);
+                        if (isDemoNeedToDelete) {
+                            fileHelper._CountDemosAmount += 1;
+                            operateSlowDemo(demo);
+                            continue;
+                        } else {
+                            fileHelper._CountDemosAmount += sameTimeDemos.Count;
+                            operateSlowDemos(sameTimeDemos);
+
+                            mapDir.Refresh();
+                            mapDirDemos = mapDirDemos = getDemosForDir(mapDir);
+                            playerRecs = getPlayerRecsForDir(demo, mapDirDemos);
+                        }
+                    }
+
+                    fileHelper._CountDemosAmount += playerRecs.Count;
+                    if (playerRecs.Count == 0) {
+                        //just move file
+                        fileHelper.moveFile(demo.file, mapDir, true);
+                        mapDirDemos.Add(demo);
+                    } else {
+                        playerRecs.Add(demo);
+
+                        var fastSlow = splitByFastSlowWithValidity(playerRecs, 1);
+                        var rex = operateSlowDemos(fastSlow.Value);
+
+                        var fastDemos = fastSlow.Key;
+                        var demoIsFast = fastDemos.FirstOrDefault(x => x.file.FullName == demo.file.FullName);
+                        if (demoIsFast != null) {
+                            fileHelper.moveFile(demo.file, mapDir, true);
+                            mapDirDemos.Add(demo);
+                            fileHelper.increaseProgressCount(fastDemos.Count - 1);
+                        } else {
+                            fileHelper.increaseProgressCount(fastDemos.Count);
+                        }
+                    }
+                }
+            }
+        }
+
 
         //Move demos
-        private void moveDemos(DirectoryInfo filedemos, DirectoryInfo dirdemos)
-        {
+        private void moveDemos(DirectoryInfo filedemos, DirectoryInfo dirdemos) {
             //from all files we select only demos
             var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
                 SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
@@ -924,41 +1114,46 @@ namespace DemoCleaner3
                 }
             }
 
-            var indexInside = 0;
-            //group all files, key = folder name
-            var groupedFiles = GroupFiles(goodFiles, indexInside);
-
-            var onlyDirNames = groupedFiles.Select(x => new DemoFolder(x.Key));
-
-            indexInside = 0;
-
-            //We group all the folder names and in the same place we get the full paths to them.
-            var groupedFolders = groupFolders(onlyDirNames, indexInside);
-
-            var ListFolders = Ext.MakeListFromGroups(groupedFolders);
-
             Exception exception = null;
             string filepath = "";
 
-            //We pass through all the files and move them to directories.
-            for (int i = 0; i < groupedFiles.Count(); i++) {
-                var group = groupedFiles.ElementAt(i);
+            if (checkBoxMoveToMap.Checked) {
+                moveToMap(goodFiles, dirdemos);
+            } else {
 
-                for (int j = 0; j < group.Count(); j++) {
-                    var demo = group.ElementAt(j);
+                var indexInside = 0;
+                //group all files, key = folder name
+                var groupedFiles = GroupFiles(goodFiles, indexInside);
 
-                    var folderName = ListFolders.First(x => x.Value._folderName == group.Key).Value.fullFolderName;
+                var onlyDirNames = groupedFiles.Select(x => new DemoFolder(x.Key));
 
-                    var newPath = Path.Combine(dirdemos.FullName, folderName);
+                indexInside = 0;
 
-                    if (!checkBoxSplitFolders.Checked) {
-                        newPath = dirdemos.FullName;
-                    }
-                    try {
-                        fileHelper.moveFile(demo.file, new DirectoryInfo(newPath), checkBoxDeleteIdentical.Checked);
-                    } catch (Exception ex) {
-                        exception = ex;
-                        filepath = demo.file.FullName;
+                //We group all the folder names and in the same place we get the full paths to them.
+                var groupedFolders = groupFolders(onlyDirNames, indexInside);
+
+                var ListFolders = Ext.MakeListFromGroups(groupedFolders);
+
+                //We pass through all the files and move them to directories.
+                for (int i = 0; i < groupedFiles.Count(); i++) {
+                    var group = groupedFiles.ElementAt(i);
+
+                    for (int j = 0; j < group.Count(); j++) {
+                        var demo = group.ElementAt(j);
+
+                        var folderName = ListFolders.First(x => x.Value._folderName == group.Key).Value.fullFolderName;
+
+                        var newPath = Path.Combine(dirdemos.FullName, folderName);
+
+                        if (!checkBoxSplitFolders.Checked) {
+                            newPath = dirdemos.FullName;
+                        }
+                        try {
+                            fileHelper.moveFile(demo.file, new DirectoryInfo(newPath), checkBoxDeleteIdentical.Checked);
+                        } catch (Exception ex) {
+                            exception = ex;
+                            filepath = demo.file.FullName;
+                        }
                     }
                 }
             }

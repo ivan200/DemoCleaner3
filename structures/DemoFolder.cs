@@ -64,6 +64,13 @@ namespace DemoCleaner3
             return key.Substring(index, 1);
         }
 
+        public static string GetFolderForMapname(string mapName) {
+            if (ReservedStrings.ContainsKey(mapName.ToLowerInvariant())) {
+                mapName = mapName + "-";
+            }
+            return Path.Combine(getFirstDir(mapName), mapName);
+        }
+
 
         //The following are(case insensitive) reserved names which cannot be assigned to a directory or file in Windows:
         static Dictionary<string, string> ReservedStrings = new string[24] {

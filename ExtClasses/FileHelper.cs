@@ -26,6 +26,22 @@ namespace DemoCleaner3.ExtClasses
 
         public decimal _countProgressDemos = 0;
         public decimal _countDemosAmount = 0;
+        public decimal _CountDemosAmount {
+            get { return _countDemosAmount; }
+            set {
+                _countDemosAmount = value;
+                float percent = ((float)_countProgressDemos / (float)_countDemosAmount) * 100;
+                int dPercent = (int)percent;
+
+                if (dPercent < 0) dPercent = 0;
+                if (_onProgressChanged != null) {
+                    _onProgressChanged.Invoke((int)_countProgressDemos);
+                }
+                if (_onProgressPercentChanged != null) {
+                    _onProgressPercentChanged.Invoke(dPercent);
+                }
+            }
+        }
 
         decimal _CountProgressDemos {
             get { return _countProgressDemos; }
@@ -134,7 +150,7 @@ namespace DemoCleaner3.ExtClasses
             });
         }
 
-        public void moveCheckRules(FileInfo file, string path, bool isRenaming) {
+        private void moveCheckRules(FileInfo file, string path, bool isRenaming) {
             _countMoveFiles++;
             _CountProgressDemos++;
             logger.LogWrite(isRenaming ? LogWriter.Operation.RenameFile : LogWriter.Operation.MoveFile, file.FullName, path);

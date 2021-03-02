@@ -18,6 +18,7 @@ namespace DemoCleaner3 {
         public string timeString;
         public TimeSpan time;
         public string playerName;
+        public DemoNames names = null;
         public string country;
         public FileInfo file;
         public bool isBroken;
@@ -27,8 +28,8 @@ namespace DemoCleaner3 {
         public bool hasTr = false;
 
         public bool isTas = false;  //tool assisted speedrun (boted, scripted, etc...)
-        private static String[] tasTriggers =
-            new String[] { "tas", "bot", "wiz", "script", "boted", "tasbot", "scripted", "scriptland", "botland" }
+        public static String[] tasTriggers =
+            new String[] { "tas", "tasbot", "bot", "boted", "botland", "wiz", "wizland", "script", "scripted", "scriptland" }
             .OrderByDescending(x => x.Length)
             .ToArray();
 
@@ -60,7 +61,7 @@ namespace DemoCleaner3 {
             }
         }
 
-        private long userId = -1;
+        public long userId = -1;
 
         //generating new demo name by all information
         public string demoNewName {
@@ -88,12 +89,18 @@ namespace DemoCleaner3 {
                     oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //remove the extension
                     oldName = removeSubstr(oldName, mapName);                               //remove the map name
                     if (country.Length > 0) {
+                        if (names != null && !string.IsNullOrEmpty(names.fName)) {
+                            playerCountry = names.fName + "." + country;
+                        }
                         oldName = removeSubstr(oldName, playerCountry, false);
                     }
                     oldName = oldName.Replace("[dm]", "");                                  //replace previous wrong mod detection
 
                     var normalizedName = DemoNames.normalizeName(playerName);
                     oldName = removeSubstr(oldName, normalizedName, false);                 //remove the player name
+                    if (names != null && !string.IsNullOrEmpty(names.fName)) {
+                        oldName = removeSubstr(oldName, names.fName, false);
+                    }
                     oldName = removeSubstr(oldName, country, false);                        //remove the country
                     oldName = removeSubstr(oldName, modphysic);                             //remove the mod with physics
                     if (rawInfo != null && rawInfo.gameInfo != null) {
@@ -197,7 +204,6 @@ namespace DemoCleaner3 {
                 if (index <= 0) demo.hasError = true;
                 if (physic.Length < 3) demo.hasError = true;
                 if (physic.Contains(".tr")) demo.hasTr = true;
-                if (physic.Contains(".tas")) demo.isTas = true;
 
                 //Time
                 demo.timeString = match.Groups[3].Value;
@@ -224,6 +230,11 @@ namespace DemoCleaner3 {
                         demo.validDict = new Dictionary<string, string>();
                         demo.validDict.Add(v[0], v[1]);
                     }
+                }
+
+                //tas check
+                if (filename.ToLowerInvariant().Contains("tool_assisted=true")) {
+                    demo.isTas = true;
                 }
 
                 //userId
@@ -337,11 +348,11 @@ namespace DemoCleaner3 {
 
             var filename = demo.normalizedFileName;
             var countryAndName = getNameAndCountry(filename);
-            if (Ext.ContainsAnySplitted(countryAndName, tasTriggers)) {
+
+            //tas check
+            if (filename.ToLowerInvariant().Contains("tool_assisted=true")
+                || Ext.ContainsAnySplitted(countryAndName, tasTriggers)) {
                 demo.isTas = true;
-                foreach (string tasFlag in tasTriggers) {
-                    countryAndName = removeSubstr(countryAndName, tasFlag);
-                }
             }
             var countryNameParsed = tryGetNameAndCountry(countryAndName, names);
 
@@ -349,6 +360,7 @@ namespace DemoCleaner3 {
             names.setBracketsName(countryNameParsed.Key);   //name from the filename
 
             demo.playerName = names.chooseNormalName();
+            demo.names = names;
 
             //demo has not info about country, so take it from filename
             demo.country = countryNameParsed.Value;
@@ -374,12 +386,6 @@ namespace DemoCleaner3 {
                 demo.mapName = mapName.ToLowerInvariant();
             }
 
-            //tas
-            var modPhysic = getModPhysic(filename);
-            if (modPhysic != null && Ext.ContainsAnySplitted(modPhysic, tasTriggers)) {
-                demo.isTas = true;
-            }
-
             //Gametype
             var gInfo = raw.gameInfo;
             if (gInfo.isDefrag) {
@@ -395,12 +401,9 @@ namespace DemoCleaner3 {
             if (demo.hasTr) {
                 demo.modphysic = string.Format("{0}.{1}", demo.modphysic, "tr");
             }
-            if (demo.isTas) {
-                demo.modphysic = string.Format("{0}.{1}", demo.modphysic, "tas");
-            }
 
             //If demo has cheats, write it
-            demo.validDict = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo);
+            demo.validDict = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo, demo.isTas);
 
             if (demo.triggerTime) {
                 demo.userId = tryGetUserIdFromFileName(file);
@@ -408,7 +411,7 @@ namespace DemoCleaner3 {
             return demo;
         }
 
-
+        
         static TimeStringInfo getFastestTimeStringInfo(List<TimeStringInfo> timestrings, DemoNames names) {
             TimeStringInfo fastestTimeString = null;
             if (timestrings.Count == 1) {
@@ -446,13 +449,17 @@ namespace DemoCleaner3 {
 
         //We are trying to split name and country
         static Pair tryGetNameAndCountry(string partname, DemoNames names) {
+            var country = "";
             if (names != null && (partname == names.dfName || partname == names.uName || partname == names.oName)) {
                 //name can contains dots so if username from parameters equals part in brackets, no country here
-                return new Pair(partname, "");
+                return new Pair(partname, country);
             }
             int i = partname.LastIndexOf('.');
+            if (i < 0) {
+                i = partname.LastIndexOf(',');
+            }
             if (i > 0 && i + 1 < partname.Length) {
-                var country = partname.Substring(i + 1, partname.Length - i - 1);
+                country = partname.Substring(i + 1, partname.Length - i - 1).Trim();
                 country = RawInfo.removeColors(country);
                 if (country.Where(c => char.IsNumber(c)).Count() == 0) {
                     return new Pair(partname.Substring(0, i), country);
@@ -513,6 +520,9 @@ namespace DemoCleaner3 {
             }
             if (filenameNoExt.ToLowerInvariant().Contains(" — copy")) {
                 filenameNoExt = Regex.Replace(filenameNoExt, "( — [c|C]opy( \\(\\d+\\))?)+", "");
+            }
+            if (filenameNoExt.Contains("^")) {
+                filenameNoExt = RawInfo.removeColors(filenameNoExt);
             }
 
             Match match;
@@ -656,7 +666,7 @@ namespace DemoCleaner3 {
         }
 
         //check demo for validity, commmands ordered by relevance. first is more important
-        static Dictionary<string, string> checkValidity(bool hasTime, bool hasRawTime, GameInfo gameInfo)
+        static Dictionary<string, string> checkValidity(bool hasTime, bool hasRawTime, GameInfo gameInfo, bool isTas)
         {
             Dictionary<string, string> invalidParams = new Dictionary<string, string>();
             var kGame = Ext.LowerKeys(gameInfo.parameters);
@@ -664,21 +674,25 @@ namespace DemoCleaner3 {
                 checkKey(invalidParams, kGame, "sv_cheats", 0);
             }
 
-            checkKey(invalidParams, kGame, "timescale", 1);
-            checkKey(invalidParams, kGame, "g_speed", 320);
-            checkKey(invalidParams, kGame, "g_gravity", 800);
-            checkKey(invalidParams, kGame, "handicap", 100);
-            checkKey(invalidParams, kGame, "g_knockback", 1000);
-            
-
             if (hasTime && !hasRawTime && gameInfo.isDefrag) {
                 //If the demo was not found messages about the finish map
                 invalidParams.Add("client_finish", "false");
             }
 
+            checkKey(invalidParams, kGame, "timescale", 1);
+            checkKey(invalidParams, kGame, "g_speed", 320);
+            checkKey(invalidParams, kGame, "g_gravity", 800);
+            checkKey(invalidParams, kGame, "handicap", 100);
+            checkKey(invalidParams, kGame, "g_knockback", 1000);
+
             if (hasTime && gameInfo.isOnline && !gameInfo.isFreeStyle) {
                 //if the demo was recorded with group support and have time
                 checkKey(invalidParams, kGame, "df_mp_interferenceoff", 3);
+            }
+
+            if (isTas) {
+                //if demo was tool-assisted (scripted, boted...)
+                invalidParams.Add("tool_assisted", "true");
             }
 
             checkKey(invalidParams, kGame, "sv_fps", 125);
