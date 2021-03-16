@@ -18,7 +18,7 @@ namespace DemoCleaner3
         //Return the name of the first folder
         static string getFirstDir(string Key)
         {
-            var c = Key[0];
+            var c = Key.ToLowerInvariant()[0];
             if (char.IsDigit(c)) {
                 return ("0-9");
             }

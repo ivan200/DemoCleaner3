@@ -498,10 +498,12 @@ namespace DemoCleaner3
                 textBoxSlowDemos.ScrollToCaret();
                 textBoxSlowDemos.Refresh();
 
-                textBoxMoveDemosFolder.Text = Path.Combine(_currentDemoPath.FullName, _moveDemosdirName);
-                textBoxMoveDemosFolder.SelectionStart = textBoxBadDemos.Text.Length;
-                textBoxMoveDemosFolder.ScrollToCaret();
-                textBoxMoveDemosFolder.Refresh();
+                if (!checkBoxMoveToMap.Checked || textBoxMoveDemosFolder.Text.Length == 0) {
+                    textBoxMoveDemosFolder.Text = Path.Combine(_currentDemoPath.FullName, _moveDemosdirName);
+                    textBoxMoveDemosFolder.SelectionStart = textBoxMoveDemosFolder.Text.Length;
+                    textBoxMoveDemosFolder.ScrollToCaret();
+                    textBoxMoveDemosFolder.Refresh();
+                }
             }
         }
 
@@ -636,10 +638,12 @@ namespace DemoCleaner3
                     if (prop.makeLogFile) {
                         fileHelper.stopLogger();
                     }
-                    this.Invoke(new SetItem<int>(setProgressPercent), 0);
-                    this.Invoke(new SetItem<bool>(setButtonCallBack), true);
-                    this.Invoke(new SetItem<string>(setProgressFileName), "");
-                    MessageBox.Show(getExMessage(ex), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (!this.IsDisposed) {
+                        this.Invoke(new SetItem<int>(setProgressPercent), 0);
+                        this.Invoke(new SetItem<bool>(setButtonCallBack), true);
+                        this.Invoke(new SetItem<string>(setProgressFileName), "");
+                        MessageBox.Show(getExMessage(ex), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             });
             backgroundThread.Start();
@@ -933,19 +937,18 @@ namespace DemoCleaner3
 
         //here comes a new demo from the user on the map, and an array of demos with the same time on the same map and physics
         //returns a boolean flag -
-        //true - the demo needs to be deleted
+        //true - demo needs to be deleted
         //false - existing demos needs to be deleted, and then rescan the folder
         private bool checkSameTimeDemos(Demo demo, List<Demo> sameTimeDemos, bool checkName = false) {
             List <Demo> sameSizeDemos = sameTimeDemos.Where(x => x.file.Length == demo.file.Length).ToList();
             if (sameSizeDemos.Count > 0) {
-                //We got demos with one size and one half. I will not check the hash, since the time and size are enough
+                //We got demos with same size and same time. I will not check hash, since time and size are enough
 
                 //- demos have the same name - just delete the existing one
                 if (sameSizeDemos.Where(x => x.file.Name == demo.file.Name).Count() > 0) {
                     return true;
                 }
                 var existDemo = sameSizeDemos.First();
-                var existFileName = existDemo.file.Name;
 
                 var demoList = new List<Demo>();
                 demoList.AddRange(sameTimeDemos);
@@ -961,7 +964,12 @@ namespace DemoCleaner3
                 //2) if at least one has validation, then we take it
                 var validities = demoList.Where(x => x.validDict.Count > 0);
                 if (validities.Count() > 0) {
-                    existDemo.validDict = validities.First().validDict;
+                    var isTas = validities.FirstOrDefault(x => x.isTas);
+                    if (isTas != null) {
+                        existDemo.validDict = isTas.validDict;
+                    } else {
+                        existDemo.validDict = validities.First().validDict;
+                    }
                 }
 
                 //3) if at least one has a userId, then we take it
@@ -971,24 +979,25 @@ namespace DemoCleaner3
                 }
 
                 //if sameTimeDemos can contain demos with different username
+                //for example "UnnamedPlayer" everywhere in first demo and "FM" in filename in second demo
                 if (checkName) {
                     var demoname = DemoNames.chooseName(demoList.Select(x => x.playerName).ToArray());
                     existDemo.playerName = demoname;
                 }
 
-                //if 2 demos are same and probably demos have not time written in console, find oldest demo creation time 
+                //if 2 demos are same and probably demos have not time written in console, 
+                //find oldest demo creation time and keep it
                 var existOldestTime = DateTime.Now;
                 foreach (var tmpDemo in demoList) {
                     if (tmpDemo.file.CreationTime < existOldestTime) existOldestTime = tmpDemo.file.CreationTime;
                     if (tmpDemo.file.LastWriteTime < existOldestTime) existOldestTime = tmpDemo.file.LastWriteTime;
                 }
-
-                //so keep oldest time
                 if (existDemo.file.CreationTime != existOldestTime || existDemo.file.LastAccessTime != existOldestTime) {
                     fileHelper.fixCreationTime(existDemo.file, existOldestTime);
                 }
 
-                if (existFileName != existDemo.demoNewName) {
+                //rename demo if we change name
+                if (existDemo.file.Name != existDemo.demoNewName) {
                     fileHelper._CountDemosAmount += 1;
                     //rename the existing
                     fileHelper.renameFile(existDemo.file, existDemo.demoNewName, prop.deleteIdentical);
@@ -1292,28 +1301,29 @@ namespace DemoCleaner3
                         }
                     }
                     if (!demo.hasCorrectName) {
-                        badDemos.Add(demo);
+                        fileHelper._CountDemosAmount++;
+                        operateBadOrBrockenDemo(demo);
                     }
                 } catch (Exception ex) {
                     exception = ex;
                     filepath = file.FullName;
                 }
             }
-
-            fileHelper.resetValues(badDemos.Count, false);
-
-            if (checkBoxBrokenDemos.Checked) {
-                var broken = badDemos.Where(x => x.isBroken).ToList();
-                operateBrokenDemos(broken);
-
-                var justBad = badDemos.Where(x => !x.isBroken).ToList();
-                operateBadDemos(justBad);
-            } else {
-                operateBadDemos(badDemos);
-            }
-
             if (exception != null) {
                 throw new Exception(exception.Message + "\nFile:\n" + filepath);
+            }
+        }
+
+        private void operateBadOrBrockenDemo(Demo demo) {
+            var demoArray = new Demo[] { demo };
+            if (checkBoxBrokenDemos.Checked) {
+                if (demo.isBroken) {
+                    operateBrokenDemos(demoArray);
+                } else {
+                    operateBadDemos(demoArray);
+                }
+            } else {
+                operateBadDemos(demoArray);
             }
         }
 

@@ -715,12 +715,10 @@ namespace DemoCleaner3 {
         static void checkKey(Dictionary<string, string> invalidParams, Dictionary<string, string> keysGame, string key, int val) {
             if (keysGame.ContainsKey(key) && keysGame[key].Length > 0) {
                 float value = getKey(keysGame, key);
-                if (value < 0 || value != val) {
-                    var keyValue = keysGame[key];
-                    if (keyValue.StartsWith(".")) {     //edit the timescale display as .3 -> 0.3
-                        keyValue = "0" + keyValue;
-                    }
-                    invalidParams.Add(key, keyValue);
+                if (value < 0) {
+                    invalidParams.Add(key, keysGame[key]);
+                } else if (value != val) {
+                    invalidParams.Add(key, Convert.ToString(value, CultureInfo.InvariantCulture));
                 }
             }
         }
