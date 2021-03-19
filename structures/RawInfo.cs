@@ -478,6 +478,11 @@ namespace DemoCleaner3.DemoParser.parser
             //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
             string demoTime = demoTimeCmd.Substring(demoTimeCmd.LastIndexOf("in") + 3);      //3:38:208
+
+            var estIndex = demoTime.IndexOf(" (est");
+            if(estIndex > 0) {
+                demoTime = demoTime.Substring(0, estIndex);
+            }
             return getTimeSpan(demoTime);
         }
 
@@ -629,17 +634,17 @@ namespace DemoCleaner3.DemoParser.parser
                     }
 
                     //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
-                    if (value.StartsWith("print \"Time performed by")) {
+                    else if (value.StartsWith("print \"Time performed by")) {
                         allTimes.Add(TimeType.OFFLINE_NORMAL, value);   //defrag 1.9+
                     }
 
                     //"print \"^3Time Performed: 25:912 (defrag 1.5)\n^7\""
-                    if (value.StartsWith("print \"^3Time Performed:")) {
+                    else if (value.StartsWith("print \"^3Time Performed:")) {
                         allTimes.Add(TimeType.OFFLINE_OLD2, value);     //defrag 1.5
                     }
 
                     //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
-                    if (value.Contains("reached the finish line in")) {
+                    else if (value.Contains("reached the finish line in")) {
                         allTimes.Add(TimeType.ONLINE_NORMAL, value);
                     }
 
