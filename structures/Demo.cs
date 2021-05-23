@@ -8,6 +8,7 @@ using DemoCleaner3.DemoParser.huffman;
 using DemoCleaner3.DemoParser;
 using DemoCleaner3.structures;
 using System.Globalization;
+using DemoCleaner3.DemoParser.utils;
 
 namespace DemoCleaner3 {
     //Class to maintain all information about demo file
@@ -95,6 +96,7 @@ namespace DemoCleaner3 {
                         oldName = removeSubstr(oldName, playerCountry, false);
                     }
                     oldName = oldName.Replace("[dm]", "");                                  //replace previous wrong mod detection
+                    oldName = oldName.Replace("[spect]", "");                               //replace spectate info
 
                     var normalizedName = DemoNames.normalizeName(playerName);
                     oldName = removeSubstr(oldName, normalizedName, false);                 //remove the player name
@@ -306,7 +308,12 @@ namespace DemoCleaner3 {
 
             //file
             demo.file = file;
-            if (frConfig.Count == 0 || !frConfig.ContainsKey(RawInfo.keyClient)) {
+            if (frConfig.Count == 0 
+                || !frConfig.ContainsKey(RawInfo.keyClient) 
+                || frConfig[RawInfo.keyClient].Count == 0
+                //|| (frConfig.ContainsKey(RawInfo.keyErrors) && frConfig[RawInfo.keyErrors].ContainsValue(new ErrorWrongLength().Message))
+                || (frConfig.ContainsKey(RawInfo.keyErrors) && frConfig[RawInfo.keyErrors].ContainsValue(new ErrorBadCommandInParseGameState().Message))
+                ) {
                 demo.hasError = true;
                 demo.isBroken = true;
                 return demo;
@@ -377,13 +384,17 @@ namespace DemoCleaner3 {
 
             //Map
             var mapInfo = raw.rawConfig.ContainsKey(Q3Const.Q3_DEMO_CFG_FIELD_MAP) ? raw.rawConfig[Q3Const.Q3_DEMO_CFG_FIELD_MAP] : "";
-            var mapName = Ext.GetOrNull(frConfig[RawInfo.keyClient], "mapname");
+            var mapName = Ext.GetOrNull(frConfig[RawInfo.keyClient], "mapname") ?? "";
 
             //If in mapInfo the name of the same map is written, then we take the name from there
             if (mapName.ToLowerInvariant().Equals(mapInfo.ToLowerInvariant())) {
                 demo.mapName = mapInfo;
             } else {
                 demo.mapName = mapName.ToLowerInvariant();
+            }
+
+            if (mapName.Length == 0) {
+                demo.isBroken = true;
             }
 
             //Gametype

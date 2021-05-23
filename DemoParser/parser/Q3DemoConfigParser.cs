@@ -233,40 +233,42 @@ namespace DemoCleaner3.DemoParser.parser
                     clientEvent.eventChangePmType = true;
                 }
                 prevStat = prevEvent.userStat;
+
+                var isNormal = snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL;
                 if (prevStat != newStat) {
                     if ((prevStat & 4) != (newStat & 4)) {
-                        if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
+                        if (isNormal) {
                             if ((prevStat & 2) == 0) {
                                 clientEvent.eventStartTime = true;
                             } else {
                                 clientEvent.eventTimeReset = true;
                             }
                         }
-                    } else if ((prevStat & 8) == 0 && (newStat & 8) != 0) {
-                        if (!clientEvent.eventChangeUser) {
+                    } else if ((prevStat & 8) != (newStat & 8)) {
+                        if (isNormal && !clientEvent.eventChangeUser) {
                             clientEvent.eventFinish = true;
                         }
                     } else if ((prevStat & 16) != (newStat & 16)) {
-                        if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
+                        if (isNormal) {
                             clientEvent.eventCheckPoint = true;
                         }
                     } else if (prevEvent.eventFinish && (prevStat & 2) != 0 && (newStat & 2) == 0) {
                         //fix double finish
-                        if (!clientEvent.eventChangeUser) {
+                        if (isNormal && !clientEvent.eventChangeUser) {
                             prevEvent.eventFinish = false;
                             if (!prevEvent.hasAnyEvent) events.RemoveAt(events.Count - 1);
                             clientEvent.eventFinish = true;
                         }
                     } else if (prevEvent.eventStartTime && (prevStat & 2) == 0 && (newStat & 2) != 0) {
                         //fix double start timer
-                        if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
+                        if (isNormal) {
                             prevEvent.eventStartTime = false;
                             if (!prevEvent.hasAnyEvent) events.RemoveAt(events.Count - 1);
                             clientEvent.eventStartTime = true;
                         }
                     } else if (prevEvent.eventTimeReset && (prevStat & 4) == 0 && (newStat & 2) != 0) {
                         //fix double tr
-                        if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
+                        if (isNormal) {
                             prevEvent.eventTimeReset = false;
                             if (!prevEvent.hasAnyEvent) events.RemoveAt(events.Count - 1);
                             clientEvent.eventTimeReset = true;
