@@ -235,6 +235,7 @@ namespace DemoCleaner3.DemoParser.parser
                 prevStat = prevEvent.userStat;
 
                 var isNormal = snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL;
+                var prevIsNormal = prevEvent.playerMode == (int)ClientEvent.PlayerMode.PM_NORMAL;
                 if (prevStat != newStat) {
                     if ((prevStat & 4) != (newStat & 4)) {
                         if (isNormal) {
@@ -245,7 +246,8 @@ namespace DemoCleaner3.DemoParser.parser
                             }
                         }
                     } else if ((prevStat & 8) != (newStat & 8)) {
-                        if (isNormal && !clientEvent.eventChangeUser) {
+                        if ((isNormal || prevIsNormal) // it is possible to finish and die in one frame
+                            && !clientEvent.eventChangeUser) {
                             clientEvent.eventFinish = true;
                         }
                     } else if ((prevStat & 16) != (newStat & 16)) {
@@ -254,7 +256,7 @@ namespace DemoCleaner3.DemoParser.parser
                         }
                     } else if (prevEvent.eventFinish && (prevStat & 2) != 0 && (newStat & 2) == 0) {
                         //fix double finish
-                        if (isNormal && !clientEvent.eventChangeUser) {
+                        if ((isNormal || prevIsNormal) && !clientEvent.eventChangeUser) {
                             prevEvent.eventFinish = false;
                             if (!prevEvent.hasAnyEvent) events.RemoveAt(events.Count - 1);
                             clientEvent.eventFinish = true;
