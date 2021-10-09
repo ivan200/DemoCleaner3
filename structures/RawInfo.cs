@@ -4,15 +4,11 @@ using DemoCleaner3.ExtClasses;
 using DemoCleaner3.structures;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using static DemoCleaner3.DemoParser.utils.Q3Utils;
 
-namespace DemoCleaner3.DemoParser.parser
-{
+namespace DemoCleaner3.DemoParser.parser {
     public class RawInfo
     {
         public static string keyDemoName = "demoname";
@@ -23,6 +19,7 @@ namespace DemoCleaner3.DemoParser.parser
         public static string keyGame = "game";
         public static string keyRecord = "record";
         public static string keyTriggers = "triggers";
+        public static string keyOtherPlayers = "other players";
         public static string keyRecordTime = "time";
         public static string keyRecordDate = "date";
         public static string keyRaw = "raw";
@@ -40,6 +37,11 @@ namespace DemoCleaner3.DemoParser.parser
             OFFLINE_OLD2,
             OFFLINE_OLD3
         }
+        public enum FinishType {
+            INCORRECT,
+            CORRECT_START,
+            CORRECT_TR
+        }
 
         public ListMap<TimeType, string> allTimes = new ListMap<TimeType, string>();
         public List<TimeStringInfo> timeStrings = new List<TimeStringInfo>();
@@ -54,13 +56,14 @@ namespace DemoCleaner3.DemoParser.parser
 
         Dictionary<short, Dictionary<string, string>> allPlayersConfigs = new Dictionary<short, Dictionary<string, string>>();
 
-        public KeyValuePair<int, ClientEvent>? fin = null;
+        public KeyValuePair<FinishType, ClientEvent>? fin = null;
 
         public Dictionary<string, string> kPlayer = null;
         public GameInfo gameInfo = null;
         public int maxSpeed = 0;
         public bool isLongStart = false;
         public bool isSpectator = false;
+        public List<long> cpData = new List<long>();
 
         public RawInfo(string demoName, ClientConnection clientConnection, List<ClientEvent> clientEvents, int maxSpeed) {
             this.demoPath = demoName;
@@ -72,6 +75,8 @@ namespace DemoCleaner3.DemoParser.parser
 
             fillTimes(clientConnection.console);
             timeStrings = getTimeStrings();
+
+            cpData = fillCpData(clientEvents, fin);
         }
 
         public Dictionary<string, Dictionary<string, string>> getFriendlyInfo() {
@@ -89,21 +94,26 @@ namespace DemoCleaner3.DemoParser.parser
             }
 
             //Current player
+            long playerNum = -1;
             if (fin.HasValue) {
-                kPlayer = getPlayerInfoByPlayerNum(fin.Value.Value.playerNum);
+                playerNum = fin.Value.Value.playerNum;
+                kPlayer = getPlayerInfoByPlayerNum(playerNum);
             }
             if (kPlayer == null && clientEvents.Count > 0) {
                 //if spectator view player and there was no finish
                 var lastEvent = clientEvents.LastOrDefault();
                 if (lastEvent != null) {
-                    kPlayer = getPlayerInfoByPlayerNum(lastEvent.playerNum);
+                    playerNum = lastEvent.playerNum;
+                    kPlayer = getPlayerInfoByPlayerNum(playerNum);
                 }
             }
             if (kPlayer == null) {
-                kPlayer = getPlayerInfoByPlayerNum(clc.clientNum);
+                playerNum = clc.clientNum;
+                kPlayer = getPlayerInfoByPlayerNum(playerNum);
             }
             var keys = allPlayersConfigs.Keys.ToList();
             if (kPlayer == null && keys.Count == 1) {
+                playerNum = keys[0];
                 kPlayer = allPlayersConfigs[keys[0]];
             }
 
@@ -133,7 +143,7 @@ namespace DemoCleaner3.DemoParser.parser
             }
             if (fin != null) {
                 string bestTime = getTimeByMillis(fin.Value.Value.time);
-                bool hasTr = fin.Value.Key > 1;
+                bool hasTr = fin.Value.Key == FinishType.CORRECT_TR;
                 string trAdd = hasTr ? " (Time reset)" : "";
                 times.Add(keyBestTime, bestTime + trAdd);
             }
@@ -257,6 +267,21 @@ namespace DemoCleaner3.DemoParser.parser
                     friendlyInfo.Add(keyPlayer + " " + (i + 1).ToString(), allPlayersConfigs[keys[i]]);
                 }
             }
+
+            //Other Players
+            if (allPlayersConfigs.Count > 1 && playerNum >= 0) {
+                var playerKey = playerNum + Q3Const.Q3_DEMO_CFG_FIELD_PLAYER;
+                var pls = new Dictionary<string, string>();
+                foreach (var player in allPlayersConfigs) {
+                    if (player.Key != playerKey) {
+                        var somePlayer = player.Value;
+                        var name = DemoNames.chooseName(somePlayer["name"], somePlayer["df_name"]);
+                        pls.Add(player.Key.ToString(), name);
+                    }
+                }
+                friendlyInfo.Add(keyOtherPlayers, pls);
+            }
+
 
             Dictionary<string, string> clInfo = null;
             Dictionary<string, string> gInfo = null;
@@ -405,15 +430,6 @@ namespace DemoCleaner3.DemoParser.parser
         }
 
 
-        public static void replaceKeys(ListMap<string, string> src, Dictionary<string, string> replaces) {
-            for (int i = 0; i < src.Count; i++) {
-                var str = src[i];
-                if (replaces.ContainsKey(str.Key.ToLowerInvariant())) {
-                    src[i] = new KeyValuePair<string, string>(replaces[str.Key], str.Value);
-                }
-            }
-        }
-
         public static Dictionary<string, string> split_config_game(string src) {
             var split = new ListMap<string, string>(Q3Utils.split_config(src));
 
@@ -421,7 +437,7 @@ namespace DemoCleaner3.DemoParser.parser
             replaces.Add("defrag_clfps", "com_maxfps");
             replaces.Add("defrag_svfps", "sv_fps");
             
-            replaceKeys(split, replaces);
+            Ext.replaceKeys(split, replaces);
             return split.ToDictionary(); 
         }
 
@@ -439,7 +455,7 @@ namespace DemoCleaner3.DemoParser.parser
             replaces.Add("tt", "teamTask");
             replaces.Add("tl", "teamLeader");
 
-            replaceKeys(split, replaces);
+            Ext.replaceKeys(split, replaces);
             var nameIndex = Ext.IndexOf(split, x => x.Key.ToLowerInvariant() == "name");
             if (nameIndex >= 0) {
                 var name = split[nameIndex].Value;
@@ -465,113 +481,9 @@ namespace DemoCleaner3.DemoParser.parser
             "free","red","blue","spectators"
         };
 
-        public static string getNameOnline(string demoTimeCmd)
-        {
-            //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
-            string name = demoTimeCmd.Substring(6, demoTimeCmd.LastIndexOf(" reached") - 6); //Rom
-            return DemoNames.normalizeName(name);
-        }
 
-        public static TimeSpan getTimeOnline(string demoTimeCmd)
-        {
-            //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
-            string demoTime = demoTimeCmd.Substring(demoTimeCmd.LastIndexOf("in") + 3);      //3:38:208
 
-            var estIndex = demoTime.IndexOf(" (est");
-            if(estIndex > 0) {
-                demoTime = demoTime.Substring(0, estIndex);
-            }
-            return getTimeSpan(demoTime);
-        }
-
-        public static TimeSpan getTimeOfflineNormal(string demoTimeCmd)
-        {
-            //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
-            //print "Time performed by ^2GottWarLorD^7 : ^335:752^7 (defrag 1.9)\n"
-            //print \"Time performed by Chell ^s: 00:54:184\n\"     //q3xp 2.1
-
-            //TODO проверить, что будет если в df_name будет со спецсимволами, например двоеточие, вопрос, кавычки
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^.|\\\"|\\n|\")", "");     //print Time performed  by uN-DeaD!Enter : 31:432 (v1.91.23 beta)
-            demoTimeCmd = demoTimeCmd.Substring(demoTimeCmd.IndexOf(':') + 2);      //31:432 (v1.91.23 beta)
-            var spInd = demoTimeCmd.IndexOf(' ');
-            if (spInd > 0) {
-                demoTimeCmd = demoTimeCmd.Substring(0, spInd).Trim();    //31:432
-            }
-
-            return getTimeSpan(demoTimeCmd);
-        }
-
-        public static string getNameOffline(string demoTimeCmd)
-        {
-            //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
-            //print \"Time performed by Chell ^s: 00:54:184\n\"
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^.|\\\"|\\n|\")", "");          //print Time performed  by uN-DeaD!Enter : 31:432 (v1.91.23 beta)
-            demoTimeCmd = demoTimeCmd.Substring(24);                                         //uN-DeaD!Enter : 31:432 (v1.91.23 beta)
-            demoTimeCmd = demoTimeCmd.Substring(0, demoTimeCmd.LastIndexOf(" : "));          //uN-DeaD!Enter
-            return DemoNames.normalizeName(demoTimeCmd);
-        }
-
-        public static string getNameOfflineOld1(string demoTimeCmd) {
-            //NewTime -971299442 7:200 \"defrag 1.80\" \"Viper\" route ya->->rg
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");  //NewTime -971299442 7:200 defrag 1.80 Viper route ya->->rg
-            var parts = demoTimeCmd.Split(' ');
-            var name = parts[5];
-            return DemoNames.normalizeName(name);
-        }
-
-        public static TimeSpan getTimeOld1(string demoTimeCmd)
-        {
-            //NewTime -971299442 7:200 \"defrag 1.80\" \"Viper\" route ya->->rg
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", ""); //NewTime -971299442 7:200 defrag 1.80 Viper route ya->->rg
-            var parts = demoTimeCmd.Split(' ');
-            demoTimeCmd = parts[2];
-            return getTimeSpan(demoTimeCmd);
-        }
-
-        public static TimeSpan getTimeOld3(string demoTimeCmd)
-        {
-            //newTime 47080
-            demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", ""); 
-            var parts = demoTimeCmd.Split(' ');
-            demoTimeCmd = parts[1];
-            int millis = 0;
-            int.TryParse(demoTimeCmd, out millis);
-            return TimeSpan.FromMilliseconds(millis);
-        }
-
-        //getting time from a string
-        public static TimeSpan getTimeSpan(string timeString)
-        {
-            var times = timeString.Split('-', '.', ':').Reverse().ToList();
-            if (times.Count > 0 && times[0].Length != 3) {
-                return TimeSpan.Zero;
-            }
-            //since we reversed the times, milliseconds will be in the beginning
-            return TimeSpan.Zero
-                .Add(TimeSpan.FromMilliseconds(times.Count > 0 ? int.Parse(times[0]) : 0))
-                .Add(TimeSpan.FromSeconds(times.Count > 1 ? int.Parse(times[1]) : 0))
-                .Add(TimeSpan.FromMinutes(times.Count > 2 ? int.Parse(times[2]) : 0));
-            //do through timespan to if minutes greater than 60, they are correctly added
-        }
-
-        //getting the date of recording of the demo if it exists
-        public static DateTime? getDateForDemo(string s)
-        {
-            //print "Date: 10-25-14 02:43\n"
-            string dateString = s.Substring(13).Replace("\n", "").Replace("\"", "").Trim();
-            try {
-                return DateTime.ParseExact(dateString, "MM-dd-yy HH:mm", CultureInfo.InvariantCulture);
-            } catch (FormatException) {
-                try {
-                    return DateTime.ParseExact(dateString, "MM-dd-yy H:mm", CultureInfo.InvariantCulture);
-                } catch (FormatException) { }
-            }
-            return null;
-        }
-
-        //remove the color from the string
+        /// <summary> Remove the color from the string </summary>
         public static string removeColors(string text)
         {
             return string.IsNullOrEmpty(text)
@@ -579,16 +491,17 @@ namespace DemoCleaner3.DemoParser.parser
                 : Regex.Replace(text, "\\^.", "");
         }
 
+        /// <summary> Remove all non-ASCII characters from string </summary>
         public static string removeNonAscii(string text) {
             return string.IsNullOrEmpty(text) ? text : Regex.Replace(text, @"[^\u0020-\u007F]+", string.Empty);
         }
 
-        private KeyValuePair<int, ClientEvent>? getCorrectFinishEvent() {
-            var correctFinishes = new ListMap<int, ClientEvent>();
+        private KeyValuePair<FinishType, ClientEvent>? getCorrectFinishEvent() {
+            var correctFinishes = new ListMap<FinishType, ClientEvent>();
             for (int i = clientEvents.Count - 1; i >= 0; i--) {
-                int isCorrect = isEventCorrect(clientEvents, i);
-                if (isCorrect > 0) {
-                    correctFinishes.Add(isCorrect, clientEvents[i]);
+                FinishType finishType = isFinishCorrect(clientEvents, i);
+                if (finishType != FinishType.INCORRECT) {
+                    correctFinishes.Add(finishType, clientEvents[i]);
                 }
             }
             if (correctFinishes.Count > 0) {
@@ -598,30 +511,62 @@ namespace DemoCleaner3.DemoParser.parser
             }
         }
 
-        private static int isEventCorrect(List<ClientEvent> clientEvents, int index) {
-            //0 - incorrect, 1 = correct start, 2 - correct tr
+        private static FinishType isFinishCorrect(List<ClientEvent> clientEvents, int index) {
             if (!clientEvents[index].eventFinish) {
-                return 0;
+                return FinishType.INCORRECT; 
             }
             for (int i = index - 1; i >= 0; i--) {
                 var prev = clientEvents[i];
                 if (prev.eventChangePmType) {
-                    return 0;
+                    return FinishType.INCORRECT;
                 }
                 if (prev.eventTimeReset) {
-                    return 2;
+                    return FinishType.CORRECT_TR;
                 }
                 if (prev.eventStartTime) {
-                    return 1;
+                    return FinishType.CORRECT_START;
                 }
                 //it is possible to start file in one frame with start timer, so check for start file is after
                 //if change user and start timer was in one frame, so demo is normal
                 if (prev.eventStartFile || prev.eventChangeUser) { 
-                    return 0;
+                    return FinishType.INCORRECT;
                 }
             }
-            return 0;
+            return FinishType.INCORRECT;
         }
+
+        /// <summary> Filling checkpoints data and return list of millseconds between every checkpoint in run</summary>
+        private List<long> fillCpData(List<ClientEvent> allEvents, KeyValuePair<FinishType, ClientEvent>? fin) {
+            var cps = new List<long>();
+            if (fin == null || !fin.HasValue || fin.Value.Key == FinishType.INCORRECT) {
+                return cps;
+            }
+            
+            var started = false;
+            ClientEvent currentTrigger = null;
+
+            for (int i = allEvents.Count - 1; i >= 0; i--) {
+                var ev = allEvents[i];
+                if (!started) {
+                    if (ev.serverTime == fin.Value.Value.serverTime) {
+                        started = true;
+                        currentTrigger = ev;
+                    }
+                } else {
+                    if (ev.eventCheckPoint || ev.eventStartTime || ev.eventTimeReset) {
+                        long cp = currentTrigger.serverTime - ev.serverTime;
+                        cps.Add(cp);
+                        currentTrigger = ev;
+                    }
+                    if (ev.eventStartTime || ev.eventTimeReset) {
+                        cps.Reverse();
+                        return cps;
+                    }
+                }
+            }
+            return new List<long>();
+        }
+
 
         private void fillTimes(Dictionary<long, string> consoleCommands) {
             foreach (var kv in consoleCommands) {
@@ -668,22 +613,22 @@ namespace DemoCleaner3.DemoParser.parser
 
                     switch (demoTimeCmd.Key) {
                         case TimeType.OFFLINE_NORMAL:
-                            time = getTimeOfflineNormal(demoTimeCmd.Value);
-                            oName = getNameOffline(demoTimeCmd.Value);
+                            time = ConsoleStringUtils.getTimeOfflineNormal(demoTimeCmd.Value);
+                            oName = ConsoleStringUtils.getNameOffline(demoTimeCmd.Value);
                             break;
                         case TimeType.ONLINE_NORMAL:
-                            time = getTimeOnline(demoTimeCmd.Value);
-                            oName = getNameOnline(demoTimeCmd.Value);
+                            time = ConsoleStringUtils.getTimeOnline(demoTimeCmd.Value);
+                            oName = ConsoleStringUtils.getNameOnline(demoTimeCmd.Value);
                             break;
                         case TimeType.OFFLINE_OLD1:
-                            time = getTimeOld1(demoTimeCmd.Value);
-                            oName = getNameOfflineOld1(demoTimeCmd.Value);
+                            time = ConsoleStringUtils.getTimeOld1(demoTimeCmd.Value);
+                            oName = ConsoleStringUtils.getNameOfflineOld1(demoTimeCmd.Value);
                             break;
                         case TimeType.OFFLINE_OLD2:
-                            time = getTimeOfflineNormal(demoTimeCmd.Value);
+                            time = ConsoleStringUtils.getTimeOfflineNormal(demoTimeCmd.Value);
                             break;
                         case TimeType.OFFLINE_OLD3:
-                            time = getTimeOld3(demoTimeCmd.Value);
+                            time = ConsoleStringUtils.getTimeOld3(demoTimeCmd.Value);
                             break;
                     }
 
@@ -693,7 +638,7 @@ namespace DemoCleaner3.DemoParser.parser
                     info.timeString = demoTimeCmd.Value;
                     if (i < dateStamps.Count) {
                         info.recordDateString = dateStamps[i];
-                        info.recordDate = getDateForDemo(dateStamps[i]);
+                        info.recordDate = ConsoleStringUtils.getDateForDemo(dateStamps[i]);
                     }
                     infos.Add(info);
                 }

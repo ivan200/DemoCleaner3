@@ -99,12 +99,24 @@ namespace DemoCleaner3 {
                     oldName = oldName.Replace("[spect]", "");                               //replace spectate info
 
                     var normalizedName = DemoNames.normalizeName(playerName);
+
+                    //remove normal name + country
+                    oldName = oldName.Replace(string.Format("({0}.{1})", normalizedName, country), ""); 
+                    oldName = oldName.Replace(string.Format("({0})", normalizedName), ""); 
+                    if (names != null && !string.IsNullOrEmpty(names.fName)) {
+                        oldName = oldName.Replace(string.Format("({0}.{1})", names.fName, country), "");
+                        oldName = oldName.Replace(string.Format("({0})", names.fName), "");
+                    }
+
+                    //remove name and country with custom brackets
                     oldName = removeSubstr(oldName, normalizedName, false);                 //remove the player name
                     if (names != null && !string.IsNullOrEmpty(names.fName)) {
                         oldName = removeSubstr(oldName, names.fName, false);
                     }
                     oldName = removeSubstr(oldName, country, false);                        //remove the country
-                    oldName = removeSubstr(oldName, modphysic);                             //remove the mod with physics
+
+                    oldName = oldName.Replace(string.Format("[{0}]", modphysic), "");       //remove the mod with physics with default brackets
+                    oldName = removeSubstr(oldName, modphysic);                             //remove the mod with physics with custom brackets
                     if (rawInfo != null && rawInfo.gameInfo != null) {
                         oldName = removeSubstr(oldName, rawInfo.gameInfo.gameNameShort);    //remove the mod
                     }
@@ -116,7 +128,7 @@ namespace DemoCleaner3 {
                     oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //we remove crap at the beginning and at the end of name
                     oldName = oldName.Replace(" ", "_");                                    //remove_spaces
                     
-                    demoname = string.Format("{0}[{1}]{2}({3})", mapName, modphysic, oldName, playerCountry);
+                    demoname = string.Format("{0}[{1}]({2}){3}", mapName, modphysic, playerCountry, oldName);
 
                     demoname = demoname.Replace(").)", ")").Replace(".)", ")");
                 }
@@ -210,7 +222,7 @@ namespace DemoCleaner3 {
                 //Time
                 demo.timeString = match.Groups[3].Value;
                 try {
-                    demo.time = RawInfo.getTimeSpan(demo.timeString);
+                    demo.time = ConsoleStringUtils.getTimeSpan(demo.timeString);
                 } catch (Exception) {
                     demo.hasError = true;
                 }
@@ -303,9 +315,8 @@ namespace DemoCleaner3 {
             var frConfig = raw.getFriendlyInfo();
 
             Demo demo = new Demo();
-
             demo.rawInfo = raw;
-
+            
             //file
             demo.file = file;
             if (frConfig.Count == 0 
@@ -326,7 +337,7 @@ namespace DemoCleaner3 {
             //time from triggers
             if (raw.fin.HasValue) {
                 demo.time = TimeSpan.FromMilliseconds(raw.fin.Value.Value.time);
-                demo.hasTr = raw.fin.Value.Key > 1;
+                demo.hasTr = raw.fin.Value.Key == RawInfo.FinishType.CORRECT_TR;
                 demo.triggerTime = true;
             }
 
@@ -512,7 +523,7 @@ namespace DemoCleaner3 {
                     }
                 }
             }
-            return RawInfo.getTimeSpan(partname);
+            return ConsoleStringUtils.getTimeSpan(partname);
         }
 
         //Normalization of demo filenames in case they broken by discord or net

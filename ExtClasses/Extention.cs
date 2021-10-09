@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 using System.Collections;
 using System.Text.RegularExpressions;
+using DemoCleaner3.ExtClasses;
 
 namespace DemoCleaner3
 {
@@ -133,6 +134,15 @@ namespace DemoCleaner3
                 rez.Add(item.Key.ToLowerInvariant(), item.Value);
             }
             return rez;
+        }
+
+        public static void replaceKeys(ListMap<string, string> src, Dictionary<string, string> replaces) {
+            for (int i = 0; i < src.Count; i++) {
+                var str = src[i];
+                if (replaces.ContainsKey(str.Key.ToLowerInvariant())) {
+                    src[i] = new KeyValuePair<string, string>(replaces[str.Key], str.Value);
+                }
+            }
         }
     }
 

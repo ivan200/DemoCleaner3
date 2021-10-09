@@ -941,6 +941,11 @@ namespace DemoCleaner3
         //false - existing demos needs to be deleted, and then rescan the folder
         private bool checkSameTimeDemos(Demo demo, List<Demo> sameTimeDemos, bool checkName = false) {
             List <Demo> sameSizeDemos = sameTimeDemos.Where(x => x.file.Length == demo.file.Length).ToList();
+
+            var demoList = new List<Demo>();
+            demoList.AddRange(sameTimeDemos);
+            demoList.Add(demo);
+
             if (sameSizeDemos.Count > 0) {
                 //We got demos with same size and same time. I will not check hash, since time and size are enough
 
@@ -949,10 +954,6 @@ namespace DemoCleaner3
                     return true;
                 }
                 var existDemo = sameSizeDemos.First();
-
-                var demoList = new List<Demo>();
-                demoList.AddRange(sameTimeDemos);
-                demoList.Add(demo);
 
                 //1) if one demo does not have a country or the country has a tastrigger, and the second has a normal one, then the country is taken
                 var countries = demoList
@@ -1030,6 +1031,23 @@ namespace DemoCleaner3
                     return true;
                 }
                 if (demo.isTas == true && diffSizeDemos.Where(x => x.isTas == false).Count() > 0) {
+                    return false;
+                }
+
+
+                //one demo is corrupted, but other is ok
+                if(demo.validDict.Count == 1 
+                    && demo.validDict.FirstOrDefault().Key == "client_finish"
+                    && demo.validDict.FirstOrDefault().Value == "false"
+                    && diffSizeDemos.Any(x=>x.validDict.Count == 0)){
+                    return true;
+                }
+                if (demo.validDict.Count == 0
+                    && diffSizeDemos.Any(
+                        x => x.validDict.Count == 1
+                        && x.validDict.FirstOrDefault().Key == "client_finish"
+                        && x.validDict.FirstOrDefault().Value == "false")
+                    ) {
                     return false;
                 }
 

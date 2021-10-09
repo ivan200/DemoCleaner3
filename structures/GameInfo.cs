@@ -52,13 +52,14 @@ namespace DemoCleaner3.structures
 
         static string getDfModText(int dfMode) {
             switch (dfMode) {
-                case 1: return "Neither";
+                case 0: return "Custom";
+                case 1: return "No weapon / No map objects";
                 case 2: return "Weapons & Map Objects";
                 case 3: return "Map Objects Only";
                 case 4: return "Weapons Only";
                 case 5: return "Swinging Hook";
-                case 6: return "VQ3 Hook";
-                case 7: return "VQ3";
+                case 6: return "Quake3 Hook";
+                case 7: return "Original quake 3";
                 case 8: return "Custom";
             }
             return "";

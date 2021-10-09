@@ -83,6 +83,7 @@
     <Compile Include="LogDetails.Designer.cs">
       <DependentUpon>LogDetails.cs</DependentUpon>
     </Compile>
+    <Compile Include="structures\ConsoleStringUtils.cs" />
     <Compile Include="structures\Demo.cs" />
     <Compile Include="DemoInfoForm.cs">
       <SubType>Form</SubType>
