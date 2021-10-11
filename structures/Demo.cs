@@ -372,11 +372,14 @@ namespace DemoCleaner3 {
                 || Ext.ContainsAnySplitted(countryAndName, tasTriggers)) {
                 demo.isTas = true;
             }
+
             var countryNameParsed = tryGetNameAndCountry(countryAndName, names);
+            var normalName = names.chooseNormalName();
+            if (normalName == null || normalName == DemoNames.defaultName) {
+                names.setBracketsName(countryNameParsed.Key);   //name from the filename
+            }
 
-            //fle name
-            names.setBracketsName(countryNameParsed.Key);   //name from the filename
-
+            //player name
             demo.playerName = names.chooseNormalName();
             demo.names = names;
 

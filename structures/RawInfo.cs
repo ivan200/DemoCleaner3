@@ -275,7 +275,8 @@ namespace DemoCleaner3.DemoParser.parser {
                 foreach (var player in allPlayersConfigs) {
                     if (player.Key != playerKey) {
                         var somePlayer = player.Value;
-                        var name = DemoNames.chooseName(somePlayer["name"], somePlayer["df_name"]);
+                        var tt = new string[] { "name", "df_name", "nick" }.Select(x => Ext.GetOrNull(somePlayer, x)).ToArray();
+                        var name = DemoNames.chooseName(tt);
                         pls.Add(player.Key.ToString(), name);
                     }
                 }
