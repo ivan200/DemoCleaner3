@@ -33,23 +33,39 @@ namespace DemoCleaner3.DemoParser.structures
             PM_DEAD                 // no acceleration or turning, but free falling
         }
 
-        public long time;
+        public long time = 0;
+        public bool timeHasError;
+        public long timeByServerTime = 0;
         public long serverTime;
         public int playerNum;
         public int playerMode;
-
         public int userStat;
+
+        public long timeNoError {
+            get {
+                if (timeHasError) {
+                    return timeByServerTime;
+                } else {
+                    return time;
+                }
+            }
+        }
+
         //stats[12]
         //start - xor 2
         //tr - xor 4
         //finish - xor 8
 
-        public ClientEvent(long time, CLSnapshot snapshot) {
-            this.time = time;
+        public ClientEvent(long time, bool timeHasError, CLSnapshot snapshot) {
+            if (!timeHasError) {
+                this.time = time;
+            }
+            this.timeHasError = timeHasError;
             this.serverTime = snapshot.serverTime;
             this.playerNum = snapshot.ps.clientNum;
             this.userStat = snapshot.ps.stats[12];
             this.playerMode = snapshot.ps.pm_type;
         }
+
     }
 }

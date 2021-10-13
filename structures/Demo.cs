@@ -336,7 +336,10 @@ namespace DemoCleaner3 {
 
             //time from triggers
             if (raw.fin.HasValue) {
-                demo.time = TimeSpan.FromMilliseconds(raw.fin.Value.Value.time);
+                if (!raw.fin.Value.Value.timeHasError) {
+                    //if we can decode time from triggers, then use it
+                    demo.time = TimeSpan.FromMilliseconds(raw.fin.Value.Value.time);
+                }
                 demo.hasTr = raw.fin.Value.Key == RawInfo.FinishType.CORRECT_TR;
                 demo.triggerTime = true;
             }
@@ -357,6 +360,12 @@ namespace DemoCleaner3 {
                     var user = raw.getPlayerInfoByPlayerName(fastestTimeString.oName);
                     if (user != null) {
                         names.setNamesByPlayerInfo(user);
+                    }
+                } else {
+                    //if we can't find the time in the commands, and the trigger decoding time has an error, 
+                    //we will get the result from the servertime diff
+                    if (raw.fin.HasValue) {
+                        demo.time = TimeSpan.FromMilliseconds(raw.fin.Value.Value.timeByServerTime);
                     }
                 }
             }

@@ -213,7 +213,7 @@ namespace DemoCleaner3.DemoParser.parser
             var time = getTime(snapshot.ps, (int)snapshot.serverTime, client.dfvers, client.mapNameChecksum);
             var events = client.clientEvents;
 
-            ClientEvent clientEvent = new ClientEvent(time, snapshot);
+            ClientEvent clientEvent = new ClientEvent(time.Time, time.HasError, snapshot);
 
             var prevStat = 0;
             var newStat = snapshot.ps.stats[12];
@@ -426,16 +426,20 @@ namespace DemoCleaner3.DemoParser.parser
         {
             return (int)(((uint)x << n) & 0xffffffff);
         }
-        private long getTime(PlayerState ps, int snap_serverTime, int df_ver, int mapNameChecksum)
+
+
+        private TimeResult getTime(PlayerState ps, int snap_serverTime, int df_ver, int mapNameChecksum)
         {
+            bool hasError = false;
             int time = shl32(ps.stats[7], 0x10) | (ps.stats[8] & 0xffff);
             if (time == 0)
             {
-                return 0;
+                return new TimeResult(0, hasError);
             }
-            //encryption in cheated demos changed somewhere between >=19110 and <=19112
-            if (client.isOnline || ((df_ver >= 19112) && client.isCheatsOn)) {
-                return time;
+
+            if ((client.isOnline && df_ver != 190) ||       //all online times are unencrypted, except 190 df version
+                (df_ver >= 19112 && client.isCheatsOn)) {   //encryption in cheated demos changed somewhere between >=19110 and <=19112    
+                return new TimeResult(time, hasError);
             }
 
             time ^= Math.Abs((int)(Math.Floor(ps.origin[0]))) & 0xffff;
@@ -481,9 +485,20 @@ namespace DemoCleaner3.DemoParser.parser
 
             if (local1c != (local20 & 0x3f))
             {
+                hasError = true;
                 Q3Utils.PrintDebug(clc.errors, new ErrorBadChecksum());
             }
-            return time;
+            return new TimeResult(time, hasError);
+        }
+
+
+        public struct TimeResult {
+            public TimeResult(long time, bool hasError) {
+                Time = time;
+                HasError = hasError;
+            }
+            public long Time { get; }
+            public bool HasError { get; }
         }
     }
 }

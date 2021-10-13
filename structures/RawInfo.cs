@@ -141,8 +141,8 @@ namespace DemoCleaner3.DemoParser.parser {
                     }
                 }
             }
-            if (fin != null) {
-                string bestTime = getTimeByMillis(fin.Value.Value.time);
+            if (fin != null && fin.HasValue) {
+                string bestTime = getTimeByMillis(fin.Value.Value.timeNoError);
                 bool hasTr = fin.Value.Key == FinishType.CORRECT_TR;
                 string trAdd = hasTr ? " (Time reset)" : "";
                 times.Add(keyBestTime, bestTime + trAdd);
@@ -506,7 +506,7 @@ namespace DemoCleaner3.DemoParser.parser {
                 }
             }
             if (correctFinishes.Count > 0) {
-                return Ext.MinOf(correctFinishes, x => x.Value.time);
+                return Ext.MinOf(correctFinishes, x => x.Value.timeNoError);
             } else {
                 return null;
             }
@@ -522,9 +522,11 @@ namespace DemoCleaner3.DemoParser.parser {
                     return FinishType.INCORRECT;
                 }
                 if (prev.eventTimeReset) {
+                    clientEvents[index].timeByServerTime = clientEvents[index].serverTime - prev.serverTime;
                     return FinishType.CORRECT_TR;
                 }
                 if (prev.eventStartTime) {
+                    clientEvents[index].timeByServerTime = clientEvents[index].serverTime - prev.serverTime;
                     return FinishType.CORRECT_START;
                 }
                 //it is possible to start file in one frame with start timer, so check for start file is after
