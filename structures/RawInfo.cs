@@ -518,7 +518,7 @@ namespace DemoCleaner3.DemoParser.parser {
             }
             for (int i = index - 1; i >= 0; i--) {
                 var prev = clientEvents[i];
-                if (prev.eventChangePmType) {
+                if (prev.eventChangePmType || prev.eventFinish) {
                     return FinishType.INCORRECT;
                 }
                 if (prev.eventTimeReset) {

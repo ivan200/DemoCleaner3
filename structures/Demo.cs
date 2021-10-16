@@ -45,8 +45,9 @@ namespace DemoCleaner3 {
         }
 
         public bool useValidation = true;
-        public bool rawTime = false;            //time is obtained from triggers or console prints
-        public bool triggerTime = false;        //time is obtained from trigger touching, not from prefs\
+        public bool rawTime = false;                //time is obtained from triggers or console prints
+        public bool triggerTime = false;            //time is obtained from trigger touching, not from prefs\
+        public bool triggerTimeNoFinish = false;    //time from trigger touching has startTimer but have not stopTimer
         public bool isSpectator = false;
 
         public RawInfo rawInfo = null;
@@ -343,6 +344,9 @@ namespace DemoCleaner3 {
                 demo.hasTr = raw.fin.Value.Key == RawInfo.FinishType.CORRECT_TR;
                 demo.triggerTime = true;
             }
+            if (raw.clientEvents.Any(x => x.eventStartTime || x.eventTimeReset) && !raw.clientEvents.Any(x => x.eventFinish)){
+                demo.triggerTimeNoFinish = true;
+            }
 
             var timestrings = raw.timeStrings;
 
@@ -437,7 +441,7 @@ namespace DemoCleaner3 {
             }
 
             //If demo has cheats, write it
-            demo.validDict = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo, demo.isTas);
+            demo.validDict = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo, demo.isTas, demo.triggerTimeNoFinish);
 
             if (demo.triggerTime) {
                 demo.userId = tryGetUserIdFromFileName(file);
@@ -700,7 +704,7 @@ namespace DemoCleaner3 {
         }
 
         //check demo for validity, commmands ordered by relevance. first is more important
-        static Dictionary<string, string> checkValidity(bool hasTime, bool hasRawTime, GameInfo gameInfo, bool isTas)
+        static Dictionary<string, string> checkValidity(bool hasTime, bool hasRawTime, GameInfo gameInfo, bool isTas, bool triggerTimeNoFinish)
         {
             Dictionary<string, string> invalidParams = new Dictionary<string, string>();
             var kGame = Ext.LowerKeys(gameInfo.parameters);
@@ -708,7 +712,7 @@ namespace DemoCleaner3 {
                 checkKey(invalidParams, kGame, "sv_cheats", 0);
             }
 
-            if (hasTime && !hasRawTime && gameInfo.isDefrag) {
+            if (gameInfo.isDefrag && (hasTime && !hasRawTime) || triggerTimeNoFinish) {
                 //If the demo was not found messages about the finish map
                 invalidParams.Add("client_finish", "false");
             }
