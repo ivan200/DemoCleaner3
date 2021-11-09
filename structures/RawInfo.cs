@@ -521,12 +521,11 @@ namespace DemoCleaner3.DemoParser.parser {
                 if (prev.eventChangePmType || prev.eventFinish) {
                     return FinishType.INCORRECT;
                 }
+                clientEvents[index].timeByServerTime = clientEvents[index].serverTime - prev.serverTime;
                 if (prev.eventTimeReset) {
-                    clientEvents[index].timeByServerTime = clientEvents[index].serverTime - prev.serverTime;
                     return FinishType.CORRECT_TR;
                 }
                 if (prev.eventStartTime) {
-                    clientEvents[index].timeByServerTime = clientEvents[index].serverTime - prev.serverTime;
                     return FinishType.CORRECT_START;
                 }
                 //it is possible to start file in one frame with start timer, so check for start file is after

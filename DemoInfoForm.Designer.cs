@@ -112,7 +112,6 @@
             // 
             // buttonCreateRec
             // 
-            this.buttonCreateRec.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonCreateRec.Location = new System.Drawing.Point(12, 10);
             this.buttonCreateRec.Name = "buttonCreateRec";
             this.buttonCreateRec.Size = new System.Drawing.Size(102, 23);
