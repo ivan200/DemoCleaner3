@@ -52,6 +52,13 @@ namespace DemoCleaner3.ExtClasses {
 
             if (cps.Count > MAX_CHECKPOINTS) {
                 cps = cps.GetRange(0, MAX_CHECKPOINTS);
+
+                var endRange = cps.GetRange(MAX_CHECKPOINTS, cps.Count - MAX_CHECKPOINTS);
+                long sum = 0;
+                foreach (var cp in endRange) {
+                    sum += cp;
+                }
+                cps[MAX_CHECKPOINTS - 1] = sum;
             }
 
             //checkpoint data -> 128 bytes

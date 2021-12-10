@@ -1008,48 +1008,27 @@ namespace DemoCleaner3
 
             List<Demo> diffSizeDemos = sameTimeDemos.Where(x => x.file.Length != demo.file.Length).ToList();
             if (diffSizeDemos.Count > 0) {
-                //If demos with one time of the same user, but of different sizes, then:
+                //If demos with one time of the same user, but with different sizes, then:
 
                 //- this is a demo recorded by spectator vs a demo without spectator - take the one where there is no inscription [spect]
-                if (demo.isSpectator && diffSizeDemos.Where(x => !x.isSpectator).Count() > 0) {
-                    return true;
-                }
-                if (!demo.isSpectator && diffSizeDemos.Where(x => x.isSpectator).Count() > 0) {
-                    return false;
-                }
+                var check = checkDemoDifference(demo, diffSizeDemos, x => x.isSpectator);
+                if (check.HasValue) return check.Value;
 
                 //- this is a server demo vs a client demo - take the one where there is no inscription [123]
-                if (demo.userId >= 0 && diffSizeDemos.Where(x => x.userId < 0).Count() > 0) {
-                    return true;
-                }
-                if (demo.userId < 0 && diffSizeDemos.Where(x => x.userId >= 0).Count() > 0) {
-                    return false;
-                }
+                check = checkDemoDifference(demo, diffSizeDemos, x => x.userId >= 0);
+                if (check.HasValue) return check.Value;
 
                 //- new tas demo without a tag, but there is already a tas demo. Here tas has priority since tas trigger can be added by hands
-                if (demo.isTas == false && diffSizeDemos.Where(x => x.isTas == true).Count() > 0) {
-                    return true;
-                }
-                if (demo.isTas == true && diffSizeDemos.Where(x => x.isTas == false).Count() > 0) {
-                    return false;
-                }
+                check = checkDemoDifference(demo, diffSizeDemos, x => x.isTas == false);
+                if (check.HasValue) return check.Value;
 
+                //one demo is not finished, but other is ok
+                check = checkDemoDifference(demo, diffSizeDemos, x => x.isNotFinished == true);
+                if (check.HasValue) return check.Value;
 
-                //one demo is corrupted, but other is ok
-                if(demo.validDict.Count == 1 
-                    && demo.validDict.FirstOrDefault().Key == "client_finish"
-                    && demo.validDict.FirstOrDefault().Value == "false"
-                    && diffSizeDemos.Any(x=>x.validDict.Count == 0)){
-                    return true;
-                }
-                if (demo.validDict.Count == 0
-                    && diffSizeDemos.Any(
-                        x => x.validDict.Count == 1
-                        && x.validDict.FirstOrDefault().Key == "client_finish"
-                        && x.validDict.FirstOrDefault().Value == "false")
-                    ) {
-                    return false;
-                }
+                //one demo is valid, but other is not
+                check = checkDemoDifference(demo, diffSizeDemos, x => x.validDict.Count >= 1);
+                if (check.HasValue) return check.Value;
 
                 //- it's just two different times of the same user - we take the smaller one by filesize
                 if (diffSizeDemos.Where(x => x.file.Length < demo.file.Length).Count() > 0) {
@@ -1059,6 +1038,20 @@ namespace DemoCleaner3
                 }
             }
             return false;
+        }
+
+        //check demo and list of demo for some parameter, and if it is different, return flag which one
+        //true - demo accept parameter, but other demos not
+        //false - demo not accept parameter, but one of other demos are
+        //null - parameter in all demos is same
+        private bool? checkDemoDifference(Demo demo, List<Demo> otherDemos, Func<Demo, bool> function) {
+            if (function.Invoke(demo) == true && otherDemos.Where(x => function(x) == false).Count() > 0) {
+                return true;
+            }
+            if (function.Invoke(demo) == false && otherDemos.Where(x =>function(x) == true).Count() > 0) {
+                return false;
+            }
+            return null;
         }
 
         private List<Demo> getDemosForDir(DirectoryInfo mapDir) { 
@@ -1118,7 +1111,7 @@ namespace DemoCleaner3
                             operateSlowDemos(sameTimeDemos);
 
                             mapDir.Refresh();
-                            mapDirDemos = mapDirDemos = getDemosForDir(mapDir);
+                            mapDirDemos = getDemosForDir(mapDir);
                             playerRecs = getPlayerRecsForDir(demo, mapDirDemos);
                         }
                     }

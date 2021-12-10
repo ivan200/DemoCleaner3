@@ -21,15 +21,15 @@ namespace DemoCleaner3.structures
         public void setNamesByPlayerInfo(Dictionary<string, string> playerInfo) {
             if (playerInfo != null) {
                 dfName = Ext.GetOrNull(playerInfo, "df_name");
-                uName = normalizeName(RawInfo.removeColors(Ext.GetOrNull(playerInfo, "name")));
+                uName = normalizeName(ConsoleStringUtils.removeColors(Ext.GetOrNull(playerInfo, "name")));
             }
         }
 
         public void setConsoleName(string onlineName, bool isOnline) {
             if (isOnline) {
-                oName = normalizeName(RawInfo.removeColors(onlineName));
+                oName = normalizeName(ConsoleStringUtils.removeColors(onlineName));
             } else {
-                cName = normalizeName(RawInfo.removeColors(onlineName));
+                cName = normalizeName(ConsoleStringUtils.removeColors(onlineName));
             }
         }
 

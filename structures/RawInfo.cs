@@ -335,7 +335,7 @@ namespace DemoCleaner3.DemoParser.parser {
             if (clc.console.Count > 0) {
                 Dictionary<string, string> conTexts = new Dictionary<string, string>();
                 foreach(var kv in clc.console) {
-                    var asciiText = removeNonAscii(kv.Value.ToString());
+                    var asciiText = ConsoleStringUtils.removeNonAscii(kv.Value.ToString());
                     conTexts.Add(kv.Key.ToString(), asciiText);
                 }
                 friendlyInfo.Add(keyConsole, conTexts);
@@ -460,7 +460,7 @@ namespace DemoCleaner3.DemoParser.parser {
             var nameIndex = Ext.IndexOf(split, x => x.Key.ToLowerInvariant() == "name");
             if (nameIndex >= 0) {
                 var name = split[nameIndex].Value;
-                string unColoredName = removeColors(name);
+                string unColoredName = ConsoleStringUtils.removeColors(name);
                 if (!name.Equals(unColoredName)) {
                     split.Insert(nameIndex + 1, new KeyValuePair<string, string>("uncoloredName", unColoredName));
                 }
@@ -482,26 +482,11 @@ namespace DemoCleaner3.DemoParser.parser {
             "free","red","blue","spectators"
         };
 
-
-
-        /// <summary> Remove the color from the string </summary>
-        public static string removeColors(string text)
-        {
-            return string.IsNullOrEmpty(text)
-                ? text
-                : Regex.Replace(text, "\\^.", "");
-        }
-
-        /// <summary> Remove all non-ASCII characters from string </summary>
-        public static string removeNonAscii(string text) {
-            return string.IsNullOrEmpty(text) ? text : Regex.Replace(text, @"[^\u0020-\u007F]+", string.Empty);
-        }
-
         private KeyValuePair<FinishType, ClientEvent>? getCorrectFinishEvent() {
             var correctFinishes = new ListMap<FinishType, ClientEvent>();
             for (int i = clientEvents.Count - 1; i >= 0; i--) {
                 FinishType finishType = isFinishCorrect(clientEvents, i);
-                if (finishType != FinishType.INCORRECT) {
+                if (finishType != FinishType.INCORRECT && clientEvents[i].timeNoError > 0) {
                     correctFinishes.Add(finishType, clientEvents[i]);
                 }
             }

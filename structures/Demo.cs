@@ -27,7 +27,7 @@ namespace DemoCleaner3 {
         public bool hasCorrectName = false;
         public DateTime? recordTime;
         public bool hasTr = false;
-
+        public bool isNotFinished = false;
         public bool isTas = false;  //tool assisted speedrun (boted, scripted, etc...)
         public static String[] tasTriggers =
             new String[] { "tas", "tasbot", "bot", "boted", "botland", "wiz", "wizland", "script", "scripted", "scriptland" }
@@ -239,17 +239,17 @@ namespace DemoCleaner3 {
 
                 //Validity
                 if (match.Groups.Count >= 7) {
-                    var validString = match.Groups[6].Value;
-                    var v = validString.Split('=');
-                    if (v.Length > 1) {
-                        demo.validDict = new Dictionary<string, string>();
-                        demo.validDict.Add(v[0], v[1]);
-                    }
+                    addValidDict(demo, match.Groups[6].Value);
                 }
 
                 //tas check
                 if (filename.ToLowerInvariant().Contains("tool_assisted=true")) {
                     demo.isTas = true;
+                }
+
+                //finish demo check
+                if (filename.ToLowerInvariant().Contains("client_finish=false")) {
+                    demo.isNotFinished = true;
                 }
 
                 //userId
@@ -270,9 +270,47 @@ namespace DemoCleaner3 {
                     }
                 }
             } else {
+                //ospdm1[df.vq3](bsh.ThrasheR)t_school_3xgj{sv_cheats=1}
+                match = Regex.Match(fileNameNoExt, "^(.+)\\[(.+)\\]\\((.+)\\)(.+)$");
+                if (match.Success) {
+                    demo.mapName = match.Groups[1].Value;
+                    demo.modphysic = match.Groups[2].Value;
+                    var countryName = match.Groups[3].Value;
+                    var countryNameParsed = tryGetNameAndCountry(countryName, null);
+                    demo.playerName = countryNameParsed.Key;
+                    demo.country = countryNameParsed.Value;
+
+                    var title = match.Groups[4].Value;
+                    match = Regex.Match(title, "^.+\\{(.+)\\}$");
+                    if (match.Success) {
+                        addValidDict(demo, match.Groups[1].Value);
+                    }
+                }
+                //ospdm1[df.vq3]t_school_3xgj(bsh.ThrasheR){sv_cheats=1}
+                match = Regex.Match(fileNameNoExt, "^(.+)\\[(.+)\\](.+)\\((.+)\\)(\\{(.+)\\})?$");
+                if (match.Success) {
+                    demo.mapName = match.Groups[1].Value;
+                    demo.modphysic = match.Groups[2].Value;
+                    var countryName = match.Groups[4].Value;
+                    var countryNameParsed = tryGetNameAndCountry(countryName, null);
+                    demo.playerName = countryNameParsed.Key;
+                    demo.country = countryNameParsed.Value;
+                    //Validity
+                    if (match.Groups.Count == 7) {
+                        addValidDict(demo, match.Groups[6].Value);
+                    }
+                }
                 demo.hasError = true;
             }
             return demo;
+        }
+
+        private static void addValidDict(Demo demo, string validString) {
+            var v = validString.Split('=');
+            if (v.Length > 1) {
+                demo.validDict = new Dictionary<string, string>();
+                demo.validDict.Add(v[0], v[1]);
+            }
         }
 
         public static string getModPhysic(string filename) {
@@ -446,6 +484,10 @@ namespace DemoCleaner3 {
             if (demo.triggerTime) {
                 demo.userId = tryGetUserIdFromFileName(file);
             }
+            if (Ext.GetOrNull(demo.validDict, "client_finish") == "false") { 
+                demo.isNotFinished = true;
+            }
+
             return demo;
         }
 
@@ -472,15 +514,9 @@ namespace DemoCleaner3 {
 
         //We are trying to get the name and country from the demo (the first occurrence of two round brackets)
         static string getNameAndCountry(string filename) {
-            var brackets = Regex.Matches(filename, "\\([^)]*\\)");
-            if (brackets.Count > 0) {
-                for (int i = 0;i< brackets.Count;i++) {
-                    var value = brackets[i].Value;
-                    if (value.Contains('.')){
-                        return value.Replace("(", "").Replace(")", "");
-                    }
-                }
-                return brackets[0].Value.Replace("(", "").Replace(")", "");
+            var match = Regex.Match(filename, "[^(]*\\((.*)\\).*");
+            if (match.Success && match.Groups.Count > 1) {
+                return match.Groups[1].Value;
             }
             return "";
         }
@@ -498,7 +534,7 @@ namespace DemoCleaner3 {
             }
             if (i > 0 && i + 1 < partname.Length) {
                 country = partname.Substring(i + 1, partname.Length - i - 1).Trim();
-                country = RawInfo.removeColors(country);
+                country = ConsoleStringUtils.removeColors(country);
                 if (country.Where(c => char.IsNumber(c)).Count() == 0) {
                     return new Pair(partname.Substring(0, i), country);
                 }
@@ -560,7 +596,7 @@ namespace DemoCleaner3 {
                 filenameNoExt = Regex.Replace(filenameNoExt, "( — [c|C]opy( \\(\\d+\\))?)+", "");
             }
             if (filenameNoExt.Contains("^")) {
-                filenameNoExt = RawInfo.removeColors(filenameNoExt);
+                filenameNoExt = ConsoleStringUtils.removeColors(filenameNoExt);
             }
 
             Match match;
@@ -569,7 +605,7 @@ namespace DemoCleaner3 {
 
                     //tamb10_df.vq3_00.11.304_nL_HaZarD.Russia_
                     if (Ext.CountOf(filenameNoExt, '_') >= 4) {
-                        match = Regex.Match(filenameNoExt, "([.][vV][qQ][3]|[.][cC][pP][mM]).*[_](\\d+[.]\\d{2}[.]\\d{3}|\\d{1,2}[.]\\d{3})");
+                        match = Regex.Match(filenameNoExt, "(?i)(.vq3|.cpm).*_(\\d+[.]\\d{2}[.]\\d{3}|\\d{1,2}[.]\\d{3})");
                         if (match.Success && match.Groups.Count == 3) {
                             try {
                                 //group 0 = .vq3_00.11.304
@@ -592,41 +628,41 @@ namespace DemoCleaner3 {
                         }
                     }
 
-                    //runmikrob-4[df.vq3]00.14.488_JL.Ua_.dm_68
-                    match = Regex.Match(filenameNoExt, "^.+[\\[].+[\\]](\\d+[.]\\d{2}[.]\\d{3}|\\d{1,2}[.]\\d{3})[_].+[_]$");
-                    if (match.Success) {
-                        //group 0 = runmikrob-4[df.vq3]00.14.488_JL.Ua_
-                        //group 1 = 00.14.488
-
-                        var indexBracket1 = match.Groups[1].Index + match.Groups[1].Length;
-                        var indexBracket2 = filenameNoExt.Length - 1;
-
-                        var chars = filenameNoExt.ToCharArray();
-                        chars[indexBracket1] = '(';
-                        chars[indexBracket2] = ')';
-                        return new string(chars) + file.Extension.ToLowerInvariant();
-                    }
-                }
-
-                //dfcomp009_3.792_VipeR_Russia.dm_68
-                //dmp02a_jinx_13.880_t0t3r_germany.dm_68
-                //fdcj2_3.408_[kzii]f_china.dm_66
-                if (Ext.CountOf(filenameNoExt, '_') >= 3) {
-                    match = Regex.Match(filenameNoExt, ".*[_](\\d+[.]\\d{2}[.]\\d{3}|\\d{1,2}[.]\\d{3})[_]");
-                    if (match.Success && match.Groups.Count == 2) {
-                        try {
-                            //group 0 = dfcomp009_3.792_
-                            //group 1 = 3.792
-                            var mapnametime = match.Groups[0].Value.Substring(0, match.Groups[0].Value.Length - 1);
-                            var playerCountry = filenameNoExt.Substring(match.Groups[0].Length);
-                            var split = playerCountry.LastIndexOf('_');
-                            if (split > 0) {
-                                var pa = playerCountry.ToCharArray();
-                                pa[split] = '.';
-                                playerCountry = new string(pa);
+                    //dfcomp009_3.792_VipeR_Russia.dm_68
+                    //dmp02a_jinx_13.880_t0t3r_germany.dm_68
+                    //fdcj2_3.408_[kzii]f_china.dm_66
+                    if (Ext.CountOf(filenameNoExt, '_') >= 3) {
+                        match = Regex.Match(filenameNoExt, ".*[_](\\d+[.]\\d{2}[.]\\d{3}|\\d{1,2}[.]\\d{3}|\\d{5}|\\d{4})[_]");
+                        if (match.Success && match.Groups.Count == 2) {
+                            try {
+                                //group 0 = dfcomp009_3.792_
+                                //group 1 = 3.792
+                                var mapnametime = match.Groups[0].Value.Substring(0, match.Groups[0].Value.Length - 1);
+                                var playerCountry = filenameNoExt.Substring(match.Groups[0].Length);
+                                var split = playerCountry.LastIndexOf('_');
+                                if (split > 0) {
+                                    var pa = playerCountry.ToCharArray();
+                                    pa[split] = '.';
+                                    playerCountry = new string(pa);
+                                }
+                                return mapnametime + "(" + playerCountry + ")" + file.Extension.ToLowerInvariant();
+                            } catch (Exception ex) {
                             }
-                            return mapnametime + "(" + playerCountry + ")" + file.Extension.ToLowerInvariant();
-                        } catch (Exception ex) {
+                        }
+                    }
+
+                    //dfcomp012_00.07.128_eS-HosT.russia.dm_68
+                    //dfcomp012_00.07.128_eS-HosT.russia_.dm_68
+                    //runmikrob-4[df.vq3]00.14.488_JL.Ua_.dm_68
+                    match = Regex.Match(filenameNoExt, "^.+(?>_|\\[.+\\])(?>\\d{2}[.]\\d{2}[.]\\d{3}|\\d{1,2}[.]\\d{3})(_).+$");
+                    if (match.Success) {
+                        var chars = filenameNoExt.ToCharArray();
+                        chars[match.Groups[1].Index] = '(';
+                        if (chars[chars.Length - 1] == '_') {
+                            chars[chars.Length - 1] = ')';
+                            return new string(chars) + file.Extension.ToLowerInvariant();
+                        } else {
+                            return new string(chars) + ')' + file.Extension.ToLowerInvariant();
                         }
                     }
                 }
@@ -712,7 +748,7 @@ namespace DemoCleaner3 {
                 checkKey(invalidParams, kGame, "sv_cheats", 0);
             }
 
-            if (gameInfo.isDefrag && (hasTime && !hasRawTime) || triggerTimeNoFinish) {
+            if (gameInfo.isDefrag && ((hasTime && !hasRawTime) || triggerTimeNoFinish)) {
                 //If the demo was not found messages about the finish map
                 invalidParams.Add("client_finish", "false");
             }

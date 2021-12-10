@@ -12,6 +12,40 @@ namespace DemoCleaner3.structures {
             return DemoNames.normalizeName(name);
         }
 
+        public static string getNameQ3df(string demoTimeCmd) {
+            if (!demoTimeCmd.Contains("broke the server record") && !demoTimeCmd.Contains("you are now rank")) {
+                return null;
+            }
+            //chat "^7^0!^2nv^3sbi^7vp^0}^4-^3w^1-^3(^7^7u^0N^4*^0D^7ea^0D^1|^0w^700^0d^7y^4-^3)^2 broke the server record with ^32:336 ^0[^2-0:048"
+            demoTimeCmd = removeNonAscii(demoTimeCmd);
+            demoTimeCmd = removeColors(demoTimeCmd);
+            //chat "!nvsbivp}-w-(uN*DeaD|w00dy-) broke the server record with 2:336 [-0:048"
+            var match = Regex.Match(demoTimeCmd, "chat \"(.+)\\((.+)\\) broke the server record with (.+) \\[.*");
+            if (match.Success && match.Groups.Count > 0) {
+                var name = match.Groups[1].Value;
+                var q3dfName = match.Groups[2].Value;
+                var time = match.Groups[3].Value;
+                return DemoNames.normalizeName(name);
+            }
+
+            //chat "^7^1E^3nter^3(^7^1E^3nter^3)^2, you are now rank ^32 ^2of ^35 ^2with ^317:896 ^0[^1+0:032^0]^7"
+            //chat "Enter(Enter), you are now rank 2 of 5 with 17:896 [+0:032]"
+            match = Regex.Match(demoTimeCmd, "chat \"(.+)\\((.+)\\), you are now rank .+ of .+ with (.+) \\[.*");
+            if (match.Success && match.Groups.Count > 0) {
+                var name = match.Groups[1].Value;
+                return DemoNames.normalizeName(name);
+            }
+
+            //chat "^7B^21^7ade^3(^7B^21^7ade^3)^2 equalled the server record with ^30:008^2!!!^7"
+            //chat "B1ade(B1ade) equalled the server record with 0:008!!!"
+            match = Regex.Match(demoTimeCmd, "chat \"(.+)\\((.+)\\), you are now rank .+ of .+ with (.+) \\[.*");
+            if (match.Success && match.Groups.Count > 0) {
+                var name = match.Groups[1].Value;
+                return DemoNames.normalizeName(name);
+            }
+            return null;
+        }
+
         public static TimeSpan getTimeOnline(string demoTimeCmd) {
             //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^[0-9]|\\\"|\\n|\")", "");          //print Rom reached the finish line in 3:38:208
@@ -105,5 +139,17 @@ namespace DemoCleaner3.structures {
             return null;
         }
 
+
+        /// <summary> Remove the color from the string </summary>
+        public static string removeColors(string text) {
+            return string.IsNullOrEmpty(text)
+                ? text
+                : Regex.Replace(text, "\\^.", "");
+        }
+
+        /// <summary> Remove all non-ASCII characters from string </summary>
+        public static string removeNonAscii(string text) {
+            return string.IsNullOrEmpty(text) ? text : Regex.Replace(text, @"[^\u0020-\u007F]+", string.Empty);
+        }
     }
 }

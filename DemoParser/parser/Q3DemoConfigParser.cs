@@ -217,6 +217,7 @@ namespace DemoCleaner3.DemoParser.parser
 
             var prevStat = 0;
             var newStat = snapshot.ps.stats[12];
+            if (newStat < 0) return;
             if (events.Count == 0) {
                 clientEvent.eventStartFile = true;
                 if (snapshot.ps.pm_type == (int)ClientEvent.PlayerMode.PM_NORMAL) {
