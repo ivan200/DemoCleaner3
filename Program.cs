@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace DemoCleaner3
 {
@@ -11,7 +12,8 @@ namespace DemoCleaner3
         enum RunType {
             DEFAULT,
             XML,
-            REC
+            REC,
+            JSON
         }
 
         /// <summary>
@@ -36,6 +38,9 @@ namespace DemoCleaner3
             } else if (argg.Length == 2 && argg[0] == "--xml") {
                 demoFile = new FileInfo(argg[1]);
                 runType = RunType.XML;
+            } else if (argg.Length == 2 && argg[0] == "--json") {
+                demoFile = new FileInfo(argg[1]);
+                runType = RunType.JSON;
             } else if ((argg.Length == 3 || argg.Length == 2) && argg[0] == "--rec") {
                 demoFile = new FileInfo(argg[1]);
                 runType = RunType.REC;
@@ -55,6 +60,20 @@ namespace DemoCleaner3
                             Console.WriteLine(xmlString);
                         } catch (Exception ex) {
                             Console.WriteLine("Can not parse demo");
+                            Console.WriteLine(ex.ToString());
+                        }
+                        break;
+                    case RunType.JSON:
+                        try
+                        {
+                            demo = Demo.GetDemoFromFileRaw(demoFile);
+                            var xmlString = JsonConvert.SerializeObject(demo.rawInfo.getFriendlyInfo());
+                            Console.Out.WriteLine(xmlString);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Can not parse demo");
+                            Console.WriteLine(ex.ToString());
                         }
                         break;
                     case RunType.REC:
