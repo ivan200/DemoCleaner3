@@ -10,9 +10,21 @@ namespace DemoCleaner3.DemoParser.parser
         public int size;
         public byte[] data;
 
+        public static int sequenceStart = 0;
+        public static int sequenceEnd = 0;
+
         public Q3DemoMessage(int sequence, int size) {
             this.sequence = sequence;
             this.size = size;
+
+            if (sequenceStart == 0)
+            {
+                sequenceStart = sequence;
+            }
+            if (sequence > sequenceEnd)
+            {
+                sequenceEnd = sequence;
+            }
         }
     }
 }

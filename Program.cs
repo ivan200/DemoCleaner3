@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace DemoCleaner3
@@ -67,8 +68,16 @@ namespace DemoCleaner3
                         try
                         {
                             demo = Demo.GetDemoFromFileRaw(demoFile);
-                            var xmlString = JsonConvert.SerializeObject(demo.rawInfo.getFriendlyInfo());
-                            Console.Out.WriteLine(xmlString);
+
+                            Dictionary<string, string> name = new Dictionary<string, string>();
+                            name.Add("new", demo.demoNewName);
+                            name.Add("old", demoFile.Name);
+
+                            Dictionary<string, Dictionary<string, string>> friendlyInfo = demo.rawInfo.getFriendlyInfo();
+                            friendlyInfo.Add("name", name);
+
+                            var jsonString = JsonConvert.SerializeObject(friendlyInfo);
+                            Console.Out.WriteLine(jsonString);
                         }
                         catch (Exception ex)
                         {
