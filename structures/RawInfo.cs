@@ -118,6 +118,13 @@ namespace DemoCleaner3.DemoParser.parser {
             }
 
             friendlyInfo = new Dictionary<string, Dictionary<string, string>>();
+
+            //Sequence start and end -- used to calculate total demo length
+            Dictionary<string, string> sequenceInfo = new Dictionary<string, string>();
+            sequenceInfo.Add("start", Q3DemoMessage.sequenceStart.ToString());
+            sequenceInfo.Add("end", Q3DemoMessage.sequenceEnd.ToString());
+
+            friendlyInfo.Add("sequence", sequenceInfo);
             
             //console Times
             Dictionary<string, string> times = new Dictionary<string, string>();
