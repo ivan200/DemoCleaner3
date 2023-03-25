@@ -27,7 +27,7 @@ namespace DemoCleaner3 {
         public static XmlNode ExportXml(XmlDocument doc, Dictionary<string, Dictionary<string, string>> map) {
             var node = doc.CreateNode("element", "demoFile", "");
             foreach (var item in map) {
-                var el = doc.CreateNode("element", item.Key, "");
+                var el = doc.CreateNode("element", NormalizeAttributeName(item.Key), "");
                 foreach (var subItem in item.Value) {
                     var attr = doc.CreateAttribute(NormalizeAttributeName(subItem.Key));
                     attr.Value = subItem.Value;
@@ -42,7 +42,5 @@ namespace DemoCleaner3 {
             XmlDocument doc = new XmlDocument();
             return ExportXml(doc, friendlyInfo).OuterXml;
         }
-
     }
-
 }

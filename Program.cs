@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using System.Text;
 
 namespace DemoCleaner3
 {
@@ -11,6 +12,7 @@ namespace DemoCleaner3
         enum RunType {
             DEFAULT,
             XML,
+            XML_FILE,
             REC
         }
 
@@ -36,6 +38,9 @@ namespace DemoCleaner3
             } else if (argg.Length == 2 && argg[0] == "--xml") {
                 demoFile = new FileInfo(argg[1]);
                 runType = RunType.XML;
+            } else if (argg.Length == 2 && argg[0] == "--xmlfile") {
+                demoFile = new FileInfo(argg[1]);
+                runType = RunType.XML_FILE;
             } else if ((argg.Length == 3 || argg.Length == 2) && argg[0] == "--rec") {
                 demoFile = new FileInfo(argg[1]);
                 runType = RunType.REC;
@@ -56,6 +61,23 @@ namespace DemoCleaner3
                         } catch (Exception ex) {
                             Console.WriteLine("Can not parse demo");
                         }
+                        break;
+                    case RunType.XML_FILE:
+                        var name = demoFile.Name.Substring(0, demoFile.Name.Length - demoFile.Extension.Length) + ".xml";
+                        var m_exePath = Path.GetDirectoryName(Application.ExecutablePath);
+                        var filePath = Path.Combine(m_exePath, name);
+                        var fileStream = new FileStream(filePath, FileMode.CreateNew);
+                        var streamWriter = new StreamWriter(fileStream, Encoding.UTF8);
+                        try {
+                            demo = Demo.GetDemoFromFileRaw(demoFile);
+                            var info = demo.rawInfo.getFriendlyInfo();
+                            var xmlString = XmlUtils.FriendlyInfoToXmlString(info);
+                            streamWriter.Write(xmlString);
+                        } catch (Exception ex) {
+                            streamWriter.Write("Can not parse demo: " + ex.Message);
+                        }
+                        streamWriter.Close();
+                        fileStream.Close();
                         break;
                     case RunType.REC:
                         try {
