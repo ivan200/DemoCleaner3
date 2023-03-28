@@ -25,6 +25,7 @@ namespace DemoCleaner3
         {
             AppDomain.CurrentDomain.AssemblyResolve += (sender, arg) => {
                 if (arg.Name.StartsWith("LinqBridge")) return Assembly.Load(Properties.Resources.LinqBridge);
+                if (arg.Name.StartsWith("Newtonsoft")) return Assembly.Load(Properties.Resources.Newtonsoft_Json);
                 return null;
             };
 
@@ -76,7 +77,9 @@ namespace DemoCleaner3
                             Dictionary<string, Dictionary<string, string>> friendlyInfo = demo.rawInfo.getFriendlyInfo();
                             friendlyInfo.Add("name", name);
 
-                            var jsonString = JsonConvert.SerializeObject(friendlyInfo);
+                            friendlyInfo.Add("validity", demo.validDict);
+
+                            var jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(friendlyInfo);
                             Console.Out.WriteLine(jsonString);
                         }
                         catch (Exception ex)

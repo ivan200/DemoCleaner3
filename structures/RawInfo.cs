@@ -65,6 +65,9 @@ namespace DemoCleaner3.DemoParser.parser {
         public bool isSpectator = false;
         public List<long> cpData = new List<long>();
 
+        public long sequenceServerTimeStart = 0;
+        public long sequenceServerTimeEnd = 0;
+
         public RawInfo(string demoName, ClientConnection clientConnection, List<ClientEvent> clientEvents, int maxSpeed) {
             this.demoPath = demoName;
             this.clc = clientConnection;
@@ -72,6 +75,23 @@ namespace DemoCleaner3.DemoParser.parser {
             this.clientEvents = clientEvents;
             this.fin = getCorrectFinishEvent();
             this.maxSpeed = maxSpeed;
+
+            fillTimes(clientConnection.console);
+            timeStrings = getTimeStrings();
+
+            cpData = fillCpData(clientEvents, fin);
+        }
+
+        public RawInfo(string demoName, ClientConnection clientConnection, List<ClientEvent> clientEvents, int maxSpeed, long sequenceServerTimeStart, long sequenceServerTimeEnd)
+        {
+            this.demoPath = demoName;
+            this.clc = clientConnection;
+            this.rawConfig = clientConnection.configs;
+            this.clientEvents = clientEvents;
+            this.fin = getCorrectFinishEvent();
+            this.maxSpeed = maxSpeed;
+            this.sequenceServerTimeStart = sequenceServerTimeStart;
+            this.sequenceServerTimeEnd = sequenceServerTimeEnd;
 
             fillTimes(clientConnection.console);
             timeStrings = getTimeStrings();
@@ -123,6 +143,8 @@ namespace DemoCleaner3.DemoParser.parser {
             Dictionary<string, string> sequenceInfo = new Dictionary<string, string>();
             sequenceInfo.Add("start", Q3DemoMessage.sequenceStart.ToString());
             sequenceInfo.Add("end", Q3DemoMessage.sequenceEnd.ToString());
+            sequenceInfo.Add("serverTimeStart", sequenceServerTimeStart.ToString());
+            sequenceInfo.Add("serverTimeEnd", sequenceServerTimeEnd.ToString());
 
             friendlyInfo.Add("sequence", sequenceInfo);
             

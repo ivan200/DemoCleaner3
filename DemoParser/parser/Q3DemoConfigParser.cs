@@ -12,6 +12,8 @@ namespace DemoCleaner3.DemoParser.parser
     {
         public ClientConnection clc = new ClientConnection();
         public ClientState client = new ClientState();
+        public long sequenceServerTimeStart = 0;
+        public long sequenceServerTimeEnd = 0;
 
         public bool parse(Q3DemoMessage message)
         {
@@ -124,6 +126,11 @@ namespace DemoCleaner3.DemoParser.parser
             newSnap.serverTime = decoder.readLong();
             newSnap.messageNum = clc.serverMessageSequence;
 
+            if (sequenceServerTimeStart == 0)
+                sequenceServerTimeStart = newSnap.serverTime;
+            if (newSnap.serverTime > sequenceServerTimeEnd)
+                sequenceServerTimeEnd = newSnap.serverTime;
+
             int deltaNum = decoder.readByte();
             if (deltaNum == 0) {
                 newSnap.deltaNum = -1;
@@ -165,6 +172,7 @@ namespace DemoCleaner3.DemoParser.parser
             {
                 newSnap.ps.copy(old.ps);
             }
+
             decoder.readDeltaPlayerState(newSnap.ps);
             parsePacketEntities(decoder, old, newSnap);
 

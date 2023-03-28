@@ -134,6 +134,7 @@ namespace DemoCleaner3 {
                     demoname = demoname.Replace(").)", ")").Replace(".)", ")");
                 }
 
+                /*
                 if (useValidation && validity.Length > 0) {
                     demoname = demoname + "{" + validity + "}"; //add information about validation
                 }
@@ -143,7 +144,7 @@ namespace DemoCleaner3 {
                     if (isSpectator || (rawInfo != null && rawInfo.isSpectator)) {
                         demoname = demoname + "[spect]";                //add spectator tag
                     }
-                }
+                }*/
 
                 _demoNewName = demoname + file.Extension.ToLowerInvariant();
                 return _demoNewName;
