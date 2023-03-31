@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.groupBoxBadDemos = new System.Windows.Forms.GroupBox();
             this.buttonBadDemosBrowse = new System.Windows.Forms.Button();
             this.radioButtonMoveBad = new System.Windows.Forms.RadioButton();
@@ -84,6 +83,7 @@
             this.buttonRename = new System.Windows.Forms.Button();
             this.buttonSingleFileInfo = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.checkBoxMakeLog = new System.Windows.Forms.CheckBox();
             this.linkLabelInfoAdditional = new System.Windows.Forms.LinkLabel();
             this.checkBoxDeleteIdentical = new System.Windows.Forms.CheckBox();
@@ -770,6 +770,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.linkLabel1);
             this.tabPage2.Controls.Add(this.checkBoxMakeLog);
             this.tabPage2.Controls.Add(this.linkLabelInfoAdditional);
             this.tabPage2.Controls.Add(this.checkBoxDeleteIdentical);
@@ -782,6 +783,18 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Additional options";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // linkLabel1
+            // 
+            this.linkLabel1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.linkLabel1.AutoSize = true;
+            this.linkLabel1.Location = new System.Drawing.Point(9, 154);
+            this.linkLabel1.Name = "linkLabel1";
+            this.linkLabel1.Size = new System.Drawing.Size(91, 13);
+            this.linkLabel1.TabIndex = 26;
+            this.linkLabel1.TabStop = true;
+            this.linkLabel1.Text = "Associate .dm_68";
+            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked_1);
             // 
             // checkBoxMakeLog
             // 
@@ -885,7 +898,6 @@
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.groupBox1);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(385, 339);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -993,5 +1005,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusFileName;
         private System.Windows.Forms.CheckBox checkBoxBrokenDemos;
         private System.Windows.Forms.CheckBox checkBoxMoveToMap;
+        private System.Windows.Forms.LinkLabel linkLabel1;
     }
 }

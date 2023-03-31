@@ -1,27 +1,24 @@
 ﻿using System;
 using System.Xml;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace DemoCleaner3 {
     public static class XmlUtils {
+
+        // normalize keys for xml attributes
         private static String NormalizeAttributeName(String name) {
             String output = "";
-            if (name.Length == 0 || (name[0] >= '0' && name[0] <= '9') )
-            {
+            if (name.Length == 0 || (name[0] >= '0' && name[0] <= '9')) {
                 output += "_";
             }
-            foreach (var c in name)
-            {
-                if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') ||(c >= 'A' && c <= 'Z') || (c == '-'))
-                {
-                    output += c;
-                }
-                else
-                {
-                    output += "_";
-                }
-            }
+            output += Regex.Replace(name, "([\\W-])", "");
             return output;
+        }
+
+        // Remove characters like "&#xa;" or "&#xE;" from output
+        static String FilterUnicode(String name) {
+            return Regex.Replace(name, "(&#x[0-9a-fA-F]{1,4};)", "");
         }
 
         public static XmlNode ExportXml(XmlDocument doc, Dictionary<string, Dictionary<string, string>> map) {
@@ -40,7 +37,7 @@ namespace DemoCleaner3 {
 
         public static string FriendlyInfoToXmlString(Dictionary<string, Dictionary<string, string>> friendlyInfo) {
             XmlDocument doc = new XmlDocument();
-            return ExportXml(doc, friendlyInfo).OuterXml;
+            return FilterUnicode(ExportXml(doc, friendlyInfo).OuterXml);
         }
     }
 }

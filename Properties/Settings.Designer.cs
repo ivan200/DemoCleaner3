@@ -394,5 +394,17 @@ namespace DemoCleaner3.Properties {
                 this["moveToMapname"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool requestForAssociate {
+            get {
+                return ((bool)(this["requestForAssociate"]));
+            }
+            set {
+                this["requestForAssociate"] = value;
+            }
+        }
     }
 }

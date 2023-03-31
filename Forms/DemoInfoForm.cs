@@ -28,8 +28,7 @@ namespace DemoCleaner3
         private void DemoInfoForm_Load(object sender, EventArgs e) {
             brush = new SolidBrush(Color.Black);
 
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.Icon = (Icon)resources.GetObject("$this.Icon");
+            this.Icon = FileAssociations.getIcon(1);
 
             try {
                 demo = Demo.GetDemoFromFileRaw(demoFile);
