@@ -60,3 +60,6 @@ bin/Release/WindowsFormsApplication1.vshost.exe.manifest
 bin/Release/DemoCleaner3.vshost.exe
 bin/Release/DemoCleaner3.vshost.exe.config
 bin/Release/DemoCleaner3.vshost.exe.manifest
+.idea/
+/bin/Release/Newtonsoft.Json.dll
+rc/app.res

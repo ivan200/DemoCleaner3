@@ -69,5 +69,15 @@ namespace DemoCleaner3.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        public static byte[] Newtonsoft_Json {
+            get {
+                object obj = ResourceManager.GetObject("Newtonsoft.Json", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

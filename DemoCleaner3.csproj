@@ -61,6 +61,10 @@
       <HintPath>..\..\..\..\..\Downloads\11\LinqBridge.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Resources\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -129,7 +133,6 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="structures\TimeStringInfo.cs" />
     <EmbeddedResource Include="Forms\DemoInfoForm.resx">
       <DependentUpon>DemoInfoForm.cs</DependentUpon>
@@ -178,6 +181,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="rc\app.rc" />
+    <Content Include="Resources\Newtonsoft.Json.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

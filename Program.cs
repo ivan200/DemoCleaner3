@@ -4,18 +4,13 @@ using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Text;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace DemoCleaner3
 {
     static class Program
     {
-        enum RunType {
-            DEFAULT,
-            XML,
-            XML_FILE,
-            REC
-        }
-
         /// <summary>
         /// The main entry point for the app.
         /// </summary>
@@ -24,6 +19,7 @@ namespace DemoCleaner3
         {
             AppDomain.CurrentDomain.AssemblyResolve += (sender, arg) => {
                 if (arg.Name.StartsWith("LinqBridge")) return Assembly.Load(Properties.Resources.LinqBridge);
+                if (arg.Name.StartsWith("Newtonsoft.Json")) return Assembly.Load(Properties.Resources.Newtonsoft_Json);
                 return null;
             };
 
@@ -31,68 +27,72 @@ namespace DemoCleaner3
             Application.SetCompatibleTextRenderingDefault(false);
 
             FileInfo demoFile = null;
-            RunType runType = RunType.DEFAULT;
+            string argument = null;
+            FileInfo extraFile = null;
 
             if (argg.Length == 1) {
                 demoFile = new FileInfo(argg[0]);
-            } else if (argg.Length == 2 && argg[0] == "--xml") {
+            } else if (argg.Length == 2) {
+                argument = argg[0];
                 demoFile = new FileInfo(argg[1]);
-                runType = RunType.XML;
-            } else if (argg.Length == 2 && argg[0] == "--xmlfile") {
+            } else if (argg.Length == 3) {
+                argument = argg[0];
                 demoFile = new FileInfo(argg[1]);
-                runType = RunType.XML_FILE;
-            } else if ((argg.Length == 3 || argg.Length == 2) && argg[0] == "--rec") {
-                demoFile = new FileInfo(argg[1]);
-                runType = RunType.REC;
+                extraFile = new FileInfo(argg[2]);
             }
             if (demoFile != null && demoFile.Exists && demoFile.Extension.ToLowerInvariant().StartsWith(".dm_")) {
                 Demo demo = null;
-                switch (runType) {
-                    case RunType.DEFAULT:
+                switch (argument) {
+                    default:
                         DemoInfoForm demoInfoForm = new DemoInfoForm();
                         demoInfoForm.demoFile = demoFile;
                         Application.Run(demoInfoForm);
                         break;
-                    case RunType.XML:
+                    case "--xml":
+                    case "--json":
                         try {
-                            demo = Demo.GetDemoFromFileRaw(demoFile);
-                            var xmlString = XmlUtils.FriendlyInfoToXmlString(demo.rawInfo.getFriendlyInfo());
-                            Console.WriteLine(xmlString);
+                            var infoString = getDemoInfoString(demoFile, argument == "--xml");
+                            Console.WriteLine(infoString);
                         } catch (Exception ex) {
                             Console.WriteLine("Can not parse demo");
+                            Console.WriteLine(ex.ToString());
                         }
                         break;
-                    case RunType.XML_FILE:
-                        var name = demoFile.Name.Substring(0, demoFile.Name.Length - demoFile.Extension.Length) + ".xml";
-                        var m_exePath = Path.GetDirectoryName(Application.ExecutablePath);
-                        var filePath = Path.Combine(m_exePath, name);
-                        var fileStream = new FileStream(filePath, FileMode.CreateNew);
+                    case "--xml-file":
+                    case "--json-file":
+                        var isXml = argument == "--xml-file";
+                        if (extraFile == null) {
+                            string extension;
+                            if (isXml) { extension = ".xml"; } else { extension = ".json"; }
+                            var name = demoFile.Name.Substring(0, demoFile.Name.Length - demoFile.Extension.Length) + extension;
+                            var m_exePath = Path.GetDirectoryName(Application.ExecutablePath);
+                            extraFile = new FileInfo(Path.Combine(m_exePath, name));
+                        }
+                        var fileStream = new FileStream(extraFile.FullName, FileMode.CreateNew);
                         var streamWriter = new StreamWriter(fileStream, Encoding.UTF8);
                         try {
-                            demo = Demo.GetDemoFromFileRaw(demoFile);
-                            var info = demo.rawInfo.getFriendlyInfo();
-                            var xmlString = XmlUtils.FriendlyInfoToXmlString(info);
-                            streamWriter.Write(xmlString);
+                            var infoString = getDemoInfoString(demoFile, isXml);
+                            streamWriter.Write(infoString);
                         } catch (Exception ex) {
                             streamWriter.Write("Can not parse demo: " + ex.Message);
                         }
                         streamWriter.Close();
                         fileStream.Close();
                         break;
-                    case RunType.REC:
+                    case "--rec":
                         try {
                             demo = Demo.GetDemoFromFileRaw(demoFile);
                         } catch (Exception ex) {
                             Console.WriteLine("Can not parse demo");
+                            Console.WriteLine(ex.ToString());
                         }
                         if (demo != null) {
                             var saver = new RecFileSaver(demo);
                             if (saver.canSave) {
                                 try {
-                                    if (argg.Length == 3) {
-                                        saver.Save(argg[2]);
-                                    }
-                                    if (argg.Length == 2) {
+                                    if (extraFile != null) {
+                                        saver.Save(extraFile.FullName);
+                                    } else {
                                         saver.Save();
                                     }
                                     System.Diagnostics.Debug.WriteLine("rec file saved");
@@ -106,6 +106,24 @@ namespace DemoCleaner3
                 }
             } else {
                 Application.Run(new Form1());
+            }
+        }
+
+        static string getDemoInfoString(FileInfo demoFile, bool xml) {
+            Demo demo = Demo.GetDemoFromFileRaw(demoFile);
+
+            Dictionary<string, string> name = new Dictionary<string, string>();
+            name.Add("originalFileName", demoFile.Name);
+            name.Add("suggestedFileName", demo.demoNewName);
+            name.Add("suggestedFileNameSimple", demo.demoNewNameSimple);
+
+            var friendlyInfo = demo.rawInfo.getFriendlyInfo();
+            friendlyInfo.Add("fileName", name);
+
+            if (xml) {
+                return XmlUtils.FriendlyInfoToXmlString(friendlyInfo);
+            } else {
+                return JsonConvert.SerializeObject(friendlyInfo, Formatting.Indented);
             }
         }
     }
