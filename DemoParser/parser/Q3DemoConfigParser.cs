@@ -285,6 +285,7 @@ namespace DemoCleaner3.DemoParser.parser
             if (clientEvent.hasAnyEvent) {
                 events.Add(clientEvent);
             }
+            client.lastClientEvent = clientEvent;
 
             var x = Math.Abs(snapshot.ps.velocity[0]);
             var y = Math.Abs(snapshot.ps.velocity[1]);

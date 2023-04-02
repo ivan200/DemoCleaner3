@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DemoCleaner3.DemoParser.structures
 {
-    class ClientState
+    public class ClientState
     {
         // latest received from server
         public CLSnapshot snap = new CLSnapshot();
@@ -21,6 +21,7 @@ namespace DemoCleaner3.DemoParser.structures
         public Dictionary<int, EntityState> parseEntities = new Dictionary<int, EntityState>();
 
         public List<ClientEvent> clientEvents = new List<ClientEvent>();
+        public ClientEvent lastClientEvent;
 
         public Dictionary<string, string> clientConfig = null; //this is only client config, not all configs
         public Dictionary<string, string> gameConfig = null;

@@ -12,8 +12,7 @@ using DemoCleaner3.DemoParser.utils;
 
 namespace DemoCleaner3 {
     //Class to maintain all information about demo file
-    public class Demo
-    {
+    public class Demo {
         public string mapName;
         public string modphysic;
         public string timeString;
@@ -53,6 +52,16 @@ namespace DemoCleaner3 {
         public RawInfo rawInfo = null;
         private string _demoNewName = "";
 
+        private string _demoNewNameSimple = "";
+        public string demoNewNameSimple {           //demo name without {validity} or [spect] at end
+            get {
+                if (string.IsNullOrEmpty(_demoNewNameSimple)) {
+                    fillDemoNewName();
+                }
+                return _demoNewNameSimple;
+            }
+        }
+
         private string _normalizedFileName = "";
         private string normalizedFileName {
             get {
@@ -75,85 +84,90 @@ namespace DemoCleaner3 {
                 if (hasError) {
                     return normalizedFileName;
                 }
+                fillDemoNewName();
 
-                string demoname = "";
-                string playerCountry = country.Length > 0 ? playerName + "." + country : playerName;
-
-                if (time.TotalMilliseconds > 0) {
-                    //if we have time, write a normal name for the demo
-                    demoname = string.Format("{0}[{1}]{2:D2}.{3:D2}.{4:D3}({5})",
-                    mapName, modphysic, (int) time.TotalMinutes, time.Seconds, time.Milliseconds, playerCountry);
-                    hasCorrectName = true;
-                } else {
-                    hasCorrectName = false;
-                    //if there is no time, then tormented with the generation of text
-                    string oldName = normalizedFileName;
-                    oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //remove the extension
-                    oldName = removeSubstr(oldName, mapName);                               //remove the map name
-                    if (country.Length > 0) {
-                        if (names != null && !string.IsNullOrEmpty(names.fName)) {
-                            playerCountry = names.fName + "." + country;
-                        }
-                        oldName = removeSubstr(oldName, playerCountry, false);
-                    }
-                    oldName = oldName.Replace("[dm]", "");                                  //replace previous wrong mod detection
-                    oldName = oldName.Replace("[spect]", "");                               //replace spectate info
-
-                    var normalizedName = DemoNames.normalizeName(playerName);
-
-                    //remove normal name + country
-                    oldName = oldName.Replace(string.Format("({0}.{1})", normalizedName, country), ""); 
-                    oldName = oldName.Replace(string.Format("({0})", normalizedName), ""); 
-                    if (names != null && !string.IsNullOrEmpty(names.fName)) {
-                        oldName = oldName.Replace(string.Format("({0}.{1})", names.fName, country), "");
-                        oldName = oldName.Replace(string.Format("({0})", names.fName), "");
-                    }
-
-                    //remove name and country with custom brackets
-                    oldName = removeSubstr(oldName, normalizedName, false);                 //remove the player name
-                    if (names != null && !string.IsNullOrEmpty(names.fName)) {
-                        oldName = removeSubstr(oldName, names.fName, false);
-                    }
-                    oldName = removeSubstr(oldName, country, false);                        //remove the country
-
-                    oldName = oldName.Replace(string.Format("[{0}]", modphysic), "");       //remove the mod with physics with default brackets
-                    oldName = removeSubstr(oldName, modphysic);                             //remove the mod with physics with custom brackets
-                    if (rawInfo != null && rawInfo.gameInfo != null) {
-                        oldName = removeSubstr(oldName, rawInfo.gameInfo.gameNameShort);    //remove the mod
-                    }
-                    //oldName = removeSubstr(oldName, physic);                              //remove physics
-                    oldName = removeSubstr(oldName, validity);                              //remove validation lines
-                    oldName = removeDouble(oldName);                                        //remove double characters (except brackets)
-                    oldName = oldName.Replace("[]", "").Replace("()", "");                  //remove the empty brackets
-                    //oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9]+|[^[a-zA-Z0-9]+$)", "");
-                    oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //we remove crap at the beginning and at the end of name
-                    oldName = oldName.Replace(" ", "_");                                    //remove_spaces
-                    
-                    demoname = string.Format("{0}[{1}]({2}){3}", mapName, modphysic, playerCountry, oldName);
-
-                    demoname = demoname.Replace(").)", ")").Replace(".)", ")");
-                }
-
-                if (useValidation && validity.Length > 0) {
-                    demoname = demoname + "{" + validity + "}"; //add information about validation
-                }
-                if (userId >= 0) {
-                    demoname = demoname + "[" + userId.ToString() + "]"; //add userId (can be added only with triggertime)
-                } else {
-                    if (isSpectator || (rawInfo != null && rawInfo.isSpectator)) {
-                        demoname = demoname + "[spect]";                //add spectator tag
-                    }
-                }
-
-                _demoNewName = demoname + file.Extension.ToLowerInvariant();
                 return _demoNewName;
             }
         }
 
+        public void fillDemoNewName() {
+            string demoname = "";
+            string playerCountry = country.Length > 0 ? playerName + "." + country : playerName;
+
+            if (time.TotalMilliseconds > 0) {
+                //if we have time, write a normal name for the demo
+                demoname = string.Format("{0}[{1}]{2:D2}.{3:D2}.{4:D3}({5})",
+                mapName, modphysic, (int)time.TotalMinutes, time.Seconds, time.Milliseconds, playerCountry);
+                hasCorrectName = true;
+            } else {
+                hasCorrectName = false;
+                //if there is no time, then tormented with the generation of text
+                string oldName = normalizedFileName;
+                oldName = oldName.Substring(0, oldName.Length - file.Extension.Length); //remove the extension
+                oldName = removeSubstr(oldName, mapName);                               //remove the map name
+                if (country.Length > 0) {
+                    if (names != null && !string.IsNullOrEmpty(names.fName)) {
+                        playerCountry = names.fName + "." + country;
+                    }
+                    oldName = removeSubstr(oldName, playerCountry, false);
+                }
+                oldName = oldName.Replace("[dm]", "");                                  //replace previous wrong mod detection
+                oldName = oldName.Replace("[spect]", "");                               //replace spectate info
+
+                var normalizedName = DemoNames.normalizeName(playerName);
+
+                //remove normal name + country
+                oldName = oldName.Replace(string.Format("({0}.{1})", normalizedName, country), "");
+                oldName = oldName.Replace(string.Format("({0})", normalizedName), "");
+                if (names != null && !string.IsNullOrEmpty(names.fName)) {
+                    oldName = oldName.Replace(string.Format("({0}.{1})", names.fName, country), "");
+                    oldName = oldName.Replace(string.Format("({0})", names.fName), "");
+                }
+
+                //remove name and country with custom brackets
+                oldName = removeSubstr(oldName, normalizedName, false);                 //remove the player name
+                if (names != null && !string.IsNullOrEmpty(names.fName)) {
+                    oldName = removeSubstr(oldName, names.fName, false);
+                }
+                oldName = removeSubstr(oldName, country, false);                        //remove the country
+
+                oldName = oldName.Replace(string.Format("[{0}]", modphysic), "");       //remove the mod with physics with default brackets
+                oldName = removeSubstr(oldName, modphysic);                             //remove the mod with physics with custom brackets
+                if (rawInfo != null && rawInfo.gameInfo != null) {
+                    oldName = removeSubstr(oldName, rawInfo.gameInfo.gameNameShort);    //remove the mod
+                }
+                //oldName = removeSubstr(oldName, physic);                              //remove physics
+                oldName = removeSubstr(oldName, validity);                              //remove validation lines
+                oldName = removeDouble(oldName);                                        //remove double characters (except brackets)
+                oldName = oldName.Replace("[]", "").Replace("()", "");                  //remove the empty brackets
+                //oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9]+|[^[a-zA-Z0-9]+$)", "");
+                oldName = Regex.Replace(oldName, "(^[^[a-zA-Z0-9\\(\\)\\]\\[]|[^[a-zA-Z0-9\\(\\)\\]\\[]$)", "");    //we remove crap at the beginning and at the end of name
+                oldName = oldName.Replace(" ", "_");                                    //remove_spaces
+
+                demoname = string.Format("{0}[{1}]({2}){3}", mapName, modphysic, playerCountry, oldName);
+
+                demoname = demoname.Replace(").)", ")").Replace(".)", ")");
+            }
+
+            _demoNewNameSimple = demoname + file.Extension.ToLowerInvariant();
+
+            if (useValidation && validity.Length > 0) {
+                demoname = demoname + "{" + validity + "}"; //add information about validation
+            }
+            if (userId >= 0) {
+                demoname = demoname + "[" + userId.ToString() + "]"; //add userId (can be added only with triggertime)
+            } else {
+                if (isSpectator || (rawInfo != null && rawInfo.isSpectator)) {
+                    demoname = demoname + "[spect]";                //add spectator tag
+                }
+            }
+
+            _demoNewName = demoname + file.Extension.ToLowerInvariant();
+        }
+
         //the removing of the double non-alphanumeric characters and replace at first
         //for example: test__abc-_.xy -> test_abc-xy
-        static string removeDouble(string input)
-        {
+        static string removeDouble(string input) {
             var dup = Regex.Match(input, "[^[a-zA-Z0-9\\(\\)\\]\\[]{2,}");
             if (dup.Success && dup.Groups.Count > 0) {
                 var symbol = dup.Groups[0].Value[0];
@@ -166,8 +180,7 @@ namespace DemoCleaner3 {
         //removing substring with adjacent characters for example: test_abc.xy -> test.xy
         //the last character is taken if there are symbols to left and to right 
         //and the first if only from left: test_abcxy -> test_xy
-        static string removeSubstr(string input, string include, bool fromstart = true)
-        {
+        static string removeSubstr(string input, string include, bool fromstart = true) {
             if (include == null || include.Length == 0 || !input.Contains(include)) {
                 return input;
             }
@@ -198,8 +211,7 @@ namespace DemoCleaner3 {
         }
 
         //Get the details of the demo from the file name
-        public static Demo GetDemoFromFile(FileInfo file)
-        {
+        public static Demo GetDemoFromFile(FileInfo file) {
             Demo demo = new Demo();
             demo.file = file;
             var filename = file.Name;
@@ -330,8 +342,7 @@ namespace DemoCleaner3 {
 
 
         //processing grouping files, if selected with processing mdf as df
-        public static string mdfToDf(string mod, bool processIt)
-        {
+        public static string mdfToDf(string mod, bool processIt) {
             if (processIt && mod.Length > 0 && mod[0] == 'm') {
                 return mod.Substring(1);
             }
@@ -339,27 +350,25 @@ namespace DemoCleaner3 {
         }
 
 
-        public static Demo GetDemoFromFileRaw(FileInfo file)
-        {
+        public static Demo GetDemoFromFileRaw(FileInfo file) {
             Q3HuffmanMapper.init();
             var raw = Q3DemoParser.getRawConfigStrings(file.FullName);
             return Demo.GetDemoFromRawInfo(raw);
         }
 
         //We get the filled demo from the full raw information pulled from the demo
-        public static Demo GetDemoFromRawInfo(RawInfo raw)
-        {
+        public static Demo GetDemoFromRawInfo(RawInfo raw) {
             var file = new FileInfo(raw.demoPath);
 
             var frConfig = raw.getFriendlyInfo();
 
             Demo demo = new Demo();
             demo.rawInfo = raw;
-            
+
             //file
             demo.file = file;
-            if (frConfig.Count == 0 
-                || !frConfig.ContainsKey(RawInfo.keyClient) 
+            if (frConfig.Count == 0
+                || !frConfig.ContainsKey(RawInfo.keyClient)
                 || frConfig[RawInfo.keyClient].Count == 0
                 //|| (frConfig.ContainsKey(RawInfo.keyErrors) && frConfig[RawInfo.keyErrors].ContainsValue(new ErrorWrongLength().Message))
                 || (frConfig.ContainsKey(RawInfo.keyErrors) && frConfig[RawInfo.keyErrors].ContainsValue(new ErrorBadCommandInParseGameState().Message))
@@ -382,7 +391,7 @@ namespace DemoCleaner3 {
                 demo.hasTr = raw.fin.Value.Key == RawInfo.FinishType.CORRECT_TR;
                 demo.triggerTime = true;
             }
-            if (raw.clientEvents.Any(x => x.eventStartTime || x.eventTimeReset) && !raw.clientEvents.Any(x => x.eventFinish)){
+            if (raw.clientEvents.Any(x => x.eventStartTime || x.eventTimeReset) && !raw.clientEvents.Any(x => x.eventFinish)) {
                 demo.triggerTimeNoFinish = true;
             }
 
@@ -484,14 +493,14 @@ namespace DemoCleaner3 {
             if (demo.triggerTime) {
                 demo.userId = tryGetUserIdFromFileName(file);
             }
-            if (Ext.GetOrNull(demo.validDict, "client_finish") == "false") { 
+            if (Ext.GetOrNull(demo.validDict, "client_finish") == "false") {
                 demo.isNotFinished = true;
             }
 
             return demo;
         }
 
-        
+
         static TimeStringInfo getFastestTimeStringInfo(List<TimeStringInfo> timestrings, DemoNames names) {
             TimeStringInfo fastestTimeString = null;
             if (timestrings.Count == 1) {
@@ -543,8 +552,7 @@ namespace DemoCleaner3 {
         }
 
         //Trying to get time from the demo filename
-        static TimeSpan? tryGetTimeFromFileName(string filename)
-        {
+        static TimeSpan? tryGetTimeFromFileName(string filename) {
             var sub = filename.Split("[]()_".ToArray());
             foreach (string part in sub) {
                 var time = tryGetTimeFromBrackets(part);
@@ -556,8 +564,7 @@ namespace DemoCleaner3 {
         }
 
         //Trying to get time from part of demo filename.
-        static TimeSpan? tryGetTimeFromBrackets(string partname)
-        {
+        static TimeSpan? tryGetTimeFromBrackets(string partname) {
             var parts = partname.Split("-".ToArray());
             if (parts.Length < 2 || parts.Length > 3) {
                 parts = partname.Split(".".ToArray());
@@ -713,9 +720,8 @@ namespace DemoCleaner3 {
         //lick-dead[49576][1037].dm_68
         //lick-dead[mdf.vq3]00.49.576(pVquBit)[1037].dm_68
         //last square=userid, prelast=time
-        static long tryGetUserIdFromFileName(FileInfo file)
-        {
-            if (file.Name.Count(x=>x == '[') < 2) {
+        static long tryGetUserIdFromFileName(FileInfo file) {
+            if (file.Name.Count(x => x == '[') < 2) {
                 return -1;
             }
             long id = -1;
@@ -740,8 +746,7 @@ namespace DemoCleaner3 {
         }
 
         //check demo for validity, commmands ordered by relevance. first is more important
-        static Dictionary<string, string> checkValidity(bool hasTime, bool hasRawTime, GameInfo gameInfo, bool isTas, bool triggerTimeNoFinish)
-        {
+        static Dictionary<string, string> checkValidity(bool hasTime, bool hasRawTime, GameInfo gameInfo, bool isTas, bool triggerTimeNoFinish) {
             Dictionary<string, string> invalidParams = new Dictionary<string, string>();
             var kGame = Ext.LowerKeys(gameInfo.parameters);
             if (!gameInfo.isFreeStyle) {
@@ -797,8 +802,7 @@ namespace DemoCleaner3 {
             }
         }
 
-        static float getKey(Dictionary<string, string> keysGame, string key)
-        {
+        static float getKey(Dictionary<string, string> keysGame, string key) {
             if (keysGame.ContainsKey(key)) {
                 string strValue = keysGame[key];
                 float value;

@@ -19,14 +19,17 @@ namespace DemoCleaner3.DemoParser.parser {
         public static string keyGame = "game";
         public static string keyRecord = "record";
         public static string keyTriggers = "triggers";
-        public static string keyOtherPlayers = "other players";
+        public static string keyOtherPlayers = "otherPlayers";
         public static string keyRecordTime = "time";
         public static string keyRecordDate = "date";
         public static string keyRaw = "raw";
         public static string keyConsole = "console";
         public static string keyErrors = "errors";
         public static string keyBestTime = "bestTime";
+        public static string keyFullDemoLength = "fullDemoLength";
         public static string keyMaxSpeed = "maxSpeed";
+        public static string keyLateStart = "lateStart";
+        public static string keySpectatorRecorded = "spectatorRecorded";
 
         public Dictionary<short, string> rawConfig;
 
@@ -51,6 +54,8 @@ namespace DemoCleaner3.DemoParser.parser {
         public string demoPath;
         public ClientConnection clc;
         public List<ClientEvent> clientEvents = new List<ClientEvent>();
+        public ClientEvent lastClientEvent;
+
         Dictionary<string, string> playerConfig = new Dictionary<string, string>();
         Dictionary<string, Dictionary<string, string>> friendlyInfo;
 
@@ -65,13 +70,14 @@ namespace DemoCleaner3.DemoParser.parser {
         public bool isSpectator = false;
         public List<long> cpData = new List<long>();
 
-        public RawInfo(string demoName, ClientConnection clientConnection, List<ClientEvent> clientEvents, int maxSpeed) {
+        public RawInfo(string demoName, ClientConnection clientConnection, ClientState client) {
             this.demoPath = demoName;
             this.clc = clientConnection;
             this.rawConfig = clientConnection.configs;
-            this.clientEvents = clientEvents;
+            this.clientEvents = client.clientEvents;
+            this.lastClientEvent = client.lastClientEvent;
             this.fin = getCorrectFinishEvent();
-            this.maxSpeed = maxSpeed;
+            this.maxSpeed = client.maxSpeed;
 
             fillTimes(clientConnection.console);
             timeStrings = getTimeStrings();
@@ -235,7 +241,7 @@ namespace DemoCleaner3.DemoParser.parser {
                 if (!string.IsNullOrEmpty(startFileUserName) 
                     && !string.IsNullOrEmpty(startTimerUserName) 
                     && startFileUserName != startTimerUserName) {
-                    friendlyInfo[keyRecord].Add("spectatorRecorded", "true");
+                    friendlyInfo[keyRecord].Add(keySpectatorRecorded, "true");
                     isSpectator = true;
                 }
 
@@ -247,10 +253,16 @@ namespace DemoCleaner3.DemoParser.parser {
                         isLongStart = true;
 
                         var sTime = TimeSpan.FromMilliseconds(startTimerServerTime);
-                        var sTimeString = string.Format("{0:D2}:{1:D2}:{2:D3}", (int)sTime.TotalMinutes, sTime.Seconds, sTime.Milliseconds);
-                        friendlyInfo[keyRecord].Add("lateStart", $"{(int)time.TotalSeconds} sec (servertime: {sTimeString})");
+                        var sTimeString = string.Format("{0:D2}.{1:D2}.{2:D3}", (int)sTime.TotalMinutes, sTime.Seconds, sTime.Milliseconds);
+                        friendlyInfo[keyRecord].Add(keyLateStart, $"{(int)time.TotalSeconds} sec (servertime: {sTimeString})");
                     }
                 }
+
+                var lastFrameServerTime = lastClientEvent == null ? 0 : lastClientEvent.serverTime;
+                var allDemoLength = lastFrameServerTime - startFileServerTime;
+                var adlTime = TimeSpan.FromMilliseconds(allDemoLength);
+                var adlTimeString = string.Format("{0:D2}.{1:D2}.{2:D3}", (int)adlTime.TotalMinutes, adlTime.Seconds, adlTime.Milliseconds);
+                friendlyInfo[keyRecord].Add(keyFullDemoLength, adlTimeString);
 
                 friendlyInfo.Add(keyTriggers, triggers);
             }
@@ -461,6 +473,7 @@ namespace DemoCleaner3.DemoParser.parser {
             if (nameIndex >= 0) {
                 var name = split[nameIndex].Value;
                 string unColoredName = ConsoleStringUtils.removeColors(name);
+                unColoredName = ConsoleStringUtils.removeNonAscii(unColoredName);
                 if (!name.Equals(unColoredName)) {
                     split.Insert(nameIndex + 1, new KeyValuePair<string, string>("uncoloredName", unColoredName));
                 }
