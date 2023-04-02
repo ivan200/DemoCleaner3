@@ -115,21 +115,30 @@ namespace DemoCleaner3
             if (Properties.Settings.Default.requestForAssociate == false) {
                 var isAssociated = FileAssociations.isAsociated();
                 if (!isAssociated) {
-                    var title = "File association?";
-                    var message = "You can add a .dm_68 file association, and view information about demo files by simply opening them. Do you want to add a file association?";
-                    var lang = System.Globalization.CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
-                    if (lang == "ru" || lang == "uk") {
-                        title = "Ассоциации файлов";
-                        message = "Вы можете добавить ассоциации файлов .dm_68, и просматривать информацию о демо файлах просто открывая их. Хотите проассоциировать файлы?";
-                    }
-                    var result = MessageBox.Show(message, title, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
-                    if (result == DialogResult.Yes) {
-                        Properties.Settings.Default.requestForAssociate = true;
-                        FileAssociations.EnsureAssociationsSet();
-                    } else if (result == DialogResult.No) {
-                        Properties.Settings.Default.requestForAssociate = true;
-                    }
+                    ShowAssociateDialog();
                 }
+            }
+        }
+
+        private void ShowAssociateDialog() {
+            var title = "File association?";
+            var message = "You can add a .dm_68 file association, and view information about demo files by simply opening them. Do you want to add a file association?";
+            var lang = System.Globalization.CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+            if (lang == "ru" || lang == "uk") {
+                title = "Ассоциирование демофайлов";
+                message = "Вы можете добавить ассоциации файлов .dm_68, и просматривать информацию о демо файлах просто открывая их. Хотите проассоциировать файлы?";
+            }
+            var result = MessageBox.Show(message, title, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
+            if (result == DialogResult.Yes) {
+                Properties.Settings.Default.requestForAssociate = true;
+                try {
+                    FileAssociations.EnsureAssociationsSet();
+                    MessageBox.Show(".dm_68 was assocated", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                } catch (Exception ex) {
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            } else if (result == DialogResult.No) {
+                Properties.Settings.Default.requestForAssociate = true;
             }
         }
 
@@ -1443,9 +1452,7 @@ namespace DemoCleaner3
         }
 
         private void linkLabel1_LinkClicked_1(object sender, LinkLabelLinkClickedEventArgs e) {
-            FileAssociations.EnsureAssociationsSet();
-//            Associator.forceAssociateAllExt();
-            MessageBox.Show(".dm_68 was assocated", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ShowAssociateDialog();
         }
     }
 }
