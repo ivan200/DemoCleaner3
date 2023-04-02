@@ -1,0 +1,51 @@
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+1 ICON "vacuum.ico"
+
+2 ICON "bunny.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RT_MANIFEST
+//
+
+1 24 "app.manifest"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 3,4,0,2
+ PRODUCTVERSION 3,3,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x0L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041904b0"
+        BEGIN
+            VALUE "CompanyName", "https://github.com/ivan200/DemoCleaner3"
+            VALUE "FileDescription", "Demo Cleaner - Clean your demos without problems"
+            VALUE "FileVersion", "3.4.0.2"
+            VALUE "InternalName", "DemoCleaner3"
+            VALUE "LegalCopyright", "Copyright ©  2010 - 2023"
+            VALUE "OriginalFilename", "DemoCleaner3.exe"
+            VALUE "ProductName", "DemoCleaner3"
+            VALUE "ProductVersion", "3.3.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x419, 1200
+    END
+END
