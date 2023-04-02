@@ -19,6 +19,24 @@ https://github.com/ivan200/DemoCleaner3/raw/master/bin/Release/DemoCleaner3.exe
 ## Скриншоты
 <img src='Screenshots.png' width='600'/>
 
+## Работа из консоли
+Данная программа также поддерживает возможность запуска из консоли.<br />
+Пример: `DemoCleaner3.exe [param] [demo_file] [external_file]?`
+
+`[param]`:<br />
+`--xml` - вывести информацию о файле `[demo_file]` в консоль в виде xml<br />
+`--json` - вывести информацию о файле `[demo_file]` в консоль в виде json<br />
+`--xml-file`- вывести информацию о файле `[demo_file]` в виде xml в файл `[external_file]` или в файл `[demo_file].xml`<br />
+`--json-file`- вывести информацию о файле `[demo_file]` в виде json в файл `[external_file]` или в файл `[demo_file].json`<br />
+`--rec` - создать из [demo_file] файла - .rec файл, и сохранить его в файл `[external_file]`, или в файл `[mapName]_[mod]_[physic].rec`
+
+`[demo_file]`:<br />
+Путь к демо файлу который программа попытается распарсить.
+Поддерживаются форматы: `.dm_68`, `.dm_67`, `.dm_66`
+
+`[external_file]?`
+Необязательный параметр дополнительного файла для вывода
+
 # Developed By
 
 * Zakharov Ivan
