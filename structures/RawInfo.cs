@@ -26,7 +26,7 @@ namespace DemoCleaner3.DemoParser.parser {
         public static string keyConsole = "console";
         public static string keyErrors = "errors";
         public static string keyBestTime = "bestTime";
-        public static string keyFullDemoLength = "fullDemoLength";
+        public static string keyFullDemoLength = "FullDemoLength";
         public static string keyMaxSpeed = "maxSpeed";
         public static string keyLateStart = "lateStart";
         public static string keySpectatorRecorded = "spectatorRecorded";
@@ -192,14 +192,17 @@ namespace DemoCleaner3.DemoParser.parser {
                             }
                             startFileUserName = user == null ? null : Ext.GetOrNull(user, "name");
                             string userString = string.IsNullOrEmpty(startFileUserName) ? "" : "Client: " + startFileUserName;
-                            triggers.Add("StartFile", userString);
+
                             startFileServerTime = ce.serverTime;
+                            var serverTimeStart = getTimeByMillis(startFileServerTime);
+
+                            triggers.Add("StartFile", $"{userString} ^0(ServerTime: {serverTimeStart})");
                         }
                         if (ce.eventStartTime) {
                             var user = getPlayerInfoByPlayerNum(ce.playerNum);
                             startTimerUserName = user == null ? null : Ext.GetOrNull(user, "name");
                             string userString = string.IsNullOrEmpty(startTimerUserName) ? "" : "Player: " + startTimerUserName;
-                            triggers.Add("StartTimer" + getNumKey(++stCount), userString + diff);
+                            triggers.Add("StartTimer" + getNumKey(++stCount), userString + "^0" + diff);
 
                             //check only first start timer
                             if (startTimerServerTime == 0) {
@@ -251,20 +254,17 @@ namespace DemoCleaner3.DemoParser.parser {
                     var time = TimeSpan.FromMilliseconds(timeMillis);
                     if (time.TotalSeconds > 20) {
                         isLongStart = true;
-
-                        var sTime = TimeSpan.FromMilliseconds(startTimerServerTime);
-                        var sTimeString = string.Format("{0:D2}.{1:D2}.{2:D3}", (int)sTime.TotalMinutes, sTime.Seconds, sTime.Milliseconds);
-                        friendlyInfo[keyRecord].Add(keyLateStart, $"{(int)time.TotalSeconds} sec (servertime: {sTimeString})");
+                        var sTimeString = getTimeByMillis(startTimerServerTime);
+                        friendlyInfo[keyRecord].Add(keyLateStart, $"{(int)time.TotalSeconds} sec (ServerTime: {sTimeString})");
                     }
                 }
 
-                var lastFrameServerTime = lastClientEvent == null ? 0 : lastClientEvent.serverTime;
-                var allDemoLength = lastFrameServerTime - startFileServerTime;
-                var adlTime = TimeSpan.FromMilliseconds(allDemoLength);
-                var adlTimeString = string.Format("{0:D2}.{1:D2}.{2:D3}", (int)adlTime.TotalMinutes, adlTime.Seconds, adlTime.Milliseconds);
-                friendlyInfo[keyRecord].Add(keyFullDemoLength, adlTimeString);
-
                 friendlyInfo.Add(keyTriggers, triggers);
+
+                var lastFrameServerTime = lastClientEvent == null ? startFileServerTime : lastClientEvent.serverTime;
+                var fullDemoLength = lastFrameServerTime - startFileServerTime;
+                var fullDemoLengthString = getTimeByMillis(fullDemoLength);
+                friendlyInfo[keyTriggers].Add(keyFullDemoLength, fullDemoLengthString);
             }
 
             if (rawConfig == null) {
