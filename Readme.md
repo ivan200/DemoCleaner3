@@ -25,9 +25,7 @@ Example: `DemoCleaner3.exe [param] [demo_file] [external_file]?`
 
 `[param]`:<br />
 `--xml` - output information about `[demo_file]` to the console as xml<br />
-`--json` - output information about `[demo_file]` to the console as json<br />
 `--xml-file`- output information about `[demo_file]` as xml to the `[external_file]` or to the file `[demo_file].xml`<br />
-`--json-file`- output information about `[demo_file]` as json to the `[external_file]` or to the file `[demo_file].json`<br />
 `--rec` - create from [demo_file] - .rec file, and save it to the `[external_file]`, or to the file `[mapName]_[mod]_[physic].rec`
 
 `[demo_file]`:<br />

@@ -11,8 +11,7 @@ using DemoCleaner3.structures;
 
 namespace DemoCleaner3
 {
-    public partial class Form1 : Form
-    {
+    public partial class Form1 : Form {
         public enum JobType { CLEAN, MOVE, RENAME }
         JobType job = JobType.CLEAN;
 
@@ -26,8 +25,7 @@ namespace DemoCleaner3
 
         bool _loadingSettings = false;
 
-        private void setProgressPercent(int num)
-        {
+        private void setProgressPercent(int num) {
             if (_useTaskBarProgress) {
                 try {
                     TaskbarProgress.SetValue(this.Handle, num, 100);
@@ -38,8 +36,7 @@ namespace DemoCleaner3
             toolStripProgressBar1.Value = num;
         }
 
-        private void setProgressFileNumber(int num)
-        {
+        private void setProgressFileNumber(int num) {
             var amount = fileHelper._countDemosAmount;
             if (num == 0 || num == amount) {
                 toolStripStatusNumbers.Text = "";
@@ -66,14 +63,13 @@ namespace DemoCleaner3
         string _slowDemosDirName = ".slow_demos";
         string _moveDemosdirName = "!demos";
 
-        public Form1()
-        {
+        public Form1() {
             if (Environment.OSVersion.Version.Major < 6) {
                 _useTaskBarProgress = false;
             }
 
             fileHelper = new FileHelper((fileNumber) => {
-                    this.Invoke(new SetItem<int>(setProgressFileNumber), fileNumber);
+                this.Invoke(new SetItem<int>(setProgressFileNumber), fileNumber);
             }, (percent) => {
                 if (toolStripProgressBar1.Value != percent) {
                     this.Invoke(new SetItem<int>(setProgressPercent), percent);
@@ -87,13 +83,11 @@ namespace DemoCleaner3
             this.DragDrop += new DragEventHandler(Form1_DragDrop);
         }
 
-        void Form1_DragEnter(object sender, DragEventArgs e)
-        {
+        void Form1_DragEnter(object sender, DragEventArgs e) {
             if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
         }
 
-        void Form1_DragDrop(object sender, DragEventArgs e)
-        {
+        void Form1_DragDrop(object sender, DragEventArgs e) {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files.Length > 1) {
                 MessageBox.Show("Please, drop only one file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -123,8 +117,7 @@ namespace DemoCleaner3
         private void ShowAssociateDialog() {
             var title = "File association?";
             var message = "You can add a .dm_68 file association, and view information about demo files by simply opening them. Do you want to add a file association?";
-            var lang = System.Globalization.CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
-            if (lang == "ru" || lang == "uk") {
+            if (isRuLanguage()) {
                 title = "Ассоциирование демофайлов";
                 message = "Вы можете добавить ассоциации файлов .dm_68, и просматривать информацию о демо файлах просто открывая их. Хотите проассоциировать файлы?";
             }
@@ -143,8 +136,7 @@ namespace DemoCleaner3
         }
 
         private void InitHelp() {
-            var lang = System.Globalization.CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
-            if (lang == "ru" || lang == "uk") {
+            if (isRuLanguage()) {
                 toolTip1.SetToolTip(checkBoxUseSubfolders, "Искать демки в подкаталогах тоже?");
 
                 //clean
@@ -175,24 +167,24 @@ namespace DemoCleaner3
                     "\nчтобы в папке оставались только лучшие таймы");
 
                 //rename
-                toolTip1.SetToolTip(radioRenameBad, 
+                toolTip1.SetToolTip(radioRenameBad,
                     "Будут обрабатываться только те демо файлы," +
                     "\nв которых название не соответствует паттерну по умолчанию" +
                     "\nmap[gametype.physic]time(player.country)");
-                toolTip1.SetToolTip(radioRenameAll, 
+                toolTip1.SetToolTip(radioRenameAll,
                     "Попробуем обработать все файлы" +
                     "\n(Например чтобы проверить на корректность конфига в демках," +
                     "\nили поменять даты создания)");
-                toolTip1.SetToolTip(checkBoxRulesValidation, 
+                toolTip1.SetToolTip(checkBoxRulesValidation,
                     "Если у демки неправильно установлены параметры в консоли," +
                     "\nто в имя демки добавится информация (вроде \"{ sv_cheats = 1}\")");
-                toolTip1.SetToolTip(checkBoxFixCreationTime, 
+                toolTip1.SetToolTip(checkBoxFixCreationTime,
                     "Если в демо файле есть информация о дате финиширования карты," +
                     "\nто поменять дату создания файла на дату прохождения.");
-                toolTip1.SetToolTip(buttonSingleFileInfo, 
-                    "Просмотреть детальную информацию об одной демке." + 
+                toolTip1.SetToolTip(buttonSingleFileInfo,
+                    "Просмотреть детальную информацию об одной демке." +
                     "\n(Помимо этой кнопки, можно также просто перенести файл на окошко программы)");
-                toolTip1.SetToolTip(checkBoxBrokenDemos, 
+                toolTip1.SetToolTip(checkBoxBrokenDemos,
                     "Создать папку со сломанными демками." +
                     "\n(Которые вообще невозможно воспроизвести в дефраге)");
 
@@ -204,7 +196,7 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(checkBoxDeleteIdentical,
                     "Удалять демку, если при перемещении демка с таким именем" +
                     "\nуже существует в папке назначения");
-                toolTip1.SetToolTip(checkBoxMakeLog, 
+                toolTip1.SetToolTip(checkBoxMakeLog,
                     "Логировать все операции с файлами в лог файл" +
                     "\n(Файл будет создан в папке программы).");
 
@@ -274,9 +266,9 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(checkBoxFixCreationTime,
                     "If the demo file contains information about completion date," +
                     "\nchange the file creation date to the completion date.");
-                toolTip1.SetToolTip(buttonSingleFileInfo, 
+                toolTip1.SetToolTip(buttonSingleFileInfo,
                     "View detailed information about one demo." +
-                    "\n(in addition to this button, you can also" + 
+                    "\n(in addition to this button, you can also" +
                     "\nsimply drop demo file to this program window)");
                 toolTip1.SetToolTip(checkBoxBrokenDemos,
                     "Create a folder with broken demos." +
@@ -302,7 +294,7 @@ namespace DemoCleaner3
                 toolTip1.SetToolTip(linkLabelInfoMover,
                     "In this tab it is possible to make the splitting of all the demos in the subdirectories." +
                     "\nThis is required because Quake 3 does not know how to display a large number of files" +
-                    "\nin the directory with demos, cutting their display." + 
+                    "\nin the directory with demos, cutting their display." +
                     "\nPlus, if there are a lot of them, the search for a particular file gets worse." +
                     "\nCatalogs will be named on the initial letter of the demo (e.g. a\\ark3...)" +
                     "\nand if the number of demos in such a directory exceeds the number of demos," +
@@ -403,22 +395,19 @@ namespace DemoCleaner3
         }
 
         //turn on one radio button from the transmitted list
-        private void setRadioFromInt(int check, params RadioButton[] radio)
-        {
+        private void setRadioFromInt(int check, params RadioButton[] radio) {
             for (int i = 0; i < radio.Length; i++) {
                 radio[i].Checked = i == check;
             }
         }
 
         //Get the int value from the Boolean array
-        private int getIntFromParameters(params RadioButton[] t)
-        {
+        private int getIntFromParameters(params RadioButton[] t) {
             return t.TakeWhile(x => !x.Checked).Count();
         }
 
         //Save the settings
-        private void SaveSettings()
-        {
+        private void SaveSettings() {
             //main
             prop.demosFolder = _currentDemoPath?.FullName ?? "";
             prop.tabSelectedIndex = tabControl1.SelectedIndex;
@@ -456,8 +445,7 @@ namespace DemoCleaner3
         }
 
         //Getting the correct directory from the text
-        private DirectoryInfo checkGetFolder(TextBox textBox, string previousText)
-        {
+        private DirectoryInfo checkGetFolder(TextBox textBox, string previousText) {
             DirectoryInfo folder = null;
             if (textBox.Text.Length > 0) {
                 try {
@@ -473,20 +461,17 @@ namespace DemoCleaner3
             return folder;
         }
 
-        private void checkBoxSplitFolders_CheckedChanged(object sender, EventArgs e)
-        {
+        private void checkBoxSplitFolders_CheckedChanged(object sender, EventArgs e) {
             var ch = (sender as CheckBox).Checked;
             groupBoxSplit.Enabled = ch;
         }
 
-        private void checkBoxMoveOnlyYoyr_CheckedChanged(object sender, EventArgs e)
-        {
+        private void checkBoxMoveOnlyYoyr_CheckedChanged(object sender, EventArgs e) {
             var ch = (sender as CheckBox).Checked;
             groupBoxName.Enabled = ch;
         }
 
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
-        {
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e) {
             SaveSettings();
 
             if (backgroundThread != null && backgroundThread.IsAlive) {
@@ -496,8 +481,7 @@ namespace DemoCleaner3
 
 
         //Show the dialog box to select the destination folder and return the path
-        private void ShowFolderBrowserDialog(string Title, ref DirectoryInfo path, Action action)
-        {
+        private void ShowFolderBrowserDialog(string Title, ref DirectoryInfo path, Action action) {
             if (!path.Exists)
                 path = path.Parent;
 
@@ -513,8 +497,7 @@ namespace DemoCleaner3
         }
 
         //If you change the main folder with demos, change all other paths
-        private void textBoxDemosFolder_TextChanged(object sender, EventArgs e)
-        {
+        private void textBoxDemosFolder_TextChanged(object sender, EventArgs e) {
             var folder = checkGetFolder(sender as TextBox, prop.demosFolder);
             if (folder != null) {
                 _currentDemoPath = folder;
@@ -539,8 +522,7 @@ namespace DemoCleaner3
         }
 
         //save the path of slow demos
-        private void textBoxSlowDemos_TextChanged(object sender, EventArgs e)
-        {
+        private void textBoxSlowDemos_TextChanged(object sender, EventArgs e) {
             var folder = checkGetFolder(sender as TextBox, prop.slowDemoFolder);
             if (folder != null) {
                 _currentSlowDemosPath = folder;
@@ -548,8 +530,7 @@ namespace DemoCleaner3
         }
 
         //save the path of demos to move dir
-        private void textBoxMoveDemosFolder_TextChanged(object sender, EventArgs e)
-        {
+        private void textBoxMoveDemosFolder_TextChanged(object sender, EventArgs e) {
             var folder = checkGetFolder(sender as TextBox, prop.moveDemoFolder);
             if (folder != null) {
                 _currentMovePath = folder;
@@ -557,8 +538,7 @@ namespace DemoCleaner3
         }
 
         //save the path of bad demos
-        private void textBoxBadDemos_TextChanged(object sender, EventArgs e)
-        {
+        private void textBoxBadDemos_TextChanged(object sender, EventArgs e) {
             var folder = checkGetFolder(sender as TextBox, prop.badDemoFolder);
             if (folder != null) {
                 _currentBadDemosPath = folder;
@@ -566,37 +546,32 @@ namespace DemoCleaner3
         }
 
         //Selecting dialog of main folder with demos
-        private void buttonBrowseDemos_Click(object sender, EventArgs e)
-        {
+        private void buttonBrowseDemos_Click(object sender, EventArgs e) {
             ShowFolderBrowserDialog("Choose demos directory", ref _currentDemoPath, () => {
                 textBoxDemosFolder.Text = _currentDemoPath.FullName;
             });
         }
 
-        private void buttonBrowseWhereMove_Click(object sender, EventArgs e)
-        {
+        private void buttonBrowseWhereMove_Click(object sender, EventArgs e) {
             ShowFolderBrowserDialog("Choose demos directory", ref _currentMovePath, () => {
                 textBoxMoveDemosFolder.Text = _currentMovePath.FullName;
             });
         }
 
-        private void buttonBadDemosBrowse_Click(object sender, EventArgs e)
-        {
+        private void buttonBadDemosBrowse_Click(object sender, EventArgs e) {
             ShowFolderBrowserDialog("Choose bad demos directory", ref _currentBadDemosPath, () => {
                 textBoxBadDemos.Text = _currentBadDemosPath.FullName;
             });
         }
 
-        private void buttonSlowDemosBrowse_Click(object sender, EventArgs e)
-        {
+        private void buttonSlowDemosBrowse_Click(object sender, EventArgs e) {
             ShowFolderBrowserDialog("Choose slow demos directory", ref _currentSlowDemosPath, () => {
                 textBoxSlowDemos.Text = _currentSlowDemosPath.FullName;
             });
         }
 
         //turn off access to the elements in the demo processing (and then turn on)
-        private void setButtonCallBack(bool enabled)
-        {
+        private void setButtonCallBack(bool enabled) {
             tabControl1.Enabled = enabled;
             groupBox1.Enabled = enabled;
             toolStripProgressBar1.Visible = !enabled;
@@ -610,7 +585,7 @@ namespace DemoCleaner3
 
             try {
                 demosFolder = new DirectoryInfo(textBoxDemosFolder.Text);
-            } catch (Exception) {}
+            } catch (Exception) { }
 
             if (demosFolder == null || !demosFolder.Exists) {
                 MessageBox.Show("Directory does not exist\n\n" + textBoxDemosFolder.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -631,7 +606,7 @@ namespace DemoCleaner3
 
             if (string.IsNullOrEmpty(textBoxBadDemos.Text)) {
                 textBoxBadDemos.Text = Path.Combine(_currentDemoPath.FullName, _badDemosDirName);
-            } 
+            }
             if (string.IsNullOrEmpty(textBoxSlowDemos.Text)) {
                 textBoxSlowDemos.Text = Path.Combine(_currentDemoPath.FullName, _slowDemosDirName);
             }
@@ -681,15 +656,13 @@ namespace DemoCleaner3
         }
 
         //Handling button cleaning demos
-        private void buttonClean_Click(object sender, EventArgs e)
-        {
+        private void buttonClean_Click(object sender, EventArgs e) {
             job = JobType.CLEAN;
             runBackgroundThread();
         }
 
         //formatting messagebox text
-        private string getMessageText(decimal counter, string text)
-        {
+        private string getMessageText(decimal counter, string text) {
             if (counter > 0) {
                 var s = counter > 1 ? "s" : string.Empty;
                 text = string.Format(text, counter, s);
@@ -699,8 +672,7 @@ namespace DemoCleaner3
         }
 
         //output message about the end of the work
-        private void showEndMessage(JobType jobType)
-        {
+        private void showEndMessage(JobType jobType) {
             string text = "";
             switch (jobType) {
                 case JobType.CLEAN: text = "Cleaning"; break;
@@ -727,8 +699,7 @@ namespace DemoCleaner3
         }
 
         //Converting a number into a number based on the number of characters
-        string numberToString(int number, int length)
-        {
+        string numberToString(int number, int length) {
             var str = number.ToString();
             while (str.Length < length) {
                 str = "0" + str;
@@ -737,8 +708,7 @@ namespace DemoCleaner3
         }
 
         //Process bad demos
-        private void operateBadDemos(IEnumerable<Demo> badDemos)
-        {
+        private void operateBadDemos(IEnumerable<Demo> badDemos) {
             if (radioButtonSkipBad.Checked) {
                 return;
             }
@@ -823,8 +793,8 @@ namespace DemoCleaner3
                 if (item.Count() <= 1) {
                     fastDemos.Add(item.First());
                 } else {
-                    var sameTimeDemos = item.OrderBy(x=>x.userId)
-                        .ThenBy(x=>!x.isSpectator)
+                    var sameTimeDemos = item.OrderBy(x => x.userId)
+                        .ThenBy(x => !x.isSpectator)
                         .ThenByDescending(x => x.country.Length);
                     fastDemos.Add(sameTimeDemos.First());
                     slowDemos.AddRange(sameTimeDemos.Skip(1));
@@ -850,7 +820,7 @@ namespace DemoCleaner3
                     long slowestTime = long.MaxValue;
                     var fastValid = fastDemosGroups[""];
 
-                    slowestTime = (long) fastValid.LastOrDefault().time.TotalMilliseconds;
+                    slowestTime = (long)fastValid.LastOrDefault().time.TotalMilliseconds;
 
                     fastDemos.AddRange(fastValid);
 
@@ -859,8 +829,8 @@ namespace DemoCleaner3
                         .Where(x => x.time.TotalMilliseconds < slowestTime);
                     fastDemos.AddRange(fastInvalid);
 
-                    var sametimeInvalid = fastDemosGroups.Where(x=>x.Key != "")
-                        .SelectMany(x=>x.Value)
+                    var sametimeInvalid = fastDemosGroups.Where(x => x.Key != "")
+                        .SelectMany(x => x.Value)
                         .Where(x => x.time.TotalMilliseconds >= slowestTime);
                     slowDemos.AddRange(sametimeInvalid);
 
@@ -876,8 +846,7 @@ namespace DemoCleaner3
         }
 
         //Clean the demos!
-        private void clean(DirectoryInfo filedemos)
-        {
+        private void clean(DirectoryInfo filedemos) {
             var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
                 SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
 
@@ -903,12 +872,12 @@ namespace DemoCleaner3
                     + x.playerName).ToLower());
             }
             if (radioBestTimesOnMap.Checked) {
-                groups = goodDemos.GroupBy(x => (x.mapName 
+                groups = goodDemos.GroupBy(x => (x.mapName
                 + Demo.mdfToDf(x.modphysic, checkBoxProcessMdf.Checked)).ToLower());
             }
 
             KeyValuePair<Exception, string>? rex = null;
-            
+
             foreach (var group in groups) {
                 int countToSave = (int)numericUpDownCountOfBest.Value;
 
@@ -926,29 +895,25 @@ namespace DemoCleaner3
         }
 
         //Turning on and off the input fields, when checking a radio button
-        private void radioButtonMoveSlow_CheckedChanged(object sender, EventArgs e)
-        {
+        private void radioButtonMoveSlow_CheckedChanged(object sender, EventArgs e) {
             textBoxSlowDemos.Enabled = radioButtonMoveSlow.Checked;
             buttonSlowDemosBrowse.Enabled = radioButtonMoveSlow.Checked;
         }
 
         //Turning on and off the input fields, when checking a radio button
-        private void radioButtonMoveBad_CheckedChanged(object sender, EventArgs e)
-        {
+        private void radioButtonMoveBad_CheckedChanged(object sender, EventArgs e) {
             textBoxBadDemos.Enabled = radioButtonMoveBad.Checked;
             buttonBadDemosBrowse.Enabled = radioButtonMoveBad.Checked;
         }
 
         //Handling the move button demos
-        private void buttonMove_Click(object sender, EventArgs e)
-        {
+        private void buttonMove_Click(object sender, EventArgs e) {
             job = JobType.MOVE;
             runBackgroundThread();
         }
 
         //Group files
-        private IEnumerable<IGrouping<string, Demo>> GroupFiles(IEnumerable<Demo> files, int indexInside)
-        {
+        private IEnumerable<IGrouping<string, Demo>> GroupFiles(IEnumerable<Demo> files, int indexInside) {
             var groups = files.GroupBy(x => x.file.Name.Substring(0, indexInside + 1).ToLower()).ToList();
 
             for (int i = 0; i < groups.Count; i++) {
@@ -971,7 +936,7 @@ namespace DemoCleaner3
         //true - demo needs to be deleted
         //false - existing demos needs to be deleted, and then rescan the folder
         private bool checkSameTimeDemos(Demo demo, List<Demo> sameTimeDemos, bool checkName = false) {
-            List <Demo> sameSizeDemos = sameTimeDemos.Where(x => x.file.Length == demo.file.Length).ToList();
+            List<Demo> sameSizeDemos = sameTimeDemos.Where(x => x.file.Length == demo.file.Length).ToList();
 
             var demoList = new List<Demo>();
             demoList.AddRange(sameTimeDemos);
@@ -1079,13 +1044,13 @@ namespace DemoCleaner3
             if (function.Invoke(demo) == true && otherDemos.Where(x => function(x) == false).Count() > 0) {
                 return true;
             }
-            if (function.Invoke(demo) == false && otherDemos.Where(x =>function(x) == true).Count() > 0) {
+            if (function.Invoke(demo) == false && otherDemos.Where(x => function(x) == true).Count() > 0) {
                 return false;
             }
             return null;
         }
 
-        private List<Demo> getDemosForDir(DirectoryInfo mapDir) { 
+        private List<Demo> getDemosForDir(DirectoryInfo mapDir) {
             return mapDir.GetFiles().Select(x => Demo.GetDemoFromFile(x)).Where(x => x.hasError == false).ToList();
         }
         private List<Demo> getPlayerRecsForDir(Demo demo, List<Demo> mapDirDemos) {
@@ -1252,8 +1217,7 @@ namespace DemoCleaner3
 
 
         //folder grouping
-        private IEnumerable<IGrouping<string, DemoFolder>> groupFolders(IEnumerable<DemoFolder> folders, int indexInside)
-        {
+        private IEnumerable<IGrouping<string, DemoFolder>> groupFolders(IEnumerable<DemoFolder> folders, int indexInside) {
             var groups = folders.GroupBy(x => DemoFolder.GetKeyFromIndex(x._folderName, indexInside)).ToList();
 
             for (int i = 0; i < groups.Count; i++) {
@@ -1276,8 +1240,7 @@ namespace DemoCleaner3
             return groups;
         }
 
-        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
             MessageBox.Show("Made by Enter"
                 + "\nusing MS Visual Studio 2017"
                 + "\nmail: 79067180651@ya.ru"
@@ -1286,8 +1249,7 @@ namespace DemoCleaner3
                 "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void buttonSingleFileInfo_Click(object sender, EventArgs e)
-        {
+        private void buttonSingleFileInfo_Click(object sender, EventArgs e) {
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK && openFileDialog1.FileName.Length > 0) {
                 showDemoInfoFormForFile(openFileDialog1.FileName);
             }
@@ -1303,16 +1265,14 @@ namespace DemoCleaner3
         }
 
         //Handling the button rename demo
-        private void buttonRename_Click(object sender, EventArgs e)
-        {
+        private void buttonRename_Click(object sender, EventArgs e) {
             job = JobType.RENAME;
             runBackgroundThread();
         }
 
 
         //Fix demos!
-        private void runRename(DirectoryInfo filedemos)
-        {
+        private void runRename(DirectoryInfo filedemos) {
             var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
                 SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
             if (radioRenameBad.Checked) {
@@ -1369,70 +1329,70 @@ namespace DemoCleaner3
             }
         }
 
-       /* void RenameThread(DirectoryInfo filedemos) {
-            //We start a thread in which we will process everything
-            backgroundThread = new Thread(delegate () {
-                var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
-                    SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-                if (radioRenameBad.Checked) {
-                    files = files.Where(x => Demo.GetDemoFromFile(x).hasError == true).ToArray();
-                }
-                fileHelper.resetValues(files.Length);
+        /* void RenameThread(DirectoryInfo filedemos) {
+             //We start a thread in which we will process everything
+             backgroundThread = new Thread(delegate () {
+                 var files = filedemos.GetFiles("*.dm_??", checkBoxUseSubfolders.Checked ?
+                     SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+                 if (radioRenameBad.Checked) {
+                     files = files.Where(x => Demo.GetDemoFromFile(x).hasError == true).ToArray();
+                 }
+                 fileHelper.resetValues(files.Length);
 
-                var badFiles = new Stack<Demo>();
+                 var badFiles = new Stack<Demo>();
 
-                int threadCount = 10;
-                int fileCountForThread = files.Length / threadCount;
+                 int threadCount = 10;
+                 int fileCountForThread = files.Length / threadCount;
 
-                var splittedFiles = Ext.Split(files, fileCountForThread);
+                 var splittedFiles = Ext.Split(files, fileCountForThread);
 
-                int toProcess = splittedFiles.Count();
-                using (ManualResetEvent resetEvent = new ManualResetEvent(false)) {
-                    foreach (var split in splittedFiles) {
-                        ThreadPool.QueueUserWorkItem(new WaitCallback(x => {
-                            renameInsideThread(x);
+                 int toProcess = splittedFiles.Count();
+                 using (ManualResetEvent resetEvent = new ManualResetEvent(false)) {
+                     foreach (var split in splittedFiles) {
+                         ThreadPool.QueueUserWorkItem(new WaitCallback(x => {
+                             renameInsideThread(x);
 
-                            // Safely decrement the counter
-                            if (Interlocked.Decrement(ref toProcess) == 0)
-                                resetEvent.Set();
-                        }), new KeyValuePair<IEnumerable<FileInfo>, Stack<Demo>>(split, badFiles));
-                    }
-                    resetEvent.WaitOne();
-                }
-                fileHelper.resetValues(badFiles.Count, false);
-                operateBadDemos(badFiles);
+                             // Safely decrement the counter
+                             if (Interlocked.Decrement(ref toProcess) == 0)
+                                 resetEvent.Set();
+                         }), new KeyValuePair<IEnumerable<FileInfo>, Stack<Demo>>(split, badFiles));
+                     }
+                     resetEvent.WaitOne();
+                 }
+                 fileHelper.resetValues(badFiles.Count, false);
+                 operateBadDemos(badFiles);
 
-                if (checkBoxDeleteEmptyDirs.Checked) {
-                    fileHelper.deleteEmpty(_currentDemoPath);
-                }
-                this.Invoke(new SetItem<int>(setProgressPercent), 0);
-                this.Invoke(new SetItem<bool>(setButtonCallBack), true);
-                this.Invoke(new SetItem<JobType>(showEndMessage), job);
-            });
-            backgroundThread.Start();
-        }
+                 if (checkBoxDeleteEmptyDirs.Checked) {
+                     fileHelper.deleteEmpty(_currentDemoPath);
+                 }
+                 this.Invoke(new SetItem<int>(setProgressPercent), 0);
+                 this.Invoke(new SetItem<bool>(setButtonCallBack), true);
+                 this.Invoke(new SetItem<JobType>(showEndMessage), job);
+             });
+             backgroundThread.Start();
+         }
 
-        void renameInsideThread(object callback) {
-            var filesObject = (KeyValuePair<IEnumerable<FileInfo>, Stack<Demo>>)callback;
+         void renameInsideThread(object callback) {
+             var filesObject = (KeyValuePair<IEnumerable<FileInfo>, Stack<Demo>>)callback;
 
-            foreach (var file in filesObject.Key) {
-                this.Invoke(new SetItem<string>(setProgressFileName), file.Name);
-                var demo = Demo.GetDemoFromFileRaw(file);
-                demo.useValidation = checkBoxRulesValidation.Checked;
+             foreach (var file in filesObject.Key) {
+                 this.Invoke(new SetItem<string>(setProgressFileName), file.Name);
+                 var demo = Demo.GetDemoFromFileRaw(file);
+                 demo.useValidation = checkBoxRulesValidation.Checked;
 
-                string newPath = fileHelper.renameFile(file, demo.demoNewName, checkBoxDeleteIdentical.Checked);
+                 string newPath = fileHelper.renameFile(file, demo.demoNewName, checkBoxDeleteIdentical.Checked);
 
-                if (File.Exists(newPath)) {
-                    demo.file = new FileInfo(newPath);
-                    if (checkBoxFixCreationTime.Checked) {
-                        fileHelper.fixCreationTime(demo.file, demo.recordTime);
-                    }
-                }
-                if (!demo.hasCorrectName) {
-                    filesObject.Value.Push(demo);
-                }
-            }
-        }*/
+                 if (File.Exists(newPath)) {
+                     demo.file = new FileInfo(newPath);
+                     if (checkBoxFixCreationTime.Checked) {
+                         fileHelper.fixCreationTime(demo.file, demo.recordTime);
+                     }
+                 }
+                 if (!demo.hasCorrectName) {
+                     filesObject.Value.Push(demo);
+                 }
+             }
+         }*/
 
         private void checkBoxMakeLog_CheckedChanged(object sender, EventArgs e) {
             if (!_loadingSettings && checkBoxMakeLog.Checked) {
@@ -1454,5 +1414,10 @@ namespace DemoCleaner3
         private void linkLabel1_LinkClicked_1(object sender, LinkLabelLinkClickedEventArgs e) {
             ShowAssociateDialog();
         }
+
+        private bool isRuLanguage() {
+            var lang = System.Globalization.CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+            return lang == "ru" || lang == "uk" || lang == "kk";
+        } 
     }
 }

@@ -427,12 +427,6 @@ namespace DemoCleaner3 {
             var filename = demo.normalizedFileName;
             var countryAndName = getNameAndCountry(filename);
 
-            //tas check
-            if (filename.ToLowerInvariant().Contains("tool_assisted=true")
-                || Ext.ContainsAnySplitted(countryAndName, tasTriggers)) {
-                demo.isTas = true;
-            }
-
             var countryNameParsed = tryGetNameAndCountry(countryAndName, names);
             var normalName = names.chooseNormalName();
             if (normalName == null || normalName == DemoNames.defaultName) {
@@ -445,6 +439,14 @@ namespace DemoCleaner3 {
 
             //demo has not info about country, so take it from filename
             demo.country = countryNameParsed.Value;
+
+            //tas check
+            if (filename.ToLowerInvariant().Contains("tool_assisted=true")
+                || Ext.ContainsAnySplitted(countryAndName, tasTriggers)
+                || Ext.ContainsAnySplitted(demo.playerName, tasTriggers)
+                ) {
+                demo.isTas = true;
+            }
 
             //at least some time (from name of demo)
             if (demo.time.TotalMilliseconds > 0) {

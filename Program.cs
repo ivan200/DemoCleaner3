@@ -1,10 +1,8 @@
 ﻿using DemoCleaner3.ExtClasses;
 using System;
 using System.IO;
-using System.Reflection;
 using System.Windows.Forms;
 using System.Text;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 
 namespace DemoCleaner3
@@ -17,12 +15,6 @@ namespace DemoCleaner3
         [STAThread]
         static void Main(String[] argg) 
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, arg) => {
-                if (arg.Name.StartsWith("LinqBridge")) return Assembly.Load(Properties.Resources.LinqBridge);
-                if (arg.Name.StartsWith("Newtonsoft.Json")) return Assembly.Load(Properties.Resources.Newtonsoft_Json);
-                return null;
-            };
-
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -49,9 +41,8 @@ namespace DemoCleaner3
                         Application.Run(demoInfoForm);
                         break;
                     case "--xml":
-                    case "--json":
                         try {
-                            var infoString = getDemoInfoString(demoFile, argument == "--xml");
+                            var infoString = getDemoInfoString(demoFile);
                             Console.WriteLine(infoString);
                         } catch (Exception ex) {
                             Console.WriteLine("Can not parse demo");
@@ -59,11 +50,8 @@ namespace DemoCleaner3
                         }
                         break;
                     case "--xml-file":
-                    case "--json-file":
-                        var isXml = argument == "--xml-file";
                         if (extraFile == null) {
-                            string extension;
-                            if (isXml) { extension = ".xml"; } else { extension = ".json"; }
+                            string extension = ".xml";
                             var name = demoFile.Name.Substring(0, demoFile.Name.Length - demoFile.Extension.Length) + extension;
                             var m_exePath = Path.GetDirectoryName(Application.ExecutablePath);
                             extraFile = new FileInfo(Path.Combine(m_exePath, name));
@@ -71,7 +59,7 @@ namespace DemoCleaner3
                         var fileStream = new FileStream(extraFile.FullName, FileMode.CreateNew);
                         var streamWriter = new StreamWriter(fileStream, Encoding.UTF8);
                         try {
-                            var infoString = getDemoInfoString(demoFile, isXml);
+                            var infoString = getDemoInfoString(demoFile);
                             streamWriter.Write(infoString);
                         } catch (Exception ex) {
                             streamWriter.Write("Can not parse demo: " + ex.Message);
@@ -109,7 +97,7 @@ namespace DemoCleaner3
             }
         }
 
-        static string getDemoInfoString(FileInfo demoFile, bool xml) {
+        static string getDemoInfoString(FileInfo demoFile) {
             Demo demo = Demo.GetDemoFromFileRaw(demoFile);
 
             Dictionary<string, string> name = new Dictionary<string, string>();
@@ -120,11 +108,7 @@ namespace DemoCleaner3
             var friendlyInfo = demo.rawInfo.getFriendlyInfo();
             friendlyInfo.Add("fileName", name);
 
-            if (xml) {
-                return XmlUtils.FriendlyInfoToXmlString(friendlyInfo);
-            } else {
-                return JsonConvert.SerializeObject(friendlyInfo, Formatting.Indented);
-            }
+            return XmlUtils.FriendlyInfoToXmlString(friendlyInfo);
         }
     }
 }

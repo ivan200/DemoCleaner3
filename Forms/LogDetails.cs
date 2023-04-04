@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 
 namespace DemoCleaner3 {
@@ -40,7 +36,7 @@ namespace DemoCleaner3 {
             prop = Properties.Settings.Default;
         }
 
-       private void LogDetails_Load(object sender, EventArgs e) {
+        private void LogDetails_Load(object sender, EventArgs e) {
             _loadingSettings = true;
             checkedListBox1.Items.Clear();
             foreach (LDetails detail in detailsList) {

@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
-using System.Collections;
 using System.Text.RegularExpressions;
 using DemoCleaner3.ExtClasses;
 
-namespace DemoCleaner3
-{
+namespace DemoCleaner3 {
     public static class Ext
     {
         public static List<KeyValuePair<TKey, TValue>> MakeListFromGroups<TKey, TValue>(IEnumerable<IGrouping<TKey, TValue>> folders)

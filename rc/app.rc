@@ -18,7 +18,7 @@
 // Fill examlles here https://learn.microsoft.com/en-us/windows/win32/menurc/versioninfo-resource
 //
 1 VERSIONINFO
-FILEVERSION     3,4,0,5
+FILEVERSION     3,4,0,6
 PRODUCTVERSION  3,3,0,1
 FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -35,7 +35,7 @@ BEGIN
         BLOCK "040904E4"
         BEGIN
             VALUE "FileDescription",  "Demo Cleaner - Clean your demos without problems"
-            VALUE "FileVersion",      "3.4.0.5"
+            VALUE "FileVersion",      "3.4.0.6"
             VALUE "InternalName",     "DemoCleaner3"
             VALUE "LegalCopyright",   "https://github.com/ivan200/DemoCleaner3"
             VALUE "OriginalFilename", "DemoCleaner3.exe"

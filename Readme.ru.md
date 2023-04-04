@@ -25,9 +25,7 @@ https://github.com/ivan200/DemoCleaner3/raw/master/bin/Release/DemoCleaner3.exe
 
 `[param]`:<br />
 `--xml` - вывести информацию о файле `[demo_file]` в консоль в виде xml<br />
-`--json` - вывести информацию о файле `[demo_file]` в консоль в виде json<br />
 `--xml-file`- вывести информацию о файле `[demo_file]` в виде xml в файл `[external_file]` или в файл `[demo_file].xml`<br />
-`--json-file`- вывести информацию о файле `[demo_file]` в виде json в файл `[external_file]` или в файл `[demo_file].json`<br />
 `--rec` - создать из [demo_file] файла - .rec файл, и сохранить его в файл `[external_file]`, или в файл `[mapName]_[mod]_[physic].rec`
 
 `[demo_file]`:<br />
