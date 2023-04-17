@@ -21,7 +21,7 @@ namespace DemoCleaner3.structures
         public string modType;             //4                
         public string modTypeName;         //Weapons Only
 
-        public GameInfo(Dictionary<string, string> parameters) {
+        public GameInfo(Dictionary<string, string> parameters, bool? isCpmInSnapshots) {
             this.parameters = Ext.LowerKeys(parameters);
 
             var gn = getGameName();
@@ -33,7 +33,7 @@ namespace DemoCleaner3.structures
             gameTypeShort = gt.Key;
             gameType = gt.Value;
 
-            gameplayTypeShort = getGameplayTypeShort();
+            gameplayTypeShort = getGameplayTypeShort(isCpmInSnapshots);
             gameplayType = getGameplayType();
 
             var mt = getModType();
@@ -123,12 +123,16 @@ namespace DemoCleaner3.structures
             return new Pair("q3a", "Quake 3 Arena");
         }
 
-        string getGameplayTypeShort() {
+        string getGameplayTypeShort(bool? isCpmInSnapshots) {
             int server_promode = 0;
             switch (gameNameShort) {
                 case "defrag":
-                    var promode = Ext.GetOrZero(parameters, "df_promode");
-                    return promode > 0 ? "cpm" : "vq3";
+                    if (isCpmInSnapshots != null) {
+                        return isCpmInSnapshots == true ? "cpm" : "vq3";
+                    } else {
+                        var promode = Ext.GetOrZero(parameters, "df_promode");
+                        return promode > 0 ? "cpm" : "vq3";
+                    }
                 case "cpma":
                     string server_gameplay = Ext.GetOrNull(parameters, "server_gameplay") ?? "";
                     switch (server_gameplay) {

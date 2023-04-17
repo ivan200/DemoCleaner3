@@ -66,6 +66,7 @@ namespace DemoCleaner3.DemoParser.parser {
         public Dictionary<string, string> kPlayer = null;
         public GameInfo gameInfo = null;
         public int maxSpeed = 0;
+        public bool? isCpmInSnapshots = null;
         public bool isLongStart = false;
         public bool isSpectator = false;
         public List<long> cpData = new List<long>();
@@ -78,6 +79,7 @@ namespace DemoCleaner3.DemoParser.parser {
             this.lastClientEvent = client.lastClientEvent;
             this.fin = getCorrectFinishEvent();
             this.maxSpeed = client.maxSpeed;
+            this.isCpmInSnapshots = client.isCpmInSnapshots;
 
             fillTimes(clientConnection.console);
             timeStrings = getTimeStrings();
@@ -307,7 +309,7 @@ namespace DemoCleaner3.DemoParser.parser {
 
             //Gametype
             var parameters = Ext.Join(clInfo, gInfo);
-            gameInfo = new GameInfo(parameters);
+            gameInfo = new GameInfo(parameters, isCpmInSnapshots);
             var gameInfoDict = new Dictionary<string, string>();
             if (parameters.Count > 0) {
                 bool diff = gameInfo.gameName.ToLowerInvariant() != gameInfo.gameNameShort.ToLowerInvariant();

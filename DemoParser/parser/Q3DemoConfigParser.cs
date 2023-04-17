@@ -293,6 +293,26 @@ namespace DemoCleaner3.DemoParser.parser
             if (speed > client.maxSpeed) {
                 client.maxSpeed = (int)speed;
             }
+
+            if (client.clientConfig != null && client.isCpmInParams == null) {
+                var promode = Ext.GetOrZero(client.clientConfig, "df_promode");
+                client.isCpmInParams = promode > 0;
+            }
+
+            if (snapshot.ps.pm_flags >= 32768) {        //thank to Jelvan for this detection
+                if (client.isCpmInSnapshots != true) {
+                    client.isCpmInSnapshots = true;
+                }
+            } else {
+                if (client.isCpmInSnapshots == null) {
+                    client.isCpmInSnapshots = false;
+                }
+            }
+
+            if (client.isCpmInParams == false && client.isCpmInSnapshots == true
+                || client.isCpmInParams == true && client.isCpmInSnapshots == false) {
+                Q3Utils.PrintDebug(clc.errors, new ErrorMatchPhysics());
+            }
         }
 
         private void parsePacketEntities(Q3HuffmanReader decoder, CLSnapshot oldframe, CLSnapshot newframe)

@@ -18,4 +18,5 @@ namespace DemoCleaner3.DemoParser.utils {
     public class ErrorWrongLength : ParserEx { public ErrorWrongLength() : base("Demo file is corrupted, wrong message length") { } }
     public class ErrorCantOpenFile : ParserEx { public ErrorCantOpenFile() : base("Can't open demofile") { } }
     public class ErrorInvalidFieldCount : ParserEx { public ErrorInvalidFieldCount() : base("invalid entityState field count") { } }
+    public class ErrorMatchPhysics : ParserEx { public ErrorMatchPhysics() : base("Cvar: physics do not match reported physics") { } }
 }

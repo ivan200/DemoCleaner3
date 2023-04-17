@@ -32,5 +32,7 @@ namespace DemoCleaner3.DemoParser.structures
         public bool isOnline = false;
         public bool isCheatsOn = false;
         public int maxSpeed = 0;
+        public bool? isCpmInParams = null;
+        public bool? isCpmInSnapshots = null;
     }
 }
