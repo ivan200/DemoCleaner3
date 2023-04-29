@@ -382,6 +382,8 @@ namespace DemoCleaner3 {
             var names = new DemoNames();
             names.setNamesByPlayerInfo(Ext.GetOrNull(frConfig, RawInfo.keyPlayer));
 
+            var fastestTimeString = raw.consoleComandsParser.getFastestTimeStringInfo(names);
+
             //time from triggers
             if (raw.fin.HasValue) {
                 if (!raw.fin.Value.Value.timeHasError) {
@@ -390,23 +392,20 @@ namespace DemoCleaner3 {
                 }
                 demo.hasTr = raw.fin.Value.Key == RawInfo.FinishType.CORRECT_TR;
                 demo.triggerTime = true;
+            } else {
+                demo.hasTr = isTr(raw, fastestTimeString);
             }
             if (raw.clientEvents.Any(x => x.eventStartTime || x.eventTimeReset) && !raw.clientEvents.Any(x => x.eventFinish)) {
                 demo.triggerTimeNoFinish = true;
             }
 
-            var timestrings = raw.timeStrings;
-
-            var fastestTimeString = getFastestTimeStringInfo(timestrings, names);
-
-            if (demo.time.TotalMilliseconds > 0) {
-                var date = timestrings.LastOrDefault(x => x.recordDate != null);
-                demo.recordTime = date?.recordDate;
-            } else {
+            if (demo.time.TotalMilliseconds <= 0) {
                 //time from commands
                 if (fastestTimeString != null) {
                     demo.time = fastestTimeString.time;
-                    demo.recordTime = fastestTimeString.recordDate;
+                    if (raw.consoleComandsParser.dateStrings.Count > 0) {
+                        demo.recordTime = raw.consoleComandsParser.dateStrings.Last().recordDate;
+                    }
 
                     var user = raw.getPlayerInfoByPlayerName(fastestTimeString.oName);
                     if (user != null) {
@@ -420,6 +419,10 @@ namespace DemoCleaner3 {
                     }
                 }
             }
+            if (raw.consoleComandsParser.dateStrings.Count > 0) {
+                demo.recordTime = raw.consoleComandsParser.dateStrings.LastOrDefault(x => x.recordDate != null)?.recordDate;
+            }
+
             if (fastestTimeString != null) {
                 names.setConsoleName(fastestTimeString.oName, raw.gameInfo.isOnline);
             }
@@ -489,8 +492,21 @@ namespace DemoCleaner3 {
                 demo.modphysic = string.Format("{0}.{1}", demo.modphysic, "tr");
             }
 
+            //parameters from additionalInfo (defrag <= 1.81)
+            Dictionary<string, string> info = null;
+            if (raw.consoleComandsParser.additionalInfos.Count > 0) {
+                info = raw.consoleComandsParser.additionalInfos.Last().toDictionary();  //any info is enough because it used only for validity check
+            }
+
             //If demo has cheats, write it
-            demo.validDict = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo, demo.isTas, demo.triggerTimeNoFinish);
+            demo.validDict = checkValidity(demo.time.TotalMilliseconds > 0, demo.rawTime, gInfo, demo.isTas, demo.triggerTimeNoFinish, info);
+
+            if (demo.validDict.Count == 0) {
+                var filenameValidity = getValidities(filename);
+                if (filenameValidity.HasValue) {
+                    demo.validDict.Add(filenameValidity.Value.Key, filenameValidity.Value.Value);
+                }
+            }
 
             if (demo.triggerTime) {
                 demo.userId = tryGetUserIdFromFileName(file);
@@ -502,26 +518,18 @@ namespace DemoCleaner3 {
             return demo;
         }
 
-
-        static TimeStringInfo getFastestTimeStringInfo(List<TimeStringInfo> timestrings, DemoNames names) {
-            TimeStringInfo fastestTimeString = null;
-            if (timestrings.Count == 1) {
-                fastestTimeString = timestrings.First();
-            } else if (timestrings.Count >= 1) {
-                var cuStrings = timestrings.Where(x => (!string.IsNullOrEmpty(x.oName) && (x.oName == names.dfName || x.oName == names.uName)));
-                if (cuStrings.Count() == 0) {
-                    var groups = timestrings.GroupBy(x => x.oName);
-                    if (groups.Count() == 1) {
-                        cuStrings = timestrings;
-                    }
-                }
-                if (cuStrings.Count() > 0) {
-                    fastestTimeString = Ext.MinOf(cuStrings, x => (long)x.time.TotalMilliseconds);
+        //check for tr without having correct triggers, by console commands and additionalInfos
+        static bool isTr(RawInfo raw, TimeStringInfo fastestTimeString) {
+            if (raw.clientEvents.Any(x => x.eventTimeReset)) return true;
+            var additional = raw.consoleComandsParser.additionalInfos;
+            if (fastestTimeString != null && additional.Count > 0) {
+                var same = raw.consoleComandsParser.additionalInfos.Where(x => x.time == fastestTimeString.time);
+                if (same.Count() > 0) {
+                    return same.First().isTr;
                 }
             }
-            return fastestTimeString;
+            return false;
         }
-
 
         //We are trying to get the name and country from the demo (the first occurrence of two round brackets)
         static string getNameAndCountry(string filename) {
@@ -532,10 +540,20 @@ namespace DemoCleaner3 {
             return "";
         }
 
+        //trying to keep custom validities like
+        //dfwc2014-5[df.vq3]00.36.904(uN-DeaD!Enter.Russia){old_map_version=true}.dm_68
+        static Pair? getValidities(string filename) {
+            var match = Regex.Match(filename, "^[^\\[]+\\[[^\\.\\]]+.[^\\]]+]\\d{2,3}\\.\\d{2}\\.\\d{3}\\(.+\\){(\\w+)=(\\w+)}(?:\\[\\d+\\])?\\.\\w+$");
+            if (match.Success && match.Groups.Count > 1) {
+                return new Pair(match.Groups[1].Value, match.Groups[2].Value);
+            }
+            return null;
+        }
+
         //We are trying to split name and country
         static Pair tryGetNameAndCountry(string partname, DemoNames names) {
             var country = "";
-            if (names != null && (partname == names.dfName || partname == names.uName || partname == names.oName)) {
+            if (names != null && (partname == names.dfName || partname == names.uName || partname == names.oName || partname == names.cName)) {
                 //name can contains dots so if username from parameters equals part in brackets, no country here
                 return new Pair(partname, country);
             }
@@ -748,9 +766,19 @@ namespace DemoCleaner3 {
         }
 
         //check demo for validity, commmands ordered by relevance. first is more important
-        static Dictionary<string, string> checkValidity(bool hasTime, bool hasRawTime, GameInfo gameInfo, bool isTas, bool triggerTimeNoFinish) {
+        static Dictionary<string, string> checkValidity(
+            bool hasTime,
+            bool hasRawTime,
+            GameInfo gameInfo,
+            bool isTas,
+            bool triggerTimeNoFinish,
+            Dictionary<string, string> additionalInfo
+            ) {
             Dictionary<string, string> invalidParams = new Dictionary<string, string>();
             var kGame = Ext.LowerKeys(gameInfo.parameters);
+            if (additionalInfo != null) {
+                kGame = Ext.Join(additionalInfo, kGame);
+            }
             if (!gameInfo.isFreeStyle) {
                 checkKey(invalidParams, kGame, "sv_cheats", 0);
             }

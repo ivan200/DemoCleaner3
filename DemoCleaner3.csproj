@@ -123,7 +123,7 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
-    <Compile Include="structures\TimeStringInfo.cs" />
+    <Compile Include="structures\ConsoleComandsParser.cs" />
     <EmbeddedResource Include="Forms\DemoInfoForm.resx">
       <DependentUpon>DemoInfoForm.cs</DependentUpon>
     </EmbeddedResource>

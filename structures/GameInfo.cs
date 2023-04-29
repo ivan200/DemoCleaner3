@@ -47,6 +47,19 @@ namespace DemoCleaner3.structures
                 var dfMode = Ext.GetOrZero(parameters, "defrag_mode");
                 return new Pair(dfMode.ToString(), getDfModText(dfMode));
             }
+            if (gameTypeShort == "fc") {
+                //the mod type is determined from the console line
+                int dfMode; 
+                var allWeap = Ext.GetOrNull(parameters, "all_weapons");
+                if (allWeap != null && Ext.ToInt(allWeap, -1) == 1) {
+                    //In defrag 1.80 was no defrag_mode param. So all demos has mapobjects, and "all_weapons" boolean param
+                    dfMode = 2;
+                } else {
+                    //without defrag_mode param, all other modes considered custom
+                    dfMode = 8;
+                }
+                return new Pair(dfMode.ToString(), getDfModText(dfMode));
+            }
             return new Pair("", "");
         }
 
@@ -175,8 +188,15 @@ namespace DemoCleaner3.structures
                         case 5: return new Pair("mdf", "Multiplayer Defrag");
                         case 6: return new Pair("mfs", "Multiplayer Freestyle");
                         case 7: return new Pair("mfc", "Multiplayer Fast Caps");
-                        default: return new Pair("df", "Offline Defrag");
                     }
+                    if (g_gametype == 4) {
+                        //In defrag 1.80 was no defrag_gametype param, but was fastcaps. Check fc like in baseq3
+                        //kineterra1[fc.vq3]00.28.312(-AIR-).dm_68
+                        //kiakrctf[fc.vq3]00.08.728(genosh).dm_68
+                        return new Pair("fc", "Offline Fast Caps");
+                    }
+                    return new Pair("df", "Offline Defrag");
+
                 case "cpma":
                     switch (g_gametype) {
                         case 5: return new Pair("ca", "Clan Arena");

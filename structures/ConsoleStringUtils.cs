@@ -61,7 +61,8 @@ namespace DemoCleaner3.structures {
         public static TimeSpan getTimeOfflineNormal(string demoTimeCmd) {
             //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
             //print "Time performed by ^2GottWarLorD^7 : ^335:752^7 (defrag 1.9)\n"
-            //print \"Time performed by Chell ^s: 00:54:184\n\"     //q3xp 2.1
+            //print \"Time performed by Chell ^s: 00:54:184\n\"         q3xp 2.1
+            //print \"^3Time Performed: 25:912 (defrag 1.5)\n^7\"     defrag 1.5
 
             //TODO проверить, что будет если в df_name будет со спецсимволами, например двоеточие, вопрос, кавычки
             demoTimeCmd = Regex.Replace(demoTimeCmd, "(\\^.|\\\"|\\n|\")", "");     //print Time performed  by uN-DeaD!Enter : 31:432 (v1.91.23 beta)
@@ -151,5 +152,76 @@ namespace DemoCleaner3.structures {
         public static string removeNonAscii(string text) {
             return string.IsNullOrEmpty(text) ? text : Regex.Replace(text, @"[^\u0020-\u007F]+", string.Empty);
         }
+
+
+        public static AdditionalTimeInfo parseAdditionalInfo(string text) {
+            //TimerStopped 15352 0\n                                                    //1.5 (beta 1)  y6deternityrun[df.vq3]00.04.392(Gambit.Australia).dm_68
+            //TimerStopped 53680 3 7208 14024 33512                                     //1.5           run_cheez4[df.vq3]00.53.680(N.M.N.finland).dm_68
+            //TimerStopped 2728  0                        Stats 4 1 120  60 0           //1.61          drj2[df.vq3]00.02.728(-P!RO-.Poland).dm_66
+            //TimerStopped 23344 4 3176 11280 16928 20120 Stats 8 1 120 125 1 8 1 1 0   //1.7           runrl[df.vq3]00.23.344(N.M.N.finland).dm_68
+            //TimerStopped 7200  0                        Stats 8 1 120 140 1 8 1 1 0   //1.80          pro-q3dm6[df.cpm]00.07.200(Viper.uk).dm_68
+            //TimerStopped 7600  2 1464 4016              Stats 8 1 120 125 0 8 1 1 0   //1.80          bra_run3[df.vq3]00.07.600(VipeR.russia).dm_68   //tr
+
+            //[0]     TimerStopped
+            //[1]     7200          time
+            //[2]     0             offset for next arguments
+            //[2]+3   Stats         if "Stats" continue
+            //[2]+4   8             settings like pmove_msec depend on it
+            //[2]+5   1             pmove_fixed
+            //[2]+6   120           sv_fps
+            //[2]+7   140           com_maxfps
+            //[2]+8   1             g_sync
+            //[2]+9   8             pmove_msec (if [[2] + 4] <= 4)
+            //[2]+10  1             All Weap.
+            //[2]+11  1             No Damage
+            //[2]+12  0             Enable PU
+
+
+            string[] parts = text.Split(' ');
+
+            var info = new AdditionalTimeInfo();
+            info.source = text;
+
+            var millis = ToInt(parts, 1, -1);
+            if (millis < 0) return info;
+            info.time = TimeSpan.FromMilliseconds((double)millis);
+
+            var partOffset = ToInt(parts, 2, -1);
+            if(partOffset < 0) return info;
+
+            if (partOffset > 0) {
+                for (int i = 0; i < partOffset; i++) {
+                    var cpMillis = ToInt(parts, 3 + i, -1);
+                    info.cpData.Add(TimeSpan.FromMilliseconds((double)cpMillis));
+                }
+            }
+
+            if (parts.Length <= partOffset + 3) return info;
+
+            var statsString = parts[partOffset + 3];
+            if (statsString != "Stats") return info;
+
+            info.pmove_depends      = ToInt(parts, partOffset + 4, -1);
+            info.pmove_fixed        = ToInt(parts, partOffset + 5, -1);
+            info.sv_fps             = ToInt(parts, partOffset + 6, -1);
+            info.com_maxfps         = ToInt(parts, partOffset + 7, -1);
+            info.g_sync             = ToInt(parts, partOffset + 8, -1);
+            if (info.pmove_depends <= 4) {
+                info.pmove_msec     = ToInt(parts, partOffset + 9, -1);
+            }
+            info.all_weapons         = ToInt(parts, partOffset + 10, -1);
+            info.no_damage          = ToInt(parts, partOffset + 11, -1);
+            info.enable_powerups    = ToInt(parts, partOffset + 12, -1);
+            return info;
+        }
+
+        public static int ToInt(string[] parts, int index, int defaultValue) {
+            if (index < parts.Length) {
+                return Ext.ToInt(parts[index], defaultValue);
+            } else {
+                return defaultValue;
+            }
+        }
+
     }
 }

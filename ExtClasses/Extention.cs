@@ -141,6 +141,14 @@ namespace DemoCleaner3 {
                 }
             }
         }
+
+        public static int ToInt(string inputString, int defaultValue) {
+            if (int.TryParse(inputString, out int result)) {
+                return result;
+            } else {
+                return defaultValue;
+            }
+        }
     }
 
     public static class Ext2<TKey, TValue> where TValue : new()

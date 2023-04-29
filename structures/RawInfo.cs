@@ -16,6 +16,7 @@ namespace DemoCleaner3.DemoParser.parser {
         public static string keyPlayerNum = "playerNum";
         public static string keyGameInfo = "gameInfo";
         public static string keyClient = "client";
+        public static string timeLine = "timer";
         public static string keyGame = "game";
         public static string keyRecord = "record";
         public static string keyTriggers = "triggers";
@@ -33,24 +34,13 @@ namespace DemoCleaner3.DemoParser.parser {
 
         public Dictionary<short, string> rawConfig;
 
-        public enum TimeType {
-            OFFLINE_NORMAL,
-            ONLINE_NORMAL,
-            OFFLINE_OLD1,
-            OFFLINE_OLD2,
-            OFFLINE_OLD3
-        }
         public enum FinishType {
             INCORRECT,
             CORRECT_START,
             CORRECT_TR
         }
 
-        public ListMap<TimeType, string> allTimes = new ListMap<TimeType, string>();
-        public List<TimeStringInfo> timeStrings = new List<TimeStringInfo>();
-
-        public List<string> dateStamps = new List<string>();
-        
+        public ConsoleComandsParser consoleComandsParser;
         public string demoPath;
         public ClientConnection clc;
         public List<ClientEvent> clientEvents = new List<ClientEvent>();
@@ -80,9 +70,7 @@ namespace DemoCleaner3.DemoParser.parser {
             this.fin = getCorrectFinishEvent();
             this.maxSpeed = client.maxSpeed;
             this.isCpmInSnapshots = client.isCpmInSnapshots;
-
-            fillTimes(clientConnection.console);
-            timeStrings = getTimeStrings();
+            this.consoleComandsParser = new ConsoleComandsParser(clientConnection.console);
 
             cpData = fillCpData(clientEvents, fin);
         }
@@ -130,22 +118,26 @@ namespace DemoCleaner3.DemoParser.parser {
             //console Times
             Dictionary<string, string> times = new Dictionary<string, string>();
             times.Add(keyDemoName, new FileInfo(demoPath).Name);
+
+            //console Date
+            if (consoleComandsParser.dateStrings.Count > 0) {
+                var date = consoleComandsParser.dateStrings.LastOrDefault(x => x.recordDate != null);
+                if (date != null) {
+                    times.Add(keyRecordDate, date.source);
+                }
+            }
+
+            //console Time
+            var timeStrings = consoleComandsParser.timeStrings;
             if (timeStrings.Count > 0) {
                 var strInfo = GetGoodTimeStringInfo();
                 if (strInfo != null) {
-                    if (!string.IsNullOrEmpty(strInfo.recordDateString)) {
-                        times.Add(keyRecordDate, strInfo.recordDateString);
-                    }
-                    times.Add(keyRecordTime, strInfo.timeString);
+                    times.Add(keyRecordTime, strInfo.source);
                 } else {
                     for (int i = 0; i < timeStrings.Count; i++) {
                         var timeInfo = timeStrings[i];
-                        if (!string.IsNullOrEmpty(timeInfo.recordDateString)) {
-                            string keyDate = timeStrings.Count > 1 ? keyRecordDate + " " + (i + 1) : keyRecordDate;
-                            times.Add(keyDate, timeInfo.recordDateString);
-                        }
                         string keyTime = timeStrings.Count > 1 ? keyRecordTime + " " + (i + 1) : keyRecordTime;
-                        times.Add(keyTime, timeInfo.timeString);
+                        times.Add(keyTime, timeInfo.source);
                     }
                 }
             }
@@ -269,6 +261,38 @@ namespace DemoCleaner3.DemoParser.parser {
                 friendlyInfo[keyTriggers].Add(keyFullDemoLength, fullDemoLengthString);
             }
 
+            //timer
+            Dictionary<string, string> addInfoDict = null;
+            if (consoleComandsParser.additionalInfos.Count > 0) {
+                //Доделать поиск нормального
+                var info = consoleComandsParser.additionalInfos.Last();
+                var lines = new Dictionary<string, string>();
+                lines.Add("Source", info.source);
+
+                string diff = "";
+                if (info.cpData.Count > 0) {
+                    int cpCount = 0;
+                    for (int i = 0; i < info.cpData.Count; i++) {
+                        var cpTime = (long)info.cpData[i].TotalMilliseconds;
+
+                        if (i > 0) {
+                            diff = getDiff(info.cpData[i - 1], info.cpData[i]);
+                        }
+
+                        lines.Add("CheckPoint" + getNumKey(++cpCount), getTimeByMillis(cpTime) + diff);
+                    }
+
+                    diff = getDiff(info.cpData[info.cpData.Count - 1], info.time);
+                }
+                lines.Add("FinishTimer", getTimeByMillis((long)info.time.TotalMilliseconds) + diff);
+
+                if (info.isTr) { lines.Add("timereset", "true"); }
+
+                addInfoDict = info.toDictionary();
+                lines = Ext.Join(lines, addInfoDict);
+                friendlyInfo.Add(timeLine, lines);
+            }
+
             if (rawConfig == null) {
                 return friendlyInfo;
             }
@@ -308,7 +332,7 @@ namespace DemoCleaner3.DemoParser.parser {
             }
 
             //Gametype
-            var parameters = Ext.Join(clInfo, gInfo);
+            var parameters = Ext.Join(clInfo, gInfo, addInfoDict);
             gameInfo = new GameInfo(parameters, isCpmInSnapshots);
             var gameInfoDict = new Dictionary<string, string>();
             if (parameters.Count > 0) {
@@ -368,6 +392,16 @@ namespace DemoCleaner3.DemoParser.parser {
             return friendlyInfo;
         }
 
+        string getDiff(TimeSpan prevTime, TimeSpan current) {
+            var prev = (long) prevTime.TotalMilliseconds;
+            var cur = (long) current.TotalMilliseconds;
+            var t = cur - prev;
+            if (t > 0) {
+                return string.Format(" (+{0})", getDiffByMillis((long)t));
+            }
+            return "";
+        }
+
         TimeStringInfo GetGoodTimeStringInfo() {
             long time = 0;
             if (fin.HasValue) {
@@ -375,28 +409,7 @@ namespace DemoCleaner3.DemoParser.parser {
             }
             var tmpNames = new DemoNames();
             tmpNames.setNamesByPlayerInfo(kPlayer);
-
-            if (time > 0) {
-                for (int i = 0; i < timeStrings.Count; i++) {
-                    if (!string.IsNullOrEmpty(timeStrings[i].oName)) {
-                        var sameName = (timeStrings[i].oName == tmpNames.uName || timeStrings[i].oName == tmpNames.dfName);
-                        if (timeStrings[i].time.TotalMilliseconds == time && sameName) {
-                            return timeStrings[i];
-                        }
-                    } else {
-                        if (timeStrings[i].time.TotalMilliseconds == time) {
-                            return timeStrings[i];
-                        }
-                    }
-                }
-            } else {
-                var userStrings = timeStrings.Where(x => !string.IsNullOrEmpty(x.oName)
-                    && (x.oName == tmpNames.uName || x.oName == tmpNames.dfName)).ToList();
-                if (userStrings.Count > 0) {
-                    return Ext.MinOf(userStrings, x => (long)x.time.TotalMilliseconds);
-                }
-            }
-            return null;
+            return consoleComandsParser.getGoodTimeStringInfo(tmpNames, time);
         }
 
 
@@ -567,85 +580,6 @@ namespace DemoCleaner3.DemoParser.parser {
                 }
             }
             return new List<long>();
-        }
-
-
-        private void fillTimes(Dictionary<long, string> consoleCommands) {
-            foreach (var kv in consoleCommands) {
-                var value = kv.Value;
-                if (value.StartsWith("print")) {
-
-                    //print "Date: 10-25-14 02:43\n"
-                    if (value.StartsWith("print \"Date:")) {
-                        dateStamps.Add(value);
-                    }
-
-                    //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
-                    else if (value.StartsWith("print \"Time performed by")) {
-                        allTimes.Add(TimeType.OFFLINE_NORMAL, value);   //defrag 1.9+
-                    }
-
-                    //"print \"^3Time Performed: 25:912 (defrag 1.5)\n^7\""
-                    else if (value.StartsWith("print \"^3Time Performed:")) {
-                        allTimes.Add(TimeType.OFFLINE_OLD2, value);     //defrag 1.5
-                    }
-
-                    //print \"Rom^7 reached the finish line in ^23:38:208^7\n\"
-                    else if (value.Contains("reached the finish line in")) {
-                        allTimes.Add(TimeType.ONLINE_NORMAL, value);
-                    }
-
-                } else if (value.StartsWith("NewTime")) {
-                    //"NewTime -971299442 7:200 \"defrag 1.80\" \"Viper\" route ya->->rg"
-                    allTimes.Add(TimeType.OFFLINE_OLD1, value);     //defrag 1.80
-                } else if (value.StartsWith("newTime")) {
-                    //newTime 47080
-                    allTimes.Add(TimeType.OFFLINE_OLD3, value);     //defrag 1.42
-                }
-            }
-        }
-
-        private List<TimeStringInfo> getTimeStrings() {
-            List<TimeStringInfo> infos = new List<TimeStringInfo>();
-            if (allTimes.Count > 0) {
-                for (int i = 0; i < allTimes.Count; i++) {
-                    var demoTimeCmd = allTimes[i];
-                    TimeSpan time = new TimeSpan();
-                    string oName = "";  //online or offline name derived from a line in the console
-
-                    switch (demoTimeCmd.Key) {
-                        case TimeType.OFFLINE_NORMAL:
-                            time = ConsoleStringUtils.getTimeOfflineNormal(demoTimeCmd.Value);
-                            oName = ConsoleStringUtils.getNameOffline(demoTimeCmd.Value);
-                            break;
-                        case TimeType.ONLINE_NORMAL:
-                            time = ConsoleStringUtils.getTimeOnline(demoTimeCmd.Value);
-                            oName = ConsoleStringUtils.getNameOnline(demoTimeCmd.Value);
-                            break;
-                        case TimeType.OFFLINE_OLD1:
-                            time = ConsoleStringUtils.getTimeOld1(demoTimeCmd.Value);
-                            oName = ConsoleStringUtils.getNameOfflineOld1(demoTimeCmd.Value);
-                            break;
-                        case TimeType.OFFLINE_OLD2:
-                            time = ConsoleStringUtils.getTimeOfflineNormal(demoTimeCmd.Value);
-                            break;
-                        case TimeType.OFFLINE_OLD3:
-                            time = ConsoleStringUtils.getTimeOld3(demoTimeCmd.Value);
-                            break;
-                    }
-
-                    var info = new TimeStringInfo();
-                    info.time = time;
-                    info.oName = oName;
-                    info.timeString = demoTimeCmd.Value;
-                    if (i < dateStamps.Count) {
-                        info.recordDateString = dateStamps[i];
-                        info.recordDate = ConsoleStringUtils.getDateForDemo(dateStamps[i]);
-                    }
-                    infos.Add(info);
-                }
-            }
-            return infos;
         }
     }
 }
