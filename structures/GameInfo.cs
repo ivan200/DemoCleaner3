@@ -48,15 +48,15 @@ namespace DemoCleaner3.structures
                 return new Pair(dfMode.ToString(), getDfModText(dfMode));
             }
             if (gameTypeShort == "fc") {
-                //the mod type is determined from the console line
-                int dfMode; 
-                var allWeap = Ext.GetOrNull(parameters, "all_weapons");
-                if (allWeap != null && Ext.ToInt(allWeap, -1) == 1) {
-                    //In defrag 1.80 was no defrag_mode param. So all demos has mapobjects, and "all_weapons" boolean param
-                    dfMode = 2;
-                } else {
-                    //without defrag_mode param, all other modes considered custom
-                    dfMode = 8;
+                int dfMode;
+                //In defrag 1.80 was no defrag_mode param. Convert "all_weapons" into "defrag_mode" param
+                var allWeapMode = Ext.ToInt(Ext.GetOrNull(parameters, "all_weapons"), -1);
+                switch (allWeapMode) {
+                    case 0: dfMode = 7; break;  //all_weapons 0 = Pickup            = Game Mode 7 (Original Quake 3)
+                    case 1: dfMode = 2; break;  //all_weapons 1 = Give All, No BFG  = Game Mode 2 (weapons, map objects)
+                    case 2: dfMode = 8; break;  //all_weapons 2 = Give All          = Game Mode 8 (Custom)
+                    case 3: dfMode = 3; break;  //all_weapons 3 = No weapons        = Game Mode 3 (no weapon, map objects)
+                    default: dfMode = 8; break; //all other modes considered custom
                 }
                 return new Pair(dfMode.ToString(), getDfModText(dfMode));
             }

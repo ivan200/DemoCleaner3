@@ -97,7 +97,9 @@ namespace DemoCleaner3.DemoParser.parser {
             }
             if (kPlayer == null && clientEvents.Count > 0) {
                 //if spectator view player and there was no finish
-                var lastEvent = clientEvents.LastOrDefault();
+                var lastEvent = clientEvents.LastOrDefault(x => x.eventFinish);
+                if (lastEvent == null) lastEvent = clientEvents.LastOrDefault(x => x.eventStartTime);
+                if (lastEvent == null) lastEvent = clientEvents.LastOrDefault();
                 if (lastEvent != null) {
                     playerNum = lastEvent.playerNum;
                     kPlayer = getPlayerInfoByPlayerNum(playerNum);

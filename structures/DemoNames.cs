@@ -15,6 +15,7 @@ namespace DemoCleaner3.structures
         public string dfName = null;        //name in params - df_name
         public string uName = null;         //name in the game
         public string oName = null;         //name from console line - online name
+        public string lName = null;         //name from console line - login for q3df
         public string cName = null;         //name from console line - offline name, was used before df_name was added
         public string fName = null;         //name from the filename
 
@@ -25,9 +26,10 @@ namespace DemoCleaner3.structures
             }
         }
 
-        public void setConsoleName(string onlineName, bool isOnline) {
+        public void setConsoleName(string onlineName, string loginName, bool isOnline) {
             if (isOnline) {
                 oName = normalizeName(ConsoleStringUtils.removeColors(onlineName));
+                lName = normalizeName(ConsoleStringUtils.removeColors(loginName));
             } else {
                 cName = normalizeName(ConsoleStringUtils.removeColors(onlineName));
             }
@@ -38,7 +40,7 @@ namespace DemoCleaner3.structures
         }
 
         public string chooseNormalName() {
-            return chooseName(dfName, cName, uName, oName, fName); 
+            return chooseName(dfName, cName, uName, oName, lName, fName);
         }
 
         //selection of the first non-empty string from parameters

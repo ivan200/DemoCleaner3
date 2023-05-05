@@ -12,36 +12,45 @@ namespace DemoCleaner3.structures {
             return DemoNames.normalizeName(name);
         }
 
-        public static string getNameQ3df(string demoTimeCmd) {
-            if (!demoTimeCmd.Contains("broke the server record") && !demoTimeCmd.Contains("you are now rank")) {
-                return null;
-            }
+        public struct Q3DFResult {
+            public string name;
+            public string q3dfName;
+            public TimeSpan time;
+        }
+        public static Q3DFResult? getNameQ3df(string demoTimeCmd) {
             //chat "^7^0!^2nv^3sbi^7vp^0}^4-^3w^1-^3(^7^7u^0N^4*^0D^7ea^0D^1|^0w^700^0d^7y^4-^3)^2 broke the server record with ^32:336 ^0[^2-0:048"
             demoTimeCmd = removeNonAscii(demoTimeCmd);
             demoTimeCmd = removeColors(demoTimeCmd);
             //chat "!nvsbivp}-w-(uN*DeaD|w00dy-) broke the server record with 2:336 [-0:048"
             var match = Regex.Match(demoTimeCmd, "chat \"(.+)\\((.+)\\) broke the server record with (.+) \\[.*");
-            if (match.Success && match.Groups.Count > 0) {
-                var name = match.Groups[1].Value;
-                var q3dfName = match.Groups[2].Value;
-                var time = match.Groups[3].Value;
-                return DemoNames.normalizeName(name);
+            if (!match.Success) {
+                //chat "^7^1E^3nter^3(^7^1E^3nter^3)^2, you are now rank ^32 ^2of ^35 ^2with ^317:896 ^0[^1+0:032^0]^7"
+                //chat "Enter(Enter), you are now rank 2 of 5 with 17:896 [+0:032]"
+                match = Regex.Match(demoTimeCmd, "chat \"(.+)\\((.+)\\), you are now rank .+ of .+ with (.+) \\[.*");
             }
-
-            //chat "^7^1E^3nter^3(^7^1E^3nter^3)^2, you are now rank ^32 ^2of ^35 ^2with ^317:896 ^0[^1+0:032^0]^7"
-            //chat "Enter(Enter), you are now rank 2 of 5 with 17:896 [+0:032]"
-            match = Regex.Match(demoTimeCmd, "chat \"(.+)\\((.+)\\), you are now rank .+ of .+ with (.+) \\[.*");
-            if (match.Success && match.Groups.Count > 0) {
-                var name = match.Groups[1].Value;
-                return DemoNames.normalizeName(name);
+            if (!match.Success) {
+                //chat "^7B^21^7ade^3(^7B^21^7ade^3)^2 equalled the server record with ^30:008^2!!!^7"
+                //chat "B1ade(B1ade) equalled the server record with 0:008!!!"
+                match = Regex.Match(demoTimeCmd, "chat \"(.+)\\((.+)\\) equalled the server record with (.+)!!!.*");
             }
-
-            //chat "^7B^21^7ade^3(^7B^21^7ade^3)^2 equalled the server record with ^30:008^2!!!^7"
-            //chat "B1ade(B1ade) equalled the server record with 0:008!!!"
-            match = Regex.Match(demoTimeCmd, "chat \"(.+)\\((.+)\\), you are now rank .+ of .+ with (.+) \\[.*");
-            if (match.Success && match.Groups.Count > 0) {
-                var name = match.Groups[1].Value;
-                return DemoNames.normalizeName(name);
+            if (match.Success) {
+                return new Q3DFResult {
+                    name = DemoNames.normalizeName(match.Groups[1].Value),
+                    q3dfName = DemoNames.normalizeName(match.Groups[2].Value),
+                    time = getTimeSpan(match.Groups[3].Value)
+                };
+            }
+            if (!match.Success) {
+                //run@@@[mdf.cpm.tr]00.16.112(nebuLa.USA).dm_68
+                //chat "console: ^5[2337]n^2 is now rank ^38 ^2of ^3270 ^2with ^316:112 ^2(^1+1:344 ^2-160)"
+                //chat "console: [2337]n is now rank 8 of 270 with 16:112 (+1:344 -160)"
+                match = Regex.Match(demoTimeCmd, "chat \"console: (.+) is now rank.+with(.+) \\(.+ ");
+            }
+            if (match.Success) {
+                return new Q3DFResult {
+                    name = DemoNames.normalizeName(match.Groups[1].Value),
+                    time = getTimeSpan(match.Groups[3].Value)
+                };
             }
             return null;
         }

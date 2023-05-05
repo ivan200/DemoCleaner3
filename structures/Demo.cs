@@ -395,7 +395,9 @@ namespace DemoCleaner3 {
             } else {
                 demo.hasTr = isTr(raw, fastestTimeString);
             }
-            if (raw.clientEvents.Any(x => x.eventStartTime || x.eventTimeReset) && !raw.clientEvents.Any(x => x.eventFinish)) {
+
+            var lastStart = raw.clientEvents.LastOrDefault(x => x.eventStartTime || x.eventTimeReset);
+            if (lastStart != null && !raw.clientEvents.Any(x => x.eventFinish)) {
                 demo.triggerTimeNoFinish = true;
             }
 
@@ -406,7 +408,6 @@ namespace DemoCleaner3 {
                     if (raw.consoleComandsParser.dateStrings.Count > 0) {
                         demo.recordTime = raw.consoleComandsParser.dateStrings.Last().recordDate;
                     }
-
                     var user = raw.getPlayerInfoByPlayerName(fastestTimeString.oName);
                     if (user != null) {
                         names.setNamesByPlayerInfo(user);
@@ -424,7 +425,7 @@ namespace DemoCleaner3 {
             }
 
             if (fastestTimeString != null) {
-                names.setConsoleName(fastestTimeString.oName, raw.gameInfo.isOnline);
+                names.setConsoleName(fastestTimeString.oName, fastestTimeString.lName, raw.gameInfo.isOnline);
             }
 
             var filename = demo.normalizedFileName;

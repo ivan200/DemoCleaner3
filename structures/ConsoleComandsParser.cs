@@ -10,6 +10,7 @@ namespace DemoCleaner3.structures {
         public string source;               //source string
         public TimeSpan time;               //time
         public string oName;                //online username
+        public string lName;                //online q3df login
     }
 
     public class DateStringInfo {
@@ -79,6 +80,19 @@ namespace DemoCleaner3.structures {
                         time = ConsoleStringUtils.getTimeOnline(value),
                         oName = ConsoleStringUtils.getNameOnline(value)
                     });
+                } else if (value.Contains("broke the server record") || value.Contains("you are now rank") || value.Contains("equalled the server record with")) {
+                    //chat "^7^3blastoise^3(^7^4DF^7/^4/^7/ Mr. 10003^3)^2 broke the server record with ^348:496 ^0[^2-1:496^0] ^2!!!^7"
+                    //chat "^7^1E^3nter^3(^7^1E^3nter^3)^2, you are now rank ^32 ^2of ^35 ^2with ^317:896 ^0[^1+0:032^0]^7"
+                    //chat "^7B^21^7ade^3(^7B^21^7ade^3)^2 equalled the server record with ^30:008^2!!!^7"
+                    var result = ConsoleStringUtils.getNameQ3df(value);
+                    if (result.HasValue) {
+                        timeStrings.Add(new TimeStringInfo() {
+                            source = value,
+                            time = result.Value.time,
+                            oName = result.Value.name,
+                            lName = result.Value.q3dfName
+                        });
+                    }
                 } else if (value.StartsWith("print \"Time performed by")) {
                     //defrag 1.9+
                     //print "Time performed by ^2uN-DeaD!Enter^7 : ^331:432^7 (v1.91.23 beta)\n"
@@ -129,6 +143,7 @@ namespace DemoCleaner3.structures {
             }
         }
 
+        //get fastest time strings for specified player by his name
         public TimeStringInfo getFastestTimeStringInfo(DemoNames names) {
             TimeStringInfo fastestTimeString = null;
             if (timeStrings.Count == 0 && additionalInfos.Count > 0) {
@@ -149,6 +164,17 @@ namespace DemoCleaner3.structures {
                 }
                 if (cuStrings.Count() > 0) {
                     fastestTimeString = Ext.MinOf(cuStrings, x => (long)x.time.TotalMilliseconds);
+                    var fastestList = cuStrings.Where(x => x.time == fastestTimeString.time);
+                    if (fastestList.Count() > 1) {
+                        var fastWithLogin = fastestList.FirstOrDefault(x => x.lName != null);
+                        if (fastWithLogin != null) {
+                            return fastWithLogin;
+                        } else {
+                            return fastestTimeString;
+                        }
+                    } else {
+                        return fastestTimeString;
+                    }
                 }
             }
             return fastestTimeString;
