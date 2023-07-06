@@ -62,10 +62,10 @@ namespace DemoCleaner3.structures {
         public List<AdditionalTimeInfo> additionalInfos = new List<AdditionalTimeInfo>();
 
 
-        public ConsoleComandsParser(Dictionary<long, string> consoleCommands) {
+        public ConsoleComandsParser(Dictionary<long, KeyValuePair<long, string>> consoleCommands) {
             var timerStartedCount = 0;
             foreach (var kv in consoleCommands) {
-                var value = kv.Value;
+                var value = kv.Value.Value;
 
                 //print "Date: 10-25-14 02:43\n"
                 if (value.StartsWith("print \"Date:")) {

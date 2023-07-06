@@ -778,7 +778,7 @@ namespace DemoCleaner3 {
             Dictionary<string, string> invalidParams = new Dictionary<string, string>();
             var kGame = Ext.LowerKeys(gameInfo.parameters);
             if (additionalInfo != null) {
-                kGame = Ext.Join(additionalInfo, kGame);
+                kGame = Ext.JoinLowercased(additionalInfo, kGame);
             }
             if (!gameInfo.isFreeStyle) {
                 checkKey(invalidParams, kGame, "sv_cheats", 0);

@@ -40,6 +40,7 @@ namespace DemoCleaner3.DemoParser.structures
         public int playerNum;
         public int playerMode;
         public int userStat;
+        public int speed = 0;
 
         public long timeNoError {
             get {

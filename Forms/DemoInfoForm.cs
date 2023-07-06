@@ -41,7 +41,7 @@ namespace DemoCleaner3
 
                 fileHelper = new FileHelper();
             } catch (Exception ex) {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(Ext.getExMessage(ex), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

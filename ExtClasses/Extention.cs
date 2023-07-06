@@ -52,6 +52,18 @@ namespace DemoCleaner3 {
             return nDict;
         }
 
+        public static Dictionary<string, string> JoinLowercased(params Dictionary<string, string>[] dicts) {
+            var nDict = new Dictionary<string, string>();
+            foreach (var dict in dicts) {
+                if (dict != null) {
+                    foreach (var item in dict) {
+                        nDict[item.Key.ToLowerInvariant()] = item.Value;
+                    }
+                }
+            }
+            return nDict;
+        }
+
         public static bool ContainsAny(String data, params String[] values) {
             foreach (var item in values) {
                 if (data.Contains(item)) {
@@ -128,7 +140,7 @@ namespace DemoCleaner3 {
         public static Dictionary<string, V> LowerKeys<V>(Dictionary<string, V> dictionary) {
             Dictionary<string, V> rez = new Dictionary<string, V>();
             foreach (var item in dictionary) {
-                rez.Add(item.Key.ToLowerInvariant(), item.Value);
+                rez[item.Key.ToLowerInvariant()] = item.Value;
             }
             return rez;
         }
@@ -149,10 +161,18 @@ namespace DemoCleaner3 {
                 return defaultValue;
             }
         }
+
+        public static string getExMessage(Exception ex) {
+        #if DEBUG
+            return ex.Message + "\n" + ex.StackTrace;
+        #else
+            return ex.Message;
+        #endif
+        }
+
     }
 
-    public static class Ext2<TKey, TValue> where TValue : new()
-    {
+    public static class Ext2<TKey, TValue> where TValue : new() {
         public static TValue GetOrCreate(Dictionary<TKey, TValue> dictionary, TKey key)
         {
             if (!dictionary.ContainsKey(key)) {

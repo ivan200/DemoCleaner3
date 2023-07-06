@@ -12,9 +12,11 @@ namespace DemoCleaner3.DemoParser.parser
     {
         public ClientConnection clc = new ClientConnection();
         public ClientState client = new ClientState();
+        long serverTime = 0;
 
         public bool parse(Q3DemoMessage message)
         {
+            serverTime = 0;
             clc.serverMessageSequence = message.sequence;
             Q3HuffmanReader reader = new Q3HuffmanReader(message.data);
             reader.readLong();
@@ -49,7 +51,7 @@ namespace DemoCleaner3.DemoParser.parser
             var key = reader.readLong();
             var value = reader.readString();
 
-            clc.console[key] = value;
+            clc.console[key] = new KeyValuePair<long, string>(serverTime, value);
         }
 
         private void parseGameState(Q3HuffmanReader reader)
@@ -123,6 +125,7 @@ namespace DemoCleaner3.DemoParser.parser
             newSnap.serverCommandNum = clc.serverCommandSequence;
             newSnap.serverTime = decoder.readLong();
             newSnap.messageNum = clc.serverMessageSequence;
+            serverTime = newSnap.serverTime;
 
             int deltaNum = decoder.readByte();
             if (deltaNum == 0) {
@@ -282,17 +285,18 @@ namespace DemoCleaner3.DemoParser.parser
                 }
             }
 
+            var x = Math.Abs(snapshot.ps.velocity[0]);
+            var y = Math.Abs(snapshot.ps.velocity[1]);
+            var speed = Math.Sqrt(x * x + y * y);
+            clientEvent.speed = (int)speed;
+            if (speed > client.maxSpeed) {
+                client.maxSpeed = (int)speed;
+            }
+
             if (clientEvent.hasAnyEvent) {
                 events.Add(clientEvent);
             }
             client.lastClientEvent = clientEvent;
-
-            var x = Math.Abs(snapshot.ps.velocity[0]);
-            var y = Math.Abs(snapshot.ps.velocity[1]);
-            var speed = Math.Sqrt(x * x + y * y);
-            if (speed > client.maxSpeed) {
-                client.maxSpeed = (int)speed;
-            }
 
             if (client.clientConfig != null && client.isCpmInParams == null) {
                 var promode = Ext.GetOrZero(client.clientConfig, "df_promode");

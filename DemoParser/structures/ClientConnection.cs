@@ -28,7 +28,7 @@ namespace DemoCleaner3.DemoParser.structures
         public int serverCommandSequence;
         public int lastExecutedServerCommand;              // last server command grabbed or executed with CL_GetServerCommand
 
-        public Dictionary<long, string> console = new Dictionary<long, string>();
+        public Dictionary<long, KeyValuePair<long, string>> console = new Dictionary<long, KeyValuePair<long, string>>();
         public Dictionary<short, string> configs = new Dictionary<short, string>();
         public Dictionary<string, string> errors = new Dictionary<string, string>();
 

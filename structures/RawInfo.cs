@@ -334,7 +334,7 @@ namespace DemoCleaner3.DemoParser.parser {
             }
 
             //Gametype
-            var parameters = Ext.Join(clInfo, gInfo, addInfoDict);
+            var parameters = Ext.JoinLowercased(clInfo, gInfo, addInfoDict);
             gameInfo = new GameInfo(parameters, isCpmInSnapshots);
             var gameInfoDict = new Dictionary<string, string>();
             if (parameters.Count > 0) {
@@ -375,7 +375,7 @@ namespace DemoCleaner3.DemoParser.parser {
             if (clc.console.Count > 0) {
                 Dictionary<string, string> conTexts = new Dictionary<string, string>();
                 foreach(var kv in clc.console) {
-                    var asciiText = ConsoleStringUtils.removeNonAscii(kv.Value.ToString());
+                    var asciiText = ConsoleStringUtils.removeNonAscii(kv.Value.Value.ToString());
                     conTexts.Add(kv.Key.ToString(), asciiText);
                 }
                 friendlyInfo.Add(keyConsole, conTexts);
@@ -541,7 +541,11 @@ namespace DemoCleaner3.DemoParser.parser {
                     return FinishType.CORRECT_TR;
                 }
                 if (prev.eventStartTime) {
-                    return FinishType.CORRECT_START;
+                    if ((i > 0 && clientEvents[0].timeHasError == false) || hasStartBefore(clientEvents, i)) {
+                        return FinishType.CORRECT_TR;
+                    } else {
+                        return FinishType.CORRECT_START;
+                    }
                 }
                 //it is possible to start file in one frame with start timer, so check for start file is after
                 //if change user and start timer was in one frame, so demo is normal
@@ -550,6 +554,19 @@ namespace DemoCleaner3.DemoParser.parser {
                 }
             }
             return FinishType.INCORRECT;
+        }
+
+        //nrjt[df.vq3.tr]00.01.152(FarshMaker.Russia).dm_68
+        //StartTimer	Player: ^1Farsh^4Maker^0
+        //StartTimer 2	Player: ^1Farsh^4Maker^0 (+2.512)
+        //FinishTimer	00.01.152 (+1.152)
+        private static bool hasStartBefore(List<ClientEvent> clientEvents, int index) {
+            for (int i = index - 1; i >= 0; i--) {
+                var prev = clientEvents[i];
+                if (prev.eventChangePmType || prev.eventChangeUser) return false;
+                if (prev.eventStartTime || prev.eventTimeReset) return true;
+            }
+            return false;
         }
 
         /// <summary> Filling checkpoints data and return list of millseconds between every checkpoint in run</summary>
