@@ -541,7 +541,7 @@ namespace DemoCleaner3.DemoParser.parser {
                     return FinishType.CORRECT_TR;
                 }
                 if (prev.eventStartTime) {
-                    if ((i > 0 && clientEvents[0].timeHasError == false) || hasStartBefore(clientEvents, i)) {
+                    if (hasStartBefore(clientEvents, i)) {
                         return FinishType.CORRECT_TR;
                     } else {
                         return FinishType.CORRECT_START;

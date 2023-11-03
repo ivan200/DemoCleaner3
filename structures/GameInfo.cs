@@ -58,7 +58,7 @@ namespace DemoCleaner3.structures
                     case 3: dfMode = 3; break;  //all_weapons 3 = No weapons        = Game Mode 3 (no weapon, map objects)
                     default: dfMode = 8; break; //all other modes considered custom
                 }
-                return new Pair(dfMode.ToString(), getDfModText(dfMode));
+                return new Pair(dfMode.ToString(), getOldDfModText(allWeapMode));
             }
             return new Pair("", "");
         }
@@ -76,6 +76,16 @@ namespace DemoCleaner3.structures
                 case 8: return "Custom";
             }
             return "";
+        }
+
+        static string getOldDfModText(int dfMode) {
+            switch (dfMode) {
+                case 0: return "Pickup";
+                case 1: return "Give All, No BFG";
+                case 2: return "Give All";
+                case 3: return "No weapons";
+                default: return "Custom";
+            }
         }
 
         Pair getGameName() {
