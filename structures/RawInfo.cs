@@ -152,6 +152,21 @@ namespace DemoCleaner3.DemoParser.parser {
             if (maxSpeed > 0) {
                 times.Add(keyMaxSpeed, maxSpeed.ToString());
             }
+            if (fin.HasValue) {
+                var finTime = fin.Value.Value.timeNoError;
+                if (timeStrings.Count > 0) {
+                    var loginTimes = timeStrings.FindAll(p => p.lName != null && finTime == (long)p.time.TotalMilliseconds);
+                    var loginTime = loginTimes.FirstOrDefault();
+                    if(loginTimes.Count > 1) {
+                        var user = getPlayerInfoByPlayerNum(fin.Value.Value.playerNum);
+                        var userName = user == null ? null : Ext.GetOrNull(user, "name");
+                        loginTime = loginTimes.Find(u => u.oName == userName);
+                    }
+                    if (loginTime != null && loginTime.lName != null) {
+                        times.Add("q3dfLogin", loginTime.lNameColored != null ? loginTime.lNameColored : loginTime.lName);
+                    }
+                }
+            }
 
             friendlyInfo.Add(keyRecord, times);
 

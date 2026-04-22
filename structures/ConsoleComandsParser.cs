@@ -11,6 +11,7 @@ namespace DemoCleaner3.structures {
         public TimeSpan time;               //time
         public string oName;                //online username
         public string lName;                //online q3df login
+        public string lNameColored;         //online q3df login colored (with ^ colors)
     }
 
     public class DateStringInfo {
@@ -80,17 +81,26 @@ namespace DemoCleaner3.structures {
                         time = ConsoleStringUtils.getTimeOnline(value),
                         oName = ConsoleStringUtils.getNameOnline(value)
                     });
-                } else if (value.Contains("broke the server record") || value.Contains("you are now rank") || value.Contains("equalled the server record with")) {
+                } else if (
+                    value.Contains("broke the server record") 
+                    || value.Contains("you are now rank") 
+                    || value.Contains("equalled the server record with")
+                    || value.Contains("is now rank")
+                    || value.Contains("set the first record")
+                    ) {
                     //chat "^7^3blastoise^3(^7^4DF^7/^4/^7/ Mr. 10003^3)^2 broke the server record with ^348:496 ^0[^2-1:496^0] ^2!!!^7"
                     //chat "^7^1E^3nter^3(^7^1E^3nter^3)^2, you are now rank ^32 ^2of ^35 ^2with ^317:896 ^0[^1+0:032^0]^7"
                     //chat "^7B^21^7ade^3(^7B^21^7ade^3)^2 equalled the server record with ^30:008^2!!!^7"
+                    //chat "console: ^5[2337]n^2 is now rank ^38 ^2of ^3270 ^2with ^316:112 ^2(^1+1:344 ^2-160)"
+                    //chat "console: ^5bert^2 broke the server record with ^322:432!! ^2(-1:312)"
                     var result = ConsoleStringUtils.getNameQ3df(value);
                     if (result.HasValue) {
                         timeStrings.Add(new TimeStringInfo() {
                             source = value,
                             time = result.Value.time,
                             oName = result.Value.name,
-                            lName = result.Value.q3dfName
+                            lName = result.Value.q3dfName,
+                            lNameColored = result.Value.q3dfNameColored
                         });
                     }
                 } else if (value.StartsWith("print \"Time performed by")) {

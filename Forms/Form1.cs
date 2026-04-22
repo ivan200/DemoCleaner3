@@ -207,8 +207,8 @@ namespace DemoCleaner3
                     "\nа остальные удалить или переместить в определённую папку.");
                 toolTip1.SetToolTip(linkLabelInfoMover,
                     "В данном разделе можно произвести распределение всех демок по подкаталогам." +
-                    "\nЭто требуется потому что Quake 3 не умеет отображать большок количество файлов" +
-                    "\nв каталоге с демками, обрезая их отображение. Плюс при их большом количестве" +
+                    "\nЭто требуется потому что Quake 3 не умеет отображать большое количество файлов" +
+                    "\nв каталоге с демками, обрезая их отображение. Плюс, при их большом количестве," +
                     "\nухудшается поиск определённого файла." +
                     "\nКаталоги будут именоваться на начальную букву карты (например a\\ark3...)," +
                     "\nа при превышении количества демок в таком каталоге," +
@@ -1242,10 +1242,10 @@ namespace DemoCleaner3
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
             MessageBox.Show("Made by Enter"
-                + "\nusing MS Visual Studio 2017"
+                + "\nusing MS Visual Studio 2026"
                 + "\nmail: 79067180651@ya.ru"
-                + "\nskype: Ivan.1010"
-                + "\ndiscord: Enter#4725",
+                + "\ndiscord: Enter#4725"
+                + "\nGitHub: ivan200",
                 "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
